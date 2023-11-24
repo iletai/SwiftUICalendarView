@@ -5,141 +5,92 @@ import Foundation
 import SwiftUI
 import SwiftUICommon
 
-extension DateFormatter {
-    static let monthAndYear: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.setLocalizedDateFormatFromTemplate("MMMM yyyy")
-        return formatter
-    }()
-
-    static var day: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "d"
-        return formatter
+extension CalendarView: Equatable {
+    public static func == (
+        lhs: CalendarView<DateView, HeaderView, TitleView, DateOutView>,
+        rhs: CalendarView<DateView, HeaderView, TitleView, DateOutView>
+    ) -> Bool {
+        lhs.calendar == rhs.calendar && lhs.date == rhs.date
     }
 
-    static var weekDay: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "EEEEE"
-        return formatter
-    }
 }
 
-public struct CalendarView<DateView>: View where DateView: View {
-    public let interval: DateInterval
-    public var showHeaders = false
-    public let onHeaderAppear: (Date) -> Void
-    public let dateViewBuilder: (Date) -> DateView
-    public var calendarLayout = Layout.vertical
-    @Environment(\.sizeCategory) private var contentSize
-    public var calendar = Calendar.current
-    @State private var months = [Date]()
-    @State private var days = [Date: [Date]]()
+public struct CalendarView<DateView: View, HeaderView: View, TitleView: View, DateOutView: View>:
+    View
+{
+    @State var date: Date = Date()
+    let kWeekDefine = 7
+    let interval: DateInterval
+    var showHeaders = false
+    // MARK: - View Builder
+    var onHeaderAppear: (Date) -> Void
+    let dateView: (Date) -> DateView
+    let headerView: (Date) -> HeaderView
+    let titleView: (Date) -> TitleView
+    let dateOutView: (Date) -> DateOutView
 
-    private var columns: [GridItem] {
-        let spacing: CGFloat = contentSize.isAccessibilityCategory ? 2 : 8
-        return Array(repeating: GridItem(spacing: spacing), count: 7)
-    }
+    var calendarLayout = Layout.vertical
+    var calendar: Calendar = .current
+    @State var months = [Date]()
+    @State var days = [Date: [Date]]()
+    var weekDays = [Date]()
+    var columns = Array(repeating: GridItem(), count: 7)
 
     public init(
         interval: DateInterval,
-        showHeaders: Bool = false,
+        showHeaders: Bool = true,
         onHeaderAppear: @escaping (Date) -> Void,
-        dateViewBuilder: @escaping (Date) -> DateView,
-        calendarLayout: Layout = Layout.vertical,
-        calendar: Foundation.Calendar = Calendar.current
+        @ViewBuilder dateView: @escaping (Date) -> DateView,
+        @ViewBuilder headerView: @escaping (Date) -> HeaderView,
+        @ViewBuilder titleView: @escaping (Date) -> TitleView,
+        @ViewBuilder dateOutView: @escaping (Date) -> DateOutView,
+        calendarLayout: CalendarView.Layout = CalendarView.Layout.vertical,
+        calendar: Calendar = Calendar.current
     ) {
         self.interval = interval
         self.showHeaders = showHeaders
         self.onHeaderAppear = onHeaderAppear
-        self.dateViewBuilder = dateViewBuilder
+        self.dateView = dateView
         self.calendarLayout = calendarLayout
         self.calendar = calendar
+        self.headerView = headerView
+        self.dateOutView = dateOutView
+        self.titleView = titleView
     }
 
     public var body: some View {
-        layoutCalendar()
+        layoutCalendar
             .onAppear {
-                months = calendar.parseDates(inside: interval)
-                days = months.reduce(into: [:]) { current, month in
+                self.months = calendar.parseDates(inside: interval)
+                self.days = months.reduce(into: [:]) { current, month in
                     guard
                         let monthInterval = calendar.dateInterval(of: .month, for: month),
                         let monthFirstWeek = calendar.dateInterval(
-                            of: .weekOfMonth, for: monthInterval.start),
+                            of: .weekOfMonth,
+                            for: monthInterval.start
+                        ),
                         let monthLastWeek = calendar.dateInterval(
-                            of: .weekOfMonth, for: monthInterval.end)
-                    else { return }
+                            of: .weekOfMonth,
+                            for: monthInterval.end
+                        )
+                    else {
+                        return
+                    }
 
                     current[month] = calendar.parseDates(
-                        inside: DateInterval(start: monthFirstWeek.start, end: monthLastWeek.end),
+                        inside: DateInterval(
+                            start: monthFirstWeek.start,
+                            end: monthLastWeek.end
+                        ),
                         matching: DateComponents(hour: 0, minute: 0, second: 0)
                     )
                 }
+                // self.weekDays = makeDays()
             }
-    }
-
-    @ViewBuilder
-    private func layoutCalendar() -> some View {
-        switch calendarLayout {
-        case .vertical:
-            LazyVGrid(columns: columns) {
-                buildContentCalendar()
-            }
-        case .horizontal:
-            LazyHGrid(rows: columns) {
-                buildContentCalendar()
-            }
-        }
-    }
-
-    private func buildContentCalendar() -> some View {
-        ForEach(months, id: \.self) { month in
-            Section(header: header(for: month)) {
-                ForEach(days[month, default: []], id: \.self) { date in
-                    if calendar.isDate(date, equalTo: month, toGranularity: .month) {
-                        dateViewBuilder(date).id(date)
-                    } else {
-                        dateViewBuilder(date).hidden()
-                    }
-                }
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func header(for month: Date) -> some View {
-        if showHeaders {
-            Text(DateFormatter.monthAndYear.string(from: month))
-                .font(.title)
-                .padding()
-                .onAppear { onHeaderAppear(month) }
-        }
     }
 }
 
-extension CalendarView: RootBuilder {
-    public func setMonthView(month: [Date]) -> Self {
-        mutating(\.months, value: month)
-    }
-
-    public func setIsShowHeader(_ isShow: Bool) -> Self {
-        mutating(\.showHeaders, value: isShow)
-    }
-
-    public func firstWeekDay(_ first: Int) -> Self {
-        mutating(\.calendar.firstWeekday, value: first)
-    }
-
-    public func calendarLocate(locale: Locale) -> Self {
-        mutating(\.calendar.locale, value: locale)
-    }
-
-    public func calendarLayout(_ type: CalendarView.Layout) -> Self {
-        mutating(\.calendarLayout, value: type)
-    }
-}
-
-public extension CalendarView {
+extension CalendarView {
     /// `Direction` determines the direction of the swipe gesture
     public enum Direction {
         /// Swiping  from left to right
@@ -154,34 +105,60 @@ public extension CalendarView {
     }
 }
 
-struct Calendar_Previews: PreviewProvider {
-    static var previews: some View {
-        let dateInterval = DateInterval(
-            start: Date(timeIntervalSince1970: 1_617_316_527),
-            end: Date(timeIntervalSince1970: 1_627_794_000)
-        )
-        CalendarView(
-            interval: dateInterval,
-            onHeaderAppear: { _ in
-            },
-            dateViewBuilder: { date in
-                Text(date.parseString())
+// MARK: - ViewBuilder Private API
+extension CalendarView {
+    @ViewBuilder
+    fileprivate var layoutCalendar: some View {
+        switch calendarLayout {
+        case .vertical:
+            LazyVGrid(columns: columns) {
+                ForEach(weekDays.prefix(kWeekDefine), id: \.self, content: headerView)
+                buildContentCalendar()
             }
-        )
-        .setIsShowHeader(true)
-        .firstWeekDay(1)
-        .calendarLayout(.vertical)
-        .padding()
-        .infinityFrame()
-        .fixedSize()
-
+        case .horizontal:
+            LazyHGrid(rows: columns) {
+                buildContentCalendar()
+            }
+        }
     }
-}
 
-extension Date {
-    public func parseString() -> String {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "dd"
-        return dateFormatter.string(from: self)
+    @ViewBuilder
+    fileprivate func buildContentCalendar() -> some View {
+        ForEach(months, id: \.self) { month in
+            Section(header: header(for: month)) {
+                ForEach(days[month, default: []], id: \.self) { date in
+                    if calendar.isDate(date, equalTo: month, toGranularity: .month) {
+                        dateView(date).id(date)
+                    } else {
+                        dateOutView(date)
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    fileprivate func header(for month: Date) -> some View {
+        if showHeaders {
+            HStack {
+                Text(DateFormatter.monthAndYear.string(from: month))
+                    .font(.title)
+                    .padding()
+                    .onAppear { onHeaderAppear(month) }
+                Spacer()
+            }
+        }
+    }
+
+    fileprivate func makeDays() -> [Date] {
+        guard let monthInterval = calendar.dateInterval(of: .month, for: date),
+            let monthFirstWeek = calendar.dateInterval(of: .weekOfMonth, for: monthInterval.start),
+            let monthLastWeek = calendar.dateInterval(of: .weekOfMonth, for: monthInterval.end - 1)
+        else {
+            return []
+        }
+
+        let dateInterval = DateInterval(start: monthFirstWeek.start, end: monthLastWeek.end)
+        return calendar.generateDays(for: dateInterval)
     }
 }
