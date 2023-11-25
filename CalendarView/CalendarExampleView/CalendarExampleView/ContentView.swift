@@ -15,7 +15,10 @@ struct ContentView: View {
     )
     @State var isShowHeader = false
     @State var isShowDateOut = false
-    @State var firstWeekDate = 0
+    @State var firstWeekDate = 2
+    @State var date = Date()
+
+    @State private var selectedDate = Date()
     var body: some View {
         HStack {
             Button {
@@ -29,34 +32,46 @@ struct ContentView: View {
                 Text("DateOut")
             }
             Button {
-                firstWeekDate = Int.random(in: 0...6)
+                firstWeekDate = Int.random(in: 1...6)
             } label: {
                 Text("First Week Date")
             }
+            Button {
+                let nextMonth = Calendar.current.date(byAdding: .month, value: 1, to: selectedDate)
+                selectedDate = nextMonth!
+            } label: {
+                Text("Next month")
+            }
 
         }
-
         ScrollView {
-            CalendarView(
-                interval: dateInterval,
-                onHeaderAppear: { date in
-            }, dateView: { date in
+        CalendarView(
+            date: selectedDate
+            , dateView: { date in
                 Text(DateFormatter.day.string(from: date))
+                    .font(.footnote)
             }, headerView: { date in
-                Text(DateFormatter.weekDay.string(from: date)).fontWeight(.bold)
+                Text(DateFormatter.weekDay.string(from: date))
+                    .font(.footnote)
+                    .fontWeight(.bold)
+                    .foregroundColor(
+                        Calendar.current.isDateInWeekend(date) ? .red : .black
+                    )
             }, titleView: { date in
             }, dateOutView: { date in
-                Text(DateFormatter.day.string(from: date)).foregroundColor(.gray)
+                Text(DateFormatter.day.string(from: date))
+                    .font(.footnote)
+                    .foregroundColor(.gray)
             })
-            .setIsShowHeader(isShowHeader)
-            .showDateOut(isShowDateOut)
-            .firstWeekDay(2)
-            .calendarLocate(locale: .current)
-            .calendarLayout(.vertical)
-            .equatable()
-            .padding()
-            .infinityFrame()
-            .allowsTightening(true)
+        .setIsShowHeader(isShowHeader)
+        .showDateOut(isShowDateOut)
+        .firstWeekDay(firstWeekDate)
+        .calendarLocate(locale: .current)
+        .calendarLayout(.vertical)
+        .padding()
+        .infinityFrame()
+        .allowsTightening(true)
+        .id(UUID())
         }
     }
 }
