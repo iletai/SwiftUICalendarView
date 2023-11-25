@@ -34,11 +34,7 @@ extension CalendarView: RootBuilder {
         mutating(\.showDateOut, value: isShow)
     }
 
-    public func calendarBackground(_ color: Color) -> Self {
-        mutating(\.calendarBackground, value: color)
-    }
-
-    public func calendarCornerRadius(_ radius: CGFloat) -> Self {
-        mutating(\.calendarRadius, value: radius)
+    public func backgroundCalendar(_ status: BackgroundCalendar) -> Self {
+        mutating(\.calendarBackgroundStatus, value: status)
     }
 }

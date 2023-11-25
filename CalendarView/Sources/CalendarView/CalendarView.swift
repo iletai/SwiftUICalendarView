@@ -22,12 +22,11 @@ public struct CalendarView<DateView: View, HeaderView: View, TitleView: View, Da
 
     var calendarLayout = Layout.vertical
     var calendar = Calendar.current
-    var calendarBackground = Color.gray
-    var calendarRadius = 12.0
+    var calendarBackgroundStatus = BackgroundCalendar.hidden
     @State var months = [Date]()
     @State var days = [Date: [Date]]()
     var columns = Array(repeating: GridItem(), count: 7)
-
+    
     public init(
         interval: DateInterval,
         showHeaders: Bool = true,
@@ -74,10 +73,7 @@ public struct CalendarView<DateView: View, HeaderView: View, TitleView: View, Da
                 .frame(maxWidth: .infinity)
         }
         .marginAll3()
-        .background(
-            calendarBackground
-                .cornerRadius(calendarRadius)
-        )
+        .background(backgroundCalendar())
         .onAppear {
             self.months = calendar.parseDates(inside: interval)
             self.days = months.reduce(into: [:]) { current, month in
@@ -120,6 +116,11 @@ extension CalendarView {
         case vertical
         case horizontal
     }
+
+    public enum BackgroundCalendar {
+        case hidden
+        case visible(CGFloat, Color)
+    }
 }
 
 // MARK: - ViewBuilder Private API
@@ -160,6 +161,13 @@ extension CalendarView {
                     .padding()
                 Spacer()
             }
+        }
+    }
+
+    @ViewBuilder
+    fileprivate func backgroundCalendar() -> some View {
+        if case let .visible(cornerRadius, backgroundColorCalendar) = calendarBackgroundStatus{
+            backgroundColorCalendar.clipShape(RoundedRectangle(cornerRadius: cornerRadius))
         }
     }
 }
