@@ -22,6 +22,8 @@ public struct CalendarView<DateView: View, HeaderView: View, TitleView: View, Da
 
     var calendarLayout = Layout.vertical
     var calendar = Calendar.current
+    var calendarBackground = Color.gray
+    var calendarRadius = 12.0
     @State var months = [Date]()
     @State var days = [Date: [Date]]()
     var columns = Array(repeating: GridItem(), count: 7)
@@ -72,7 +74,10 @@ public struct CalendarView<DateView: View, HeaderView: View, TitleView: View, Da
                 .frame(maxWidth: .infinity)
         }
         .marginAll3()
-        .background(Color.gray.opacity(0.1).cornerRadius(20))
+        .background(
+            calendarBackground
+                .cornerRadius(calendarRadius)
+        )
         .onAppear {
             self.months = calendar.parseDates(inside: interval)
             self.days = months.reduce(into: [:]) { current, month in
@@ -142,6 +147,7 @@ extension CalendarView {
                     }
                 }
             }
+            Divider()
         }
     }
 

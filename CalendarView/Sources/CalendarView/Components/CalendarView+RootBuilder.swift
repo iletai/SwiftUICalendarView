@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 @MainActor
 extension CalendarView: RootBuilder {
@@ -31,5 +32,13 @@ extension CalendarView: RootBuilder {
 
     public func showDateOut(_ isShow: Bool) -> Self {
         mutating(\.showDateOut, value: isShow)
+    }
+
+    public func calendarBackground(_ color: Color) -> Self {
+        mutating(\.calendarBackground, value: color)
+    }
+
+    public func calendarCornerRadius(_ radius: CGFloat) -> Self {
+        mutating(\.calendarRadius, value: radius)
     }
 }

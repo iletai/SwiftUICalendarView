@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		16ADF1552B123778003ACF1B /* SwiftDate in Frameworks */ = {isa = PBXBuildFile; productRef = 16ADF1542B123778003ACF1B /* SwiftDate */; };
 		9182C7482B1076A700F4DE85 /* CalendarExampleViewApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9182C7472B1076A700F4DE85 /* CalendarExampleViewApp.swift */; };
 		9182C74A2B1076A700F4DE85 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9182C7492B1076A700F4DE85 /* ContentView.swift */; };
 		9182C74C2B1076AA00F4DE85 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9182C74B2B1076AA00F4DE85 /* Assets.xcassets */; };
@@ -27,6 +28,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				16ADF1552B123778003ACF1B /* SwiftDate in Frameworks */,
 				9182C7572B10771F00F4DE85 /* CalendarView in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -87,6 +89,7 @@
 			name = CalendarExampleView;
 			packageProductDependencies = (
 				9182C7562B10771F00F4DE85 /* CalendarView */,
+				16ADF1542B123778003ACF1B /* SwiftDate */,
 			);
 			productName = CalendarExampleView;
 			productReference = 9182C7442B1076A700F4DE85 /* CalendarExampleView.app */;
@@ -118,6 +121,7 @@
 			mainGroup = 9182C73B2B1076A700F4DE85;
 			packageReferences = (
 				9182C7552B10771F00F4DE85 /* XCLocalSwiftPackageReference ".." */,
+				16ADF1532B123778003ACF1B /* XCRemoteSwiftPackageReference "SwiftDate" */,
 			);
 			productRefGroup = 9182C7452B1076A700F4DE85 /* Products */;
 			projectDirPath = "";
@@ -360,7 +364,23 @@
 		};
 /* End XCLocalSwiftPackageReference section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		16ADF1532B123778003ACF1B /* XCRemoteSwiftPackageReference "SwiftDate" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/malcommac/SwiftDate";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
+		16ADF1542B123778003ACF1B /* SwiftDate */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 16ADF1532B123778003ACF1B /* XCRemoteSwiftPackageReference "SwiftDate" */;
+			productName = SwiftDate;
+		};
 		9182C7562B10771F00F4DE85 /* CalendarView */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = CalendarView;
