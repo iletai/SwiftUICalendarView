@@ -22,6 +22,8 @@ public struct CalendarView<DateView: View, HeaderView: View, TitleView: View, Da
     let kWeekDefine = 7
     let interval: DateInterval
     var showHeaders = false
+    var showDateOut = true
+
     // MARK: - View Builder
     var onHeaderAppear: (Date) -> Void
     let dateView: (Date) -> DateView
@@ -30,10 +32,9 @@ public struct CalendarView<DateView: View, HeaderView: View, TitleView: View, Da
     let dateOutView: (Date) -> DateOutView
 
     var calendarLayout = Layout.vertical
-    var calendar: Calendar = .current
+    var calendar = Calendar.current
     @State var months = [Date]()
     @State var days = [Date: [Date]]()
-    var weekDays = [Date]()
     var columns = Array(repeating: GridItem(), count: 7)
 
     public init(
@@ -85,7 +86,6 @@ public struct CalendarView<DateView: View, HeaderView: View, TitleView: View, Da
                         matching: DateComponents(hour: 0, minute: 0, second: 0)
                     )
                 }
-                // self.weekDays = makeDays()
             }
     }
 }
@@ -111,10 +111,11 @@ extension CalendarView {
     fileprivate var layoutCalendar: some View {
         switch calendarLayout {
         case .vertical:
-            LazyVGrid(columns: columns) {
-                ForEach(weekDays.prefix(kWeekDefine), id: \.self, content: headerView)
+                LazyVGrid(columns: columns, spacing: 8, pinnedViews: [.sectionHeaders]) {
                 buildContentCalendar()
             }
+            .marginAll2()
+            .background(Color.gray.opacity(0.1).cornerRadius(20))
         case .horizontal:
             LazyHGrid(rows: columns) {
                 buildContentCalendar()
@@ -125,12 +126,22 @@ extension CalendarView {
     @ViewBuilder
     fileprivate func buildContentCalendar() -> some View {
         ForEach(months, id: \.self) { month in
-            Section(header: header(for: month)) {
+            Section(header: monthTitle(for: month)) {
+                ForEach(days[month, default: []].prefix(kWeekDefine), id: \.self) {
+                    headerView($0)
+                }
                 ForEach(days[month, default: []], id: \.self) { date in
                     if calendar.isDate(date, equalTo: month, toGranularity: .month) {
-                        dateView(date).id(date)
+                        dateView(date)
                     } else {
-                        dateOutView(date)
+                        if showDateOut {
+                            dateOutView(date)
+                        } else {
+                            Circle()
+                                .fill(.gray)
+                                .frame(width: 4)
+                                .clipped()
+                        }
                     }
                 }
             }
@@ -138,7 +149,7 @@ extension CalendarView {
     }
 
     @ViewBuilder
-    fileprivate func header(for month: Date) -> some View {
+    fileprivate func monthTitle(for month: Date) -> some View {
         if showHeaders {
             HStack {
                 Text(DateFormatter.monthAndYear.string(from: month))
@@ -160,5 +171,15 @@ extension CalendarView {
 
         let dateInterval = DateInterval(start: monthFirstWeek.start, end: monthLastWeek.end)
         return calendar.generateDays(for: dateInterval)
+    }
+}
+
+extension Date {
+    func startOfMonth() -> Date {
+        return Calendar.current.date(from: Calendar.current.dateComponents([.year, .month], from: Calendar.current.startOfDay(for: self)))!
+    }
+
+    func endOfMonth() -> Date {
+        return Calendar.current.date(byAdding: DateComponents(month: 1, day: -1), to: self.startOfMonth())!
     }
 }

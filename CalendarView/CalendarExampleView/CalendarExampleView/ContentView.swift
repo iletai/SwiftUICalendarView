@@ -14,15 +14,32 @@ struct ContentView: View {
         end: Date(timeIntervalSince1970: 1_627_794_000)
     )
     @State var isShowHeader = false
+    @State var isShowDateOut = false
+    @State var firstWeekDate = 0
     var body: some View {
-        Button {
-            isShowHeader.toggle()
-        } label: {
-            Text("IsShowHeader")
+        HStack {
+            Button {
+                isShowHeader.toggle()
+            } label: {
+                Text("Header")
+            }
+            Button {
+                isShowDateOut.toggle()
+            } label: {
+                Text("DateOut")
+            }
+            Button {
+                firstWeekDate = Int.random(in: 0...6)
+            } label: {
+                Text("First Week Date")
+            }
+
         }
 
         ScrollView {
-            CalendarView(interval: dateInterval, onHeaderAppear: { date in
+            CalendarView(
+                interval: dateInterval,
+                onHeaderAppear: { date in
             }, dateView: { date in
                 Text(DateFormatter.day.string(from: date))
             }, headerView: { date in
@@ -32,11 +49,14 @@ struct ContentView: View {
                 Text(DateFormatter.day.string(from: date)).foregroundColor(.gray)
             })
             .setIsShowHeader(isShowHeader)
-            .firstWeekDay(1)
+            .showDateOut(isShowDateOut)
+            .firstWeekDay(2)
+            .calendarLocate(locale: .current)
             .calendarLayout(.vertical)
             .equatable()
             .padding()
             .infinityFrame()
+            .allowsTightening(true)
         }
     }
 }
