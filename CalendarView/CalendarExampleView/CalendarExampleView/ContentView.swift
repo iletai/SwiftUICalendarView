@@ -16,17 +16,64 @@ struct ContentView: View {
     )
     @State var isShowHeader = false
     @State var isShowDateOut = false
-    @State var firstWeekDate = 2
-    @State var date = Date()
-
+    @State var firstWeekDate = 1
+    @State var viewMode = 0
     @State private var selectedDate = Date()
+
     var body: some View {
+        listButtonDemo
+        ScrollView {
+        CalendarView(
+            date: selectedDate
+            , dateView: { date in
+                VStack {
+                    Text(date.dayName)
+                        .font(.footnote)
+                        .fontWeight(.semibold)
+                        .foregroundColor(
+                            Calendar.current.isDateInWeekend(date) ? .red : .black
+                        )
+                }
+            }, headerView: { date in
+                VStack {
+                    Text(date.weekDayName)
+                        .font(.footnote)
+                        .fontWeight(.bold)
+                }
+            }, titleView: { date in
+            }, dateOutView: { date in
+                Text(DateFormatter.day.string(from: date))
+                    .font(.footnote)
+                    .foregroundColor(.gray)
+            }
+        )
+        .enableHeader(isShowHeader)
+        .enableDateOut(isShowDateOut)
+        .firstWeekDay(firstWeekDate)
+        .calendarLocate(locale: Locales.vietnamese.toLocale())
+        .calendarLayout(.vertical)
+        .dateSpacing(12)
+        .backgroundCalendar(.visible(20, .gray.opacity(0.3)))
+        .setViewMode(viewMode == 0 ? .week : .month)
+        .marginAllDft()
+        .infinityFrame()
+        .allowsTightening(true)
+        .id(UUID())
+        }
+    }
+
+    var listButtonDemo: some View {
         ScrollView(.horizontal) {
             HStack {
                 Button {
                     isShowHeader.toggle()
                 } label: {
                     Text("Header")
+                }
+                Button {
+                    viewMode = Int.random(in: 0...1)
+                } label: {
+                    Text("ViewMode")
                 }
                 Button {
                     isShowDateOut.toggle()
@@ -50,37 +97,6 @@ struct ContentView: View {
             .fixedSize()
         }
         .scrollIndicators(.visible, axes: .horizontal)
-        ScrollView {
-        CalendarView(
-            interval: dateInterval
-            , dateView: { date in
-                Text(DateFormatter.day.string(from: date))
-                    .font(.footnote)
-                    .fontWeight(.semibold)
-            }, headerView: { date in
-                Text(date.weekdayName(.short, locale: Locales.vietnamese.toLocale()))
-                    .font(.footnote)
-                    .fontWeight(.bold)
-                    .foregroundColor(
-                        Calendar.current.isDateInWeekend(date) ? .red : .black
-                    )
-            }, titleView: { date in
-            }, dateOutView: { date in
-                Text(DateFormatter.day.string(from: date))
-                    .font(.footnote)
-                    .foregroundColor(.gray)
-            })
-        .setIsShowHeader(isShowHeader)
-        .showDateOut(isShowDateOut)
-        .firstWeekDay(firstWeekDate)
-        .calendarLocate(locale: Locales.vietnamese.toLocale())
-        .calendarLayout(.vertical)
-        .backgroundCalendar(.visible(20, .gray.opacity(0.3)))
-        .padding()
-        .infinityFrame()
-        .allowsTightening(true)
-        .id(UUID())
-        }
     }
 }
 

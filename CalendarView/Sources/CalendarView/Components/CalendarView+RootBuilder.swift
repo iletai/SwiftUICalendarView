@@ -14,8 +14,24 @@ extension CalendarView: RootBuilder {
         mutating(\.months, value: month)
     }
 
-    public func setIsShowHeader(_ isShow: Bool) -> Self {
-        mutating(\.showHeaders, value: isShow)
+    public func enableHeader(_ isEnable: Bool) -> Self {
+        mutating(\.showHeaders, value: isEnable)
+    }
+
+    public func calendarLayout(_ type: CalendarView.Layout) -> Self {
+        mutating(\.calendarLayout, value: type)
+    }
+
+    public func enableDateOut(_ isShow: Bool) -> Self {
+        mutating(\.showDateOut, value: isShow)
+    }
+
+    public func backgroundCalendar(_ status: BackgroundCalendar) -> Self {
+        mutating(\.calendarBackgroundStatus, value: status)
+    }
+
+    public func dateSpacing(_ spacing: CGFloat) -> Self {
+        mutating(\.spacingBetweenDay, value: spacingBetweenDay)
     }
 
     public func firstWeekDay(_ first: Int) -> Self {
@@ -26,15 +42,7 @@ extension CalendarView: RootBuilder {
         mutating(\.calendar.locale, value: locale)
     }
 
-    public func calendarLayout(_ type: CalendarView.Layout) -> Self {
-        mutating(\.calendarLayout, value: type)
-    }
-
-    public func showDateOut(_ isShow: Bool) -> Self {
-        mutating(\.showDateOut, value: isShow)
-    }
-
-    public func backgroundCalendar(_ status: BackgroundCalendar) -> Self {
-        mutating(\.calendarBackgroundStatus, value: status)
+    public func setViewMode(_ mode: ViewMode) -> Self {
+        mutating(\.viewMode, value: mode)
     }
 }
