@@ -13,13 +13,10 @@ import SwiftUI
 public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
     View
 {
+    // MARK: - Variable Config
     var date = Date()
     var showHeaders = false
     var showDateOut = true
-    // MARK: - View Builder
-    let dateView: (Date) -> DateView
-    let headerView: (Date) -> HeaderView
-    let dateOutView: (Date) -> DateOutView
     var calendar = Calendar.current
     var calendarBackgroundStatus = BackgroundCalendar.hidden
     var spacingBetweenDay = 8.0
@@ -28,9 +25,17 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
     var pinedHeaderView = PinnedScrollableViews()
     var onSelected: (Date) -> Void = { _ in }
 
+    // MARK: - View Builder
+    let dateView: (Date) -> DateView
+    let headerView: (Date) -> HeaderView
+    let dateOutView: (Date) -> DateOutView
+    
+    // MARK: - State
     @GestureState var isGestureFinished = true
     @State var listDay = [Date]()
+    
     var onDraggingEnded: (() -> Void)?
+    // MARK: - Geture
     var swipeGesture: some Gesture {
         DragGesture(minimumDistance: CalendarDefine.kDistaneSwipeBack, coordinateSpace: .global)
             .updating($isGestureFinished) { _, state, _ in
@@ -55,42 +60,8 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
         self.onSelected = onSelectedDate
         self.date = date
     }
-    
-    /// Return list of date by ViewMode
-    /// - Returns: [Date] With Type Year/Month/Week
-    func generateDateByViewMode() -> [Date] {
-        generateDates(
-            date: date,
-            withComponent: viewMode.component,
-            dateComponents: viewMode.dateComponent
-        )
-    }
 
-    func generateDates(
-        date: Date,
-        withComponent: Calendar.Component = .month,
-        dateComponents: DateComponents
-    ) -> [Date] {
-        let dateStartRegion = DateInRegion(date.dateAtStartOf(withComponent), region: .current)
-        let dateEndRegion = DateInRegion(date.dateAtEndOf(withComponent), region: .current)
-        let dates = DateInRegion.enumerateDates(
-            from: dateStartRegion, to: dateEndRegion, increment: dateComponents
-        )
-            .map {
-                $0.date
-            }
-        return dates
-    }
-
-    func chunkEachMonthsData() -> [Date: [Date]] {
-        generateDateByViewMode().reduce(into: [:]) { month, date in
-            month[date] = generateDates(
-                date: date,
-                dateComponents: CalendarViewMode.month.dateComponent
-            )
-        }
-    }
-
+    // MARK: - Body View
     public var body: some View {
         ScrollView {
             LazyVGrid(
@@ -128,23 +99,7 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
 }
 
 extension CalendarView {
-    /// `Direction` determines the direction of the swipe gesture
-    public enum Direction {
-        /// Swiping  from left to right
-        case forward
-        /// Swiping from right to left
-        case backward
-    }
-
-    public enum BackgroundCalendar {
-        case hidden
-        case visible(CGFloat, Color)
-    }
-
-}
-
-// MARK: - ViewBuilder Private API
-extension CalendarView {
+    // MARK: - Year View
     @ViewBuilder
     fileprivate func yearContentView() -> some View {
         ForEach(chunkEachMonthsData().keys.sorted(), id: \.self) { month in
@@ -213,6 +168,7 @@ extension CalendarView {
         }
     }
 
+    // MARK: - Week View
     @ViewBuilder
     fileprivate func calendarWeekView() -> some View {
         Section(header: weekDayAndMonthView) {
@@ -227,6 +183,7 @@ extension CalendarView {
         }
     }
 
+    // MARK: - Month View
     @ViewBuilder
     fileprivate func monthContentView() -> some View {
         Section(header: weekDayAndMonthView) {
@@ -241,6 +198,7 @@ extension CalendarView {
         }
     }
 
+    // MARK: - Week Month View
     private var weekDayAndMonthView: some View {
         VStack {
             monthTitle(for: date)
@@ -252,7 +210,7 @@ extension CalendarView {
                     count: CalendarDefine.kWeekDays
                 )
             ) {
-                ForEach(generateDateByViewMode().prefix(7), id: \.self) {
+                ForEach(generateDateByViewMode().prefix(CalendarDefine.kWeekDays), id: \.self) {
                     headerView($0)
                 }
             }

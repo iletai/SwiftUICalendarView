@@ -15,7 +15,6 @@ struct ContentView: View {
     @State var firstWeekDate = 1
     @State var viewMode = CalendarViewMode.year
     @State private var selectedDate = Date()
-    @State private var colorDay = Color.white
     @State var listSelectedDate = [Date]()
 
     var body: some View {
@@ -24,7 +23,7 @@ struct ContentView: View {
                 date: selectedDate
                 , dateView: { date in
                     VStack {
-                        Text(date.dayName)
+                        Text(date.toString(.custom("dd")))
                             .font(.footnote)
                             .fontWeight(.semibold)
                             .foregroundColor(
@@ -36,7 +35,7 @@ struct ContentView: View {
                     .background(listSelectedDate.contains(date) ? .cyan : .clear)
                 }, headerView: { date in
                     VStack {
-                        Text(date.weekDayShortName)
+                        Text(date.weekdayName(.standaloneShort, locale: Locales.vietnamese.toLocale()))
                             .font(.footnote)
                             .fontWeight(.bold)
                             .foregroundColor(

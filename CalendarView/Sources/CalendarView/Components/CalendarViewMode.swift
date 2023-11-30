@@ -8,11 +8,16 @@
 import Foundation
 import SwiftUI
 
+/// Define Mode Display Of CalendarView
 public enum CalendarViewMode: CaseIterable {
+    /// Month View
     case month
+    /// Week View
     case week
+    /// Year View
     case year
-
+    
+    /// Calendar Component
     var component: Calendar.Component {
         switch self {
         case .month:
@@ -24,6 +29,7 @@ public enum CalendarViewMode: CaseIterable {
         }
     }
 
+    /// DateComponents
     var dateComponent: DateComponents {
         switch self {
         case .month,
@@ -43,6 +49,7 @@ public enum CalendarViewMode: CaseIterable {
         }
     }
     
+    /// Status Allow Scroll View
     var enableScroll: Bool {
         switch self {
         case .month:
@@ -53,7 +60,8 @@ public enum CalendarViewMode: CaseIterable {
             return true
         }
     }
-
+    
+    /// Status Show Scroll Indicator
     var enableScrollIndicator: ScrollIndicatorVisibility {
         switch self {
         case .month:
