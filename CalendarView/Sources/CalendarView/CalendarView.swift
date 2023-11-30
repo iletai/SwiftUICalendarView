@@ -1,111 +1,128 @@
-// The Swift Programming Language
-// https://docs.swift.org/swift-book
+//
+//  CalendarView.swift
+//  CalendarView
+//
+//  Created by iletai on 24/11/2023.
+//
 
 import Foundation
-import SwiftUI
-import SwiftUICommon
 import SwiftDate
+import SwiftUI
 
 @MainActor
-public struct CalendarView<DateView: View, HeaderView: View, TitleView: View, DateOutView: View>:
+public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
     View
 {
-    let interval: DateInterval
+    var date = Date()
     var showHeaders = false
     var showDateOut = true
-
     // MARK: - View Builder
     let dateView: (Date) -> DateView
     let headerView: (Date) -> HeaderView
-    let titleView: (Date) -> TitleView
     let dateOutView: (Date) -> DateOutView
-
-    var calendarLayout = Layout.vertical
     var calendar = Calendar.current
     var calendarBackgroundStatus = BackgroundCalendar.hidden
     var spacingBetweenDay = 8.0
-    var viewMode = ViewMode.month
+    var viewMode = CalendarViewMode.month
+    var spaceBetweenColumns = 8.0
+    var pinedHeaderView = PinnedScrollableViews()
+    var onSelected: (Date) -> Void = { _ in }
 
-    @State var months = [Date]()
-    @State var days = [Date: [Date]]()
-    var columns = Array(repeating: GridItem(), count: 7)
+    @GestureState var isGestureFinished = true
     @State var listDay = [Date]()
-    public init(
-        interval: DateInterval,
-        showHeaders: Bool = true,
-        @ViewBuilder dateView: @escaping (Date) -> DateView,
-        @ViewBuilder headerView: @escaping (Date) -> HeaderView,
-        @ViewBuilder titleView: @escaping (Date) -> TitleView,
-        @ViewBuilder dateOutView: @escaping (Date) -> DateOutView,
-        calendarLayout: CalendarView.Layout = CalendarView.Layout.vertical,
-        calendar: Calendar = Calendar(identifier: .gregorian)
-    ) {
-        self.showHeaders = showHeaders
-        self.dateView = dateView
-        self.calendarLayout = calendarLayout
-        self.calendar = calendar
-        self.headerView = headerView
-        self.dateOutView = dateOutView
-        self.titleView = titleView
-        self.interval = interval
+    var onDraggingEnded: (() -> Void)?
+    var swipeGesture: some Gesture {
+        DragGesture(minimumDistance: CalendarDefine.kDistaneSwipeBack, coordinateSpace: .global)
+            .updating($isGestureFinished) { _, state, _ in
+                state = false
+            }
+            .onChanged({ value in
+            })
     }
 
     public init(
         date: Date,
-        showHeaders: Bool = true,
         @ViewBuilder dateView: @escaping (Date) -> DateView,
         @ViewBuilder headerView: @escaping (Date) -> HeaderView,
-        @ViewBuilder titleView: @escaping (Date) -> TitleView,
         @ViewBuilder dateOutView: @escaping (Date) -> DateOutView,
-        calendarLayout: CalendarView.Layout = CalendarView.Layout.vertical,
-        calendar: Calendar = Calendar(identifier: .gregorian)
+        onSelectedDate: @escaping (Date) -> Void,
+        calendar: Calendar = Calendar.gregorian
     ) {
-        self.showHeaders = showHeaders
         self.dateView = dateView
-        self.calendarLayout = calendarLayout
         self.calendar = calendar
         self.headerView = headerView
         self.dateOutView = dateOutView
-        self.titleView = titleView
-        self.interval = DateInterval(start: date.dateAtStartOf(.year), end: date.dateAtEndOf(.year))
+        self.onSelected = onSelectedDate
+        self.date = date
+    }
+    
+    /// Return list of date by ViewMode
+    /// - Returns: [Date] With Type Year/Month/Week
+    func generateDateByViewMode() -> [Date] {
+        generateDates(
+            date: date,
+            withComponent: viewMode.component,
+            dateComponents: viewMode.dateComponent
+        )
+    }
+
+    func generateDates(
+        date: Date,
+        withComponent: Calendar.Component = .month,
+        dateComponents: DateComponents
+    ) -> [Date] {
+        let dateStartRegion = DateInRegion(date.dateAtStartOf(withComponent), region: .current)
+        let dateEndRegion = DateInRegion(date.dateAtEndOf(withComponent), region: .current)
+        let dates = DateInRegion.enumerateDates(
+            from: dateStartRegion, to: dateEndRegion, increment: dateComponents
+        )
+            .map {
+                $0.date
+            }
+        return dates
+    }
+
+    func chunkEachMonthsData() -> [Date: [Date]] {
+        generateDateByViewMode().reduce(into: [:]) { month, date in
+            month[date] = generateDates(
+                date: date,
+                dateComponents: CalendarViewMode.month.dateComponent
+            )
+        }
     }
 
     public var body: some View {
-        LazyVGrid(
-            columns: columns,
-            spacing: spacingBetweenDay,
-            pinnedViews: [.sectionHeaders]
-        ) {
-            buildContentCalendar()
-        }
-        .marginAll3()
-        .background(backgroundCalendar())
-        .onAppear {
-            self.months = calendar.parseDates(inside: interval)
-            self.days = months.reduce(into: [:]) { current, month in
-                guard
-                    let monthInterval = calendar.dateInterval(of: .month, for: month),
-                    let monthFirstWeek = calendar.dateInterval(
-                        of: .weekOfMonth,
-                        for: monthInterval.start
-                    ),
-                    let monthLastWeek = calendar.dateInterval(
-                        of: .weekOfMonth,
-                        for: monthInterval.end
-                    )
-                else {
-                    return
+        ScrollView {
+            LazyVGrid(
+                columns: Array(
+                    repeating: GridItem(
+                        .flexible(),
+                        spacing: spaceBetweenColumns),
+                    count: CalendarDefine.kWeekDays
+                ),
+                spacing: spacingBetweenDay,
+                pinnedViews: [.sectionHeaders, .sectionFooters]
+            ) {
+                switch viewMode {
+                case .month:
+                    monthContentView()
+                case .year:
+                    yearContentView()
+                case .week:
+                    calendarWeekView()
                 }
-
-                current[month] = calendar.parseDates(
-                    inside: DateInterval(
-                        start: monthFirstWeek.start,
-                        end: monthLastWeek.end
-                    ),
-                    matching: DateComponents(hour: 0, minute: 0, second: 0)
-                )
+            }
+            .padding(.all, 16)
+            .background(backgroundCalendar)
+            .highPriorityGesture(swipeGesture)
+            .onChange(of: isGestureFinished) { _, value in
+                if value {
+                    // onDraggingEnded?()
+                }
             }
         }
+        .scrollIndicators(viewMode.enableScrollIndicator)
+        .scrollDisabled(!viewMode.enableScroll)
         .frame(maxWidth: .infinity)
     }
 }
@@ -119,70 +136,53 @@ extension CalendarView {
         case backward
     }
 
-    public enum Layout {
-        case vertical
-        case horizontal
-    }
-
     public enum BackgroundCalendar {
         case hidden
         case visible(CGFloat, Color)
     }
 
-    public enum ViewMode {
-        case month
-        case week
-        case year
-
-        var component: Calendar.Component {
-            switch self {
-            case .month:
-                return .month
-            case .week:
-                return .weekOfMonth
-            case .year:
-                return .year
-            }
-        }
-
-        var enableDayOut: Bool {
-            switch self {
-            case .month:
-                return true
-            case .week:
-                return false
-            case .year:
-                return true
-            }
-        }
-    }
 }
 
 // MARK: - ViewBuilder Private API
 extension CalendarView {
-
     @ViewBuilder
-    fileprivate func buildContentCalendar() -> some View {
-        ForEach(months, id: \.self) { month in
-            Section(header: monthTitle(for: month)) {
-                ForEach(days[month, default: []].prefix(CalendarDefine.kWeekDays), id: \.self) {
-                    headerView($0)
-                }
-                ForEach(days[month, default: []], id: \.self) { date in
-                    if calendar.isDate(date, equalTo: month, toGranularity: viewMode.component) {
-                        dateView(date)
-                    } else {
-                        if viewMode.enableDayOut {
-                            if showDateOut {
-                                dateOutView(date)
-                            } else {
-                                Circle()
-                                    .fill(.gray)
-                                    .frame(width: 4)
-                                    .clipped()
-                            }
+    fileprivate func yearContentView() -> some View {
+        ForEach(chunkEachMonthsData().keys.sorted(), id: \.self) { month in
+            Section(header:
+                LazyVStack {
+                    HStack {
+                        Spacer()
+                        Text(month.monthName(.defaultStandalone))
+                            .font(.footnote)
+                            .fontWeight(.bold)
+                        Spacer()
+                    }
+                    LazyVGrid(
+                        columns: Array(
+                            repeating: GridItem(
+                                .flexible(),
+                                spacing: spaceBetweenColumns),
+                            count: CalendarDefine.kWeekDays
+                        ),
+                        spacing: spacingBetweenDay
+                    ) {
+                        ForEach(chunkEachMonthsData()[
+                                month, default: []
+                            ].prefix(CalendarDefine.kWeekDays),
+                                id: \.self
+                        ) {
+                            headerView($0)
                         }
                     }
+                }
+            ) {
+                ForEach(
+                    chunkEachMonthsData()[month, default: []], id: \.self
+                ) { date in
+                    dateView(date)
+                        .onTapGesture {
+                            onSelected(date)
+                        }
                 }
             }
         }
@@ -190,32 +190,72 @@ extension CalendarView {
 
     @ViewBuilder
     fileprivate func monthTitle(for month: Date) -> some View {
-        if showHeaders {
-            HStack {
-                Text(DateFormatter.monthAndYear.string(from: month))
-                    .font(.headline)
-                    .padding()
-                Spacer()
+        HStack {
+            Spacer()
+            Text(month.monthName(.defaultStandalone))
+                .font(.footnote)
+                .fontWeight(.bold)
+            Spacer()
+        }
+        .opacity(showHeaders ? 1.0 : 0.0)
+    }
+
+    @ViewBuilder
+    fileprivate var backgroundCalendar: some View {
+        if case let .visible(
+            cornerRadius,
+            backgroundColorCalendar
+        ) = calendarBackgroundStatus {
+            backgroundColorCalendar
+                .clipShape(
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                )
+        }
+    }
+
+    @ViewBuilder
+    fileprivate func calendarWeekView() -> some View {
+        Section(header: weekDayAndMonthView) {
+            ForEach(generateDateByViewMode(), id: \.self) { date in
+                if date.compare(.isThisMonth) {
+                    dateView(date)
+                } else {
+                    dateOutView(date)
+                        .opacity(showDateOut ? 1.0 : 0.0)
+                }
             }
         }
     }
 
     @ViewBuilder
-    fileprivate func backgroundCalendar() -> some View {
-        if case let .visible(cornerRadius, backgroundColorCalendar) = calendarBackgroundStatus{
-            backgroundColorCalendar.clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+    fileprivate func monthContentView() -> some View {
+        Section(header: weekDayAndMonthView) {
+            ForEach(generateDateByViewMode(), id: \.self) { date in
+                if date.compare(.isThisMonth) {
+                    dateView(date)
+                } else {
+                    dateOutView(date)
+                        .opacity(showDateOut ? 1.0 : 0.0)
+                }
+            }
         }
     }
-}
 
-extension CalendarView: Equatable {
-    public static func == (
-        lhs: CalendarView<DateView, HeaderView, TitleView, DateOutView>,
-        rhs: CalendarView<DateView, HeaderView, TitleView, DateOutView>
-    ) -> Bool {
-        lhs.interval == rhs.interval
-        && lhs.calendar == rhs.calendar
-        && lhs.days == rhs.days
-        && lhs.months == rhs.months
+    private var weekDayAndMonthView: some View {
+        VStack {
+            monthTitle(for: date)
+            LazyVGrid(
+                columns: Array(
+                    repeating: GridItem(
+                        .flexible(),
+                        spacing: spaceBetweenColumns),
+                    count: CalendarDefine.kWeekDays
+                )
+            ) {
+                ForEach(generateDateByViewMode().prefix(7), id: \.self) {
+                    headerView($0)
+                }
+            }
+        }
     }
 }
