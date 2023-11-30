@@ -15,7 +15,7 @@ let package = Package(
             targets: ["CalendarView"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/iletai/SwiftUICommon.git", branch: "feature/refactoring")
+        .package(url: "https://github.com/malcommac/SwiftDate", branch: "master")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -23,7 +23,7 @@ let package = Package(
         .target(
             name: "CalendarView",
             dependencies: [
-                .product(name: "SwiftUICommon", package: "SwiftUICommon")
+                .product(name: "SwiftDate", package: "SwiftDate")
             ]
         ),
         .testTarget(

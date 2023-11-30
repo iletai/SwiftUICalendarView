@@ -10,55 +10,74 @@ import CalendarView
 import SwiftDate
 
 struct ContentView: View {
-    let dateInterval = DateInterval(
-        start: Date(timeIntervalSince1970: 1_617_316_527),
-        end: Date(timeIntervalSince1970: 1_627_794_000)
-    )
     @State var isShowHeader = false
     @State var isShowDateOut = false
     @State var firstWeekDate = 1
-    @State var viewMode = 0
+    @State var viewMode = CalendarViewMode.year
     @State private var selectedDate = Date()
+    @State private var colorDay = Color.white
+    @State var listSelectedDate = [Date]()
 
     var body: some View {
-        listButtonDemo
-        ScrollView {
-        CalendarView(
-            date: selectedDate
-            , dateView: { date in
-                VStack {
-                    Text(date.dayName)
+        VStack {
+            CalendarView(
+                date: selectedDate
+                , dateView: { date in
+                    VStack {
+                        Text(date.dayName)
+                            .font(.footnote)
+                            .fontWeight(.semibold)
+                            .foregroundColor(
+                                Calendar.current.isDateInWeekend(date) ? .red : .black
+                            )
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 30)
+                    .background(listSelectedDate.contains(date) ? .cyan : .clear)
+                }, headerView: { date in
+                    VStack {
+                        Text(date.weekDayShortName)
+                            .font(.footnote)
+                            .fontWeight(.bold)
+                            .foregroundColor(
+                                Calendar.current.isDateInWeekend(date) ? .red : .black
+                            )
+                    }
+                }, dateOutView: { date in
+                    Text(DateFormatter.day.string(from: date))
                         .font(.footnote)
-                        .fontWeight(.semibold)
-                        .foregroundColor(
-                            Calendar.current.isDateInWeekend(date) ? .red : .black
-                        )
-                }
-            }, headerView: { date in
-                VStack {
-                    Text(date.weekDayName)
-                        .font(.footnote)
-                        .fontWeight(.bold)
-                }
-            }, titleView: { date in
-            }, dateOutView: { date in
-                Text(DateFormatter.day.string(from: date))
-                    .font(.footnote)
-                    .foregroundColor(.gray)
+                        .foregroundColor(.gray)
+                },
+                onSelectedDate: onSelectedDate
+            )
+            .enableHeader(isShowHeader)
+            .enableDateOut(isShowDateOut)
+            .firstWeekDay(firstWeekDate)
+            .calendarLocate(locale: Locales.vietnamese.toLocale())
+            .enablePinedView(.sectionHeaders)
+            .setViewMode(viewMode)
+            .rowsSpacing(0)
+            .columnSpacing(0)
+            .backgroundCalendar(.visible(20, .gray.opacity(0.3)))
+            .onDraggingEnded {
+                selectedDate = selectedDate.nextWeekday(.friday)
             }
-        )
-        .enableHeader(isShowHeader)
-        .enableDateOut(isShowDateOut)
-        .firstWeekDay(firstWeekDate)
-        .calendarLocate(locale: Locales.vietnamese.toLocale())
-        .calendarLayout(.vertical)
-        .dateSpacing(12)
-        .backgroundCalendar(.visible(20, .gray.opacity(0.3)))
-        .setViewMode(viewMode == 0 ? .week : .month)
-        .marginAllDft()
-        .infinityFrame()
-        .allowsTightening(true)
-        .id(UUID())
+            .padding(.all, 16 )
+            .allowsTightening(true)
+            Spacer()
+            VStack {
+                listButtonDemo
+                    .padding()
+                Picker("Mode", selection: $viewMode) {
+                    ForEach(CalendarViewMode.allCases, id: \.self) { option in
+                        Text(String(describing: option).uppercased())
+                    }
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 300)
+                .padding()
+            }
+
         }
     }
 
@@ -70,11 +89,7 @@ struct ContentView: View {
                 } label: {
                     Text("Header")
                 }
-                Button {
-                    viewMode = Int.random(in: 0...1)
-                } label: {
-                    Text("ViewMode")
-                }
+
                 Button {
                     isShowDateOut.toggle()
                 } label: {
@@ -86,7 +101,7 @@ struct ContentView: View {
                     Text("First Week Date")
                 }
                 Button {
-                    let nextMonth = Calendar.current.date(byAdding: .month, value: 1, to: selectedDate)
+                    let nextMonth = Calendar.gregorian.date(byAdding: .month, value: 1, to: selectedDate)
                     selectedDate = nextMonth!
                 } label: {
                     Text("Next month")
@@ -94,9 +109,15 @@ struct ContentView: View {
 
             }
             .buttonStyle(.bordered)
-            .fixedSize()
         }
-        .scrollIndicators(.visible, axes: .horizontal)
+    }
+
+    func onSelectedDate(_ date: Date) {
+        if listSelectedDate.contains(date) {
+            listSelectedDate.removeAll { $0 == date }
+        } else {
+            listSelectedDate.append(date)
+        }
     }
 }
 

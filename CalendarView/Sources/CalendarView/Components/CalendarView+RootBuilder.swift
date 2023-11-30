@@ -10,16 +10,9 @@ import SwiftUI
 
 @MainActor
 extension CalendarView: RootBuilder {
-    public func setMonthView(month: [Date]) -> Self {
-        mutating(\.months, value: month)
-    }
 
     public func enableHeader(_ isEnable: Bool) -> Self {
         mutating(\.showHeaders, value: isEnable)
-    }
-
-    public func calendarLayout(_ type: CalendarView.Layout) -> Self {
-        mutating(\.calendarLayout, value: type)
     }
 
     public func enableDateOut(_ isShow: Bool) -> Self {
@@ -30,8 +23,12 @@ extension CalendarView: RootBuilder {
         mutating(\.calendarBackgroundStatus, value: status)
     }
 
-    public func dateSpacing(_ spacing: CGFloat) -> Self {
-        mutating(\.spacingBetweenDay, value: spacingBetweenDay)
+    public func rowsSpacing(_ spacing: CGFloat) -> Self {
+        mutating(\.spacingBetweenDay, value: spacing)
+    }
+
+    public func columnSpacing(_ spacing: CGFloat) -> Self {
+        mutating(\.spaceBetweenColumns, value: spacing)
     }
 
     public func firstWeekDay(_ first: Int) -> Self {
@@ -42,7 +39,15 @@ extension CalendarView: RootBuilder {
         mutating(\.calendar.locale, value: locale)
     }
 
-    public func setViewMode(_ mode: ViewMode) -> Self {
+    public func setViewMode(_ mode: CalendarViewMode) -> Self {
         mutating(\.viewMode, value: mode)
+    }
+
+    public func onDraggingEnded(_ callback: (() -> Void)?) -> Self {
+        mutating(\.onDraggingEnded, value: callback)
+    }
+
+    public func enablePinedView(_ view: PinnedScrollableViews) -> Self {
+        mutating(\.pinedHeaderView, value: [view])
     }
 }

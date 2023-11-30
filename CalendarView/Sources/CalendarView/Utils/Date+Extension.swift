@@ -6,26 +6,27 @@
 //
 
 import Foundation
+import SwiftDate
 
-public extension Date {
-    var weekDayName: String {
+extension Date {
+    public var weekDayName: String {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "EEEE"
-        dateFormatter.locale = Locale(identifier: "vi")
+        dateFormatter.locale = Locales.vietnamese.toLocale()
         return dateFormatter.string(from: self)
     }
 
-    var weekDayShortName: String {
+    public var weekDayShortName: String {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "EE"
-        dateFormatter.locale = Locale(identifier: "vi")
+        dateFormatter.locale = Locales.vietnamese.toLocale()
         return dateFormatter.string(from: self)
     }
 
-    var dayName: String {
+    public var dayName: String {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "d"
-        dateFormatter.locale = Locale(identifier: "vi")
+        dateFormatter.locale = Locales.vietnamese.toLocale()
         return dateFormatter.string(from: self)
     }
 }
