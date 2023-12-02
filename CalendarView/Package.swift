@@ -15,7 +15,7 @@ let package = Package(
             targets: ["CalendarView"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/malcommac/SwiftDate", branch: "master")
+        .package(url: "https://github.com/malcommac/SwiftDate.git", branch: "master")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
