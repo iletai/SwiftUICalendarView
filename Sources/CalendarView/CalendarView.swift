@@ -16,6 +16,7 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
     var date = Date()
     var showHeaders = false
     var showDateOut = true
+    
     // MARK: - View Builder
     let dateView: (Date) -> DateView
     let headerView: (Date) -> HeaderView
@@ -55,41 +56,6 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
         self.onSelected = onSelectedDate
         self.date = date
     }
-    
-    /// Return list of date by ViewMode
-    /// - Returns: [Date] With Type Year/Month/Week
-    func generateDateByViewMode() -> [Date] {
-        generateDates(
-            date: date,
-            withComponent: viewMode.component,
-            dateComponents: viewMode.dateComponent
-        )
-    }
-
-    func generateDates(
-        date: Date,
-        withComponent: Calendar.Component = .month,
-        dateComponents: DateComponents
-    ) -> [Date] {
-        let dateStartRegion = DateInRegion(date.dateAtStartOf(withComponent), region: .current)
-        let dateEndRegion = DateInRegion(date.dateAtEndOf(withComponent), region: .current)
-        let dates = DateInRegion.enumerateDates(
-            from: dateStartRegion, to: dateEndRegion, increment: dateComponents
-        )
-            .map {
-                $0.date
-            }
-        return dates
-    }
-
-    func chunkEachMonthsData() -> [Date: [Date]] {
-        generateDateByViewMode().reduce(into: [:]) { month, date in
-            month[date] = generateDates(
-                date: date,
-                dateComponents: CalendarViewMode.month.dateComponent
-            )
-        }
-    }
 
     public var body: some View {
         ScrollView {
@@ -120,6 +86,8 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
                     // onDraggingEnded?()
                 }
             }
+            
+
         }
         .scrollIndicators(viewMode.enableScrollIndicator)
         .scrollDisabled(!viewMode.enableScroll)
@@ -140,7 +108,6 @@ extension CalendarView {
         case hidden
         case visible(CGFloat, Color)
     }
-
 }
 
 // MARK: - ViewBuilder Private API
@@ -151,11 +118,25 @@ extension CalendarView {
             Section(header:
                 LazyVStack {
                     HStack {
+                        Button {
+                        } label: {
+                            Text("Previous")
+                                .font(.footnote)
+                                .fontWeight(.bold)
+                                .foregroundStyle(Color.gray)
+                        }
                         Spacer()
                         Text(month.monthName(.defaultStandalone))
                             .font(.footnote)
                             .fontWeight(.bold)
                         Spacer()
+                        Button {
+                        } label: {
+                            Text("Next")
+                                .font(.footnote)
+                                .fontWeight(.bold)
+                                .foregroundStyle(Color.gray)
+                        }
                     }
                     LazyVGrid(
                         columns: Array(
@@ -180,6 +161,7 @@ extension CalendarView {
                     chunkEachMonthsData()[month, default: []], id: \.self
                 ) { date in
                     dateView(date)
+                        .background(date.isToday ? .red : .clear)
                         .onTapGesture {
                             onSelected(date)
                         }
@@ -191,11 +173,27 @@ extension CalendarView {
     @ViewBuilder
     fileprivate func monthTitle(for month: Date) -> some View {
         HStack {
+            Button {
+                // setDate(date.dateAt(.prevYear))
+            } label: {
+                Text("Previous")
+                    .font(.footnote)
+                    .fontWeight(.bold)
+                    .foregroundStyle(Color.gray)
+            }
             Spacer()
             Text(month.monthName(.defaultStandalone))
                 .font(.footnote)
                 .fontWeight(.bold)
             Spacer()
+            Button {
+                // setDate(date.dateAt(.prevYear))
+            } label: {
+                Text("Next")
+                    .font(.footnote)
+                    .fontWeight(.bold)
+                    .foregroundStyle(Color.gray)
+            }
         }
         .opacity(showHeaders ? 1.0 : 0.0)
     }
@@ -216,13 +214,11 @@ extension CalendarView {
     @ViewBuilder
     fileprivate func calendarWeekView() -> some View {
         Section(header: weekDayAndMonthView) {
-            ForEach(generateDateByViewMode(), id: \.self) { date in
-                if date.compare(.isThisMonth) {
-                    dateView(date)
-                } else {
-                    dateOutView(date)
-                        .opacity(showDateOut ? 1.0 : 0.0)
-                }
+            ForEach(
+                generateDateByViewMode(),
+                id: \.self
+            ) { date in
+                dateView(date)
             }
         }
     }
@@ -231,17 +227,13 @@ extension CalendarView {
     fileprivate func monthContentView() -> some View {
         Section(header: weekDayAndMonthView) {
             ForEach(generateDateByViewMode(), id: \.self) { date in
-                if date.compare(.isThisMonth) {
-                    dateView(date)
-                } else {
-                    dateOutView(date)
-                        .opacity(showDateOut ? 1.0 : 0.0)
-                }
+                dateView(date)
             }
         }
     }
 
-    private var weekDayAndMonthView: some View {
+    @ViewBuilder
+    fileprivate var weekDayAndMonthView: some View {
         VStack {
             monthTitle(for: date)
             LazyVGrid(
@@ -252,7 +244,11 @@ extension CalendarView {
                     count: CalendarDefine.kWeekDays
                 )
             ) {
-                ForEach(generateDateByViewMode().prefix(7), id: \.self) {
+                ForEach(
+                    generateDateByViewMode()
+                        .prefix(CalendarDefine.kWeekDays),
+                    id: \.self
+                ) {
                     headerView($0)
                 }
             }

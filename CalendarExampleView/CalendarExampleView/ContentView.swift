@@ -34,6 +34,7 @@ struct ContentView: View {
                     .frame(maxWidth: .infinity)
                     .frame(height: 30)
                     .background(listSelectedDate.contains(date) ? .cyan : .clear)
+                    .padding(4)
                 }, headerView: { date in
                     VStack {
                         Text(date.weekDayShortName)
@@ -74,7 +75,7 @@ struct ContentView: View {
                     }
                 }
                 .pickerStyle(.segmented)
-                .frame(width: 300)
+                .frame(width: 200)
                 .padding()
             }
 
