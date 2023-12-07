@@ -30,14 +30,28 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
 
     @GestureState var isGestureFinished = true
     @State var listDay = [Date]()
-    var onDraggingEnded: (() -> Void)?
+    var onDraggingEnded: ((Direction) -> Void)?
+
     var swipeGesture: some Gesture {
-        DragGesture(minimumDistance: CalendarDefine.kDistaneSwipeBack, coordinateSpace: .global)
+        DragGesture(
+            minimumDistance: CalendarDefine.kDistaneSwipeBack,
+            coordinateSpace: .global
+        )
             .updating($isGestureFinished) { _, state, _ in
                 state = false
             }
-            .onChanged({ value in
-            })
+            .onChanged { value in
+                if value.translation.width >= 15 {
+                    onDraggingEnded?(.backward)
+                }
+            }
+            .onEnded { endDrag in
+                if endDrag.translation.width  > 50 {
+                    onDraggingEnded?(.forward)
+                } else if endDrag.translation.width < -50 {
+                    onDraggingEnded?(.backward)
+                }
+            }
     }
 
     public init(

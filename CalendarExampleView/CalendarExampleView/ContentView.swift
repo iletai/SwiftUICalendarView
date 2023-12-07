@@ -59,8 +59,18 @@ struct ContentView: View {
             .rowsSpacing(0)
             .columnSpacing(0)
             .backgroundCalendar(.visible(20, .gray.opacity(0.3)))
-            .onDraggingEnded {
-                selectedDate = selectedDate.nextWeekday(.friday)
+            .onDraggingEnded { direction in
+                if direction == .forward {
+                    withAnimation(.easeInOut) {
+                        selectedDate = selectedDate.nextWeekday(.friday)
+                    }
+                } else {
+                    withAnimation(.easeInOut) {
+                        if let previousMonth = Calendar.current.date(byAdding: .month, value: -1, to: selectedDate) {
+                            selectedDate = previousMonth
+                        }
+                    }
+                }
             }
             .padding(.all, 16 )
             .allowsTightening(true)
