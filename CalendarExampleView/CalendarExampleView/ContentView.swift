@@ -23,18 +23,20 @@ struct ContentView: View {
             CalendarView(
                 date: selectedDate
                 , dateView: { date in
-                    VStack {
-                        Text(date.dayName)
-                            .font(.footnote)
-                            .fontWeight(.semibold)
-                            .foregroundColor(
-                                Calendar.current.isDateInWeekend(date) ? .red : .black
-                            )
+                    Text(date.dayName)
+                    .font(.footnote)
+                    .fontWeight(.semibold)
+                    .foregroundColor(
+                        Calendar.current.isDateInWeekend(date) ? .red : .black
+                    )
+                    .padding(12)
+                    .overlay(alignment: .bottomTrailing) {
+                        Text(DateFormatter.toLunarDateString(forDate: date, format: "dd"))
+                            .font(.caption)
+                            .fontWeight(.regular)
                     }
                     .frame(maxWidth: .infinity)
-                    .frame(height: 30)
                     .background(listSelectedDate.contains(date) ? .cyan : .clear)
-                    .padding(4)
                 }, headerView: { date in
                     VStack {
                         Text(date.weekDayShortName)
