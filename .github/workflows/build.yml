@@ -18,7 +18,6 @@ jobs:
         swift: ["5.9"]
     steps:
     - name: Fetch
-      uses: actions/checkout@latest
       uses: tgymnich/setup-swift@v1
       with:
         swift-version: ${{ matrix.swift }}
