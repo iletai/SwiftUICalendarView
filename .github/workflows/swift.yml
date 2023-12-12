@@ -9,12 +9,12 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build:
+  package_build:
     name: Build With Version Swift ${{ matrix.swift }} on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    runs-on: macos-13-xlarge
     strategy:
       matrix:
-        os: [macos-latest]
+        os: [macos-13-xlarge]
         swift: ["5.9"]
     steps:
     - uses: swift-actions/setup-swift@v1.25.0
