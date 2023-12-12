@@ -22,6 +22,8 @@ jobs:
       with:
         swift-version: ${{ matrix.swift }}
     - uses: actions/checkout@v3
+    - name: Select Xcode
+      run: sudo xcode-select -switch /Applications/Xcode.app && /usr/bin/xcodebuild -version
     - name: Build
       run: swift build 
     - name: Test
