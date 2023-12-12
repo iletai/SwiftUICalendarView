@@ -9,9 +9,9 @@ on:
     branches: [ "master" ]
 
 jobs:
-  package_build:
+  build:
     name: Build With Version Swift ${{ matrix.swift }} on ${{ matrix.os }}
-    runs-on: macos-13-xlarge
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [macos-13-xlarge]
