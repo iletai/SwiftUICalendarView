@@ -1,8 +1,7 @@
 # This workflow will build a Swift project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-swift
 
-name: Swift
-
+name: Build Project
 on:
   push:
     branches: [ "master" ]
@@ -10,13 +9,20 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build:
-
-    runs-on: macos-latest
-
+  package_build:
+    name: Build With Version Swift ${{ matrix.swift }} on ${{ matrix.os }}
+    runs-on: macos-13-xlarge
+    strategy:
+      matrix:
+        os: [macos-13-xlarge]
+        swift: ["5.9"]
     steps:
+    - uses: actions/checkout@latest
+    - uses: tgymnich/setup-swift@v1
+    with:
+        swift-version: ${{ matrix.swift }}
     - uses: actions/checkout@v3
     - name: Build
-      run: swift build -v
-    - name: Run tests
-      run: swift test -v
+      run: swift build 
+    - name: Test
+      run: swift test
