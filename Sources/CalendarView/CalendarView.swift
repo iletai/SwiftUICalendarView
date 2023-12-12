@@ -16,7 +16,6 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
     var date = Date()
     var showHeaders = false
     var showDateOut = true
-    
     // MARK: - View Builder
     let dateView: (Date) -> DateView
     let headerView: (Date) -> HeaderView
@@ -31,14 +30,28 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
 
     @GestureState var isGestureFinished = true
     @State var listDay = [Date]()
-    var onDraggingEnded: (() -> Void)?
+    var onDraggingEnded: ((Direction) -> Void)?
+
     var swipeGesture: some Gesture {
-        DragGesture(minimumDistance: CalendarDefine.kDistaneSwipeBack, coordinateSpace: .global)
+        DragGesture(
+            minimumDistance: CalendarDefine.kDistaneSwipeBack,
+            coordinateSpace: .global
+        )
             .updating($isGestureFinished) { _, state, _ in
                 state = false
             }
-            .onChanged({ value in
-            })
+            .onChanged { value in
+                if value.translation.width >= 15 {
+                    onDraggingEnded?(.backward)
+                }
+            }
+            .onEnded { endDrag in
+                if endDrag.translation.width  > 50 {
+                    onDraggingEnded?(.forward)
+                } else if endDrag.translation.width < -50 {
+                    onDraggingEnded?(.backward)
+                }
+            }
     }
 
     public init(
@@ -55,6 +68,41 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
         self.dateOutView = dateOutView
         self.onSelected = onSelectedDate
         self.date = date
+    }
+    
+    /// Return list of date by ViewMode
+    /// - Returns: [Date] With Type Year/Month/Week
+    func generateDateByViewMode() -> [Date] {
+        generateDates(
+            date: date,
+            withComponent: viewMode.component,
+            dateComponents: viewMode.dateComponent
+        )
+    }
+
+    func generateDates(
+        date: Date,
+        withComponent: Calendar.Component = .month,
+        dateComponents: DateComponents
+    ) -> [Date] {
+        let dateStartRegion = DateInRegion(date.dateAtStartOf(withComponent), region: .current)
+        let dateEndRegion = DateInRegion(date.dateAtEndOf(withComponent), region: .current)
+        let dates = DateInRegion.enumerateDates(
+            from: dateStartRegion, to: dateEndRegion, increment: dateComponents
+        )
+            .map {
+                $0.date
+            }
+        return dates
+    }
+
+    func chunkEachMonthsData() -> [Date: [Date]] {
+        generateDateByViewMode().reduce(into: [:]) { month, date in
+            month[date] = generateDates(
+                date: date,
+                dateComponents: CalendarViewMode.month.dateComponent
+            )
+        }
     }
 
     public var body: some View {
@@ -86,8 +134,6 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
                     // onDraggingEnded?()
                 }
             }
-            
-
         }
         .scrollIndicators(viewMode.enableScrollIndicator)
         .scrollDisabled(!viewMode.enableScroll)
@@ -108,6 +154,7 @@ extension CalendarView {
         case hidden
         case visible(CGFloat, Color)
     }
+
 }
 
 // MARK: - ViewBuilder Private API
@@ -118,25 +165,11 @@ extension CalendarView {
             Section(header:
                 LazyVStack {
                     HStack {
-                        Button {
-                        } label: {
-                            Text("Previous")
-                                .font(.footnote)
-                                .fontWeight(.bold)
-                                .foregroundStyle(Color.gray)
-                        }
                         Spacer()
                         Text(month.monthName(.defaultStandalone))
                             .font(.footnote)
                             .fontWeight(.bold)
                         Spacer()
-                        Button {
-                        } label: {
-                            Text("Next")
-                                .font(.footnote)
-                                .fontWeight(.bold)
-                                .foregroundStyle(Color.gray)
-                        }
                     }
                     LazyVGrid(
                         columns: Array(
@@ -161,7 +194,6 @@ extension CalendarView {
                     chunkEachMonthsData()[month, default: []], id: \.self
                 ) { date in
                     dateView(date)
-                        .background(date.isToday ? .red : .clear)
                         .onTapGesture {
                             onSelected(date)
                         }
@@ -173,27 +205,11 @@ extension CalendarView {
     @ViewBuilder
     fileprivate func monthTitle(for month: Date) -> some View {
         HStack {
-            Button {
-                // setDate(date.dateAt(.prevYear))
-            } label: {
-                Text("Previous")
-                    .font(.footnote)
-                    .fontWeight(.bold)
-                    .foregroundStyle(Color.gray)
-            }
             Spacer()
             Text(month.monthName(.defaultStandalone))
                 .font(.footnote)
                 .fontWeight(.bold)
             Spacer()
-            Button {
-                // setDate(date.dateAt(.prevYear))
-            } label: {
-                Text("Next")
-                    .font(.footnote)
-                    .fontWeight(.bold)
-                    .foregroundStyle(Color.gray)
-            }
         }
         .opacity(showHeaders ? 1.0 : 0.0)
     }
@@ -214,11 +230,13 @@ extension CalendarView {
     @ViewBuilder
     fileprivate func calendarWeekView() -> some View {
         Section(header: weekDayAndMonthView) {
-            ForEach(
-                generateDateByViewMode(),
-                id: \.self
-            ) { date in
-                dateView(date)
+            ForEach(generateDateByViewMode(), id: \.self) { date in
+                if date.compare(.isThisMonth) {
+                    dateView(date)
+                } else {
+                    dateOutView(date)
+                        .opacity(showDateOut ? 1.0 : 0.0)
+                }
             }
         }
     }
@@ -227,13 +245,17 @@ extension CalendarView {
     fileprivate func monthContentView() -> some View {
         Section(header: weekDayAndMonthView) {
             ForEach(generateDateByViewMode(), id: \.self) { date in
-                dateView(date)
+                if date.compare(.isThisMonth) {
+                    dateView(date)
+                } else {
+                    dateOutView(date)
+                        .opacity(showDateOut ? 1.0 : 0.0)
+                }
             }
         }
     }
 
-    @ViewBuilder
-    fileprivate var weekDayAndMonthView: some View {
+    private var weekDayAndMonthView: some View {
         VStack {
             monthTitle(for: date)
             LazyVGrid(
@@ -244,11 +266,7 @@ extension CalendarView {
                     count: CalendarDefine.kWeekDays
                 )
             ) {
-                ForEach(
-                    generateDateByViewMode()
-                        .prefix(CalendarDefine.kWeekDays),
-                    id: \.self
-                ) {
+                ForEach(generateDateByViewMode().prefix(7), id: \.self) {
                     headerView($0)
                 }
             }
