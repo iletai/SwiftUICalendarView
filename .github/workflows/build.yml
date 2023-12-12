@@ -10,12 +10,12 @@ on:
 
 jobs:
   build:
-    name: Build With Version Swift ${{ matrix.swift }} on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [macos-13-xlarge]
         swift: ["5.9"]
+    name: Build With Version Swift ${{ matrix.swift }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@latest
     - uses: tgymnich/setup-swift@v1
