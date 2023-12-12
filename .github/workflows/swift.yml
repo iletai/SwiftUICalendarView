@@ -9,25 +9,22 @@ on:
     branches: [ "master" ]
 
 jobs:
-  tests:
-    name: Build and Test
+  build:
+    name: Swift ${{ matrix.swift }} on ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-14]
-        xcode: ["15"]
+        os: [macos-latest]
         swift: ["5.9"]
     runs-on: ${{ matrix.os }}
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: fwal/setup-swift@v1
-        with:
-          swift-version: ${{ matrix.swift }}
-      - uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: ${{ matrix.xcode }}
-      - name: Build
-        run: swift build -v
-      - name: Run tests
-        run: swift test -v
+    - uses: swift-actions/setup-swift@v1
+      with:
+        swift-version: ${{ matrix.swift }}
+    - uses: actions/checkout@v3
+    - name: Build
+      run: swift build 
+    - name: Test
+      run: swift test
 
 
