@@ -1,0 +1,36 @@
+name: Build Project
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+
+jobs:
+  build:
+    name: Swift ${{ matrix.swift }} on ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest]
+        swift: ["5.9"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Cache
+      - uses: actions/cache@v3.3.2  
+      - uses: swift-actions/setup-swift@65540b95f51493d65f5e59e97dcef9629ddf11bf
+        with:
+          swift-version: ${{ matrix.swift }}
+      - uses: actions/checkout@v4
+      - name: Build
+        run: swift build
+      - name: Run tests
+        run: swift test
+      - name: Gather code coverage
+        run: xcrun llvm-cov export -format="lcov" .build/debug/SwiftUICalendarViewPackageTests.xctest/Contents/MacOS/SwiftUICalendarViewPackageTests -instr-profile .build/debug/codecov/default.profdata > coverage_report.lcov
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: fail
+          files: ./coverage_report.lcov
+          verbose: true
