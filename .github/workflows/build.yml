@@ -17,8 +17,7 @@ jobs:
         os: [macos-latest]
         swift: ["5.9"]
     steps:
-    - name: Fetch
-      uses: tgymnich/setup-swift@v1
+    - uses: SwiftyLab/setup-swift@latest
       with:
         swift-version: ${{ matrix.swift }}
     - uses: actions/checkout@v3
