@@ -31,7 +31,7 @@ jobs:
             ${{ runner.os }}-swift-
 
       - name: Set up Swift
-        uses: swift-actions/setup-swift@v2
+        uses: swift-actions/setup-swift@v1
         with:
           swift-version: ${{ matrix.swift }}
 
