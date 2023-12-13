@@ -9,24 +9,19 @@ on:
 jobs:
   package_build:
     name: Build With Version Swift ${{ matrix.swift }} on ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-13]
-        xcode: ['15.0.1']
-        build_type: ['debug', 'release']
     runs-on: ${{ matrix.os }}
-    env:
-      DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
+    strategy:
+      matrix:
+        os: [macos-latest]
+        swift: ["5.9"]
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v2
-      - name: Bundle install
-        run: |
-          bundle install
-      - name: Fastlane build
-        run: |
-          bundle exec fastlane build_${{ matrix.build_type }}
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      - name: Get Sources
+        uses: actions/checkout@v4
+      - name: Build Package
+        run: swift build -v
       - name: Test
         run: swift test
       - name: Gather code coverage
