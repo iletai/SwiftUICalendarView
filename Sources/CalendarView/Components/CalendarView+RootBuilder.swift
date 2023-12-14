@@ -43,7 +43,7 @@ extension CalendarView: RootBuilder {
         mutating(\.viewMode, value: mode)
     }
 
-    public func onDraggingEnded(_ callback: (() -> Void)?) -> Self {
+    public func onDraggingEnded(_ callback: ((Direction) -> Void)?) -> Self {
         mutating(\.onDraggingEnded, value: callback)
     }
 
