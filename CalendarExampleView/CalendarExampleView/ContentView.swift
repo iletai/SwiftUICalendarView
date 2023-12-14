@@ -23,19 +23,16 @@ struct ContentView: View {
             CalendarView(
                 date: selectedDate
                 , dateView: { date in
-                    Text(date.dayName)
-                    .font(.footnote)
-                    .fontWeight(.semibold)
-                    .foregroundColor(
-                        Calendar.current.isDateInWeekend(date) ? .red : .black
-                    )
-                    .padding(12)
-                    .overlay(alignment: .bottomTrailing) {
-                        Text(DateFormatter.toLunarDateString(forDate: date, format: "dd"))
-                            .font(.caption)
-                            .fontWeight(.regular)
+                    VStack {
+                        Text(date.dayName)
+                            .font(.footnote)
+                            .fontWeight(.semibold)
+                            .foregroundColor(
+                                Calendar.current.isDateInWeekend(date) ? .red : .black
+                            )
                     }
                     .frame(maxWidth: .infinity)
+                    .frame(height: 30)
                     .background(listSelectedDate.contains(date) ? .cyan : .clear)
                 }, headerView: { date in
                     VStack {
@@ -62,8 +59,18 @@ struct ContentView: View {
             .rowsSpacing(0)
             .columnSpacing(0)
             .backgroundCalendar(.visible(20, .gray.opacity(0.3)))
-            .onDraggingEnded {
-                selectedDate = selectedDate.nextWeekday(.friday)
+            .onDraggingEnded { direction in
+                if direction == .forward {
+                    withAnimation(.easeInOut) {
+                        selectedDate = selectedDate.nextWeekday(.friday)
+                    }
+                } else {
+                    withAnimation(.easeInOut) {
+                        if let previousMonth = Calendar.current.date(byAdding: .month, value: -1, to: selectedDate) {
+                            selectedDate = previousMonth
+                        }
+                    }
+                }
             }
             .padding(.all, 16 )
             .allowsTightening(true)
@@ -77,7 +84,7 @@ struct ContentView: View {
                     }
                 }
                 .pickerStyle(.segmented)
-                .frame(width: 200)
+                .frame(width: 300)
                 .padding()
             }
 
