@@ -55,7 +55,8 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: fail
           files: ./coverage_report.lcov
-          verbose: true
+          verbose: true
+
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
