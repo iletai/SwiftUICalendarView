@@ -44,7 +44,7 @@ jobs:
       - name: Gather code coverage
         run: |
           xcrun llvm-cov export -format="lcov" \
-            .build/debug/SwiftUICalendarViewPackageTests.xctest/Contents/MacOS/SwiftUICalendarViewPackageTests \
+            .build/debug/CalendarViewTests.xctest/Contents/MacOS/CalendarViewTests \
             -instr-profile .build/debug/codecov/default.profdata > coverage_report.lcov
 
       - name: Upload coverage to Codecov
