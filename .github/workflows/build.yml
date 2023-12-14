@@ -44,7 +44,7 @@ jobs:
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1.4.0
         with:
-          xcode-version: "13.1"
+          xcode-version: latest-stable
 
       - name: Gather code coverage
         run: xcrun llvm-cov export -format="lcov" .build/debug/CalendarViewPackageTests.xctest/Contents/MacOS/CalendarViewPackageTests -instr-profile .build/debug/codecov/default.profdata > coverage_report.lcov
