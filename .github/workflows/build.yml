@@ -40,13 +40,6 @@ jobs:
 
       - name: Run tests
         run: swift test
-
-      - name: Gather code coverage
-        run: |
-          xcrun llvm-cov export -format="lcov" \
-            .build/debug/CalendarViewTests.xctest/Contents/MacOS/CalendarViewTests \
-            -instr-profile .build/debug/codecov/default.profdata > coverage_report.lcov
-
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
         with:
