@@ -129,10 +129,8 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
             .padding(.all, 16)
             .background(backgroundCalendar)
             .highPriorityGesture(swipeGesture)
-            .onChange(of: isGestureFinished) { _, value in
-                if value {
-                    // onDraggingEnded?()
-                }
+            .onChange(of: isGestureFinished) { value in
+                // onDraggingEnded?()
             }
         }
         .scrollIndicators(viewMode.enableScrollIndicator)
