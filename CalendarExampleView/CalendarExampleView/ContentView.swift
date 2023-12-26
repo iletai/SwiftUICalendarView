@@ -35,14 +35,19 @@ struct ContentView: View {
                     .frame(height: 30)
                     .background(listSelectedDate.contains(date) ? .cyan : .clear)
                 }, headerView: { date in
-                    VStack {
-                        Text(date.weekDayShortName)
-                            .font(.footnote)
-                            .fontWeight(.bold)
-                            .foregroundColor(
-                                Calendar.current.isDateInWeekend(date) ? .red : .black
-                            )
+                    HStack {
+                        ForEach(date, id: \.self) {
+                            Text($0.weekDayShortName)
+                                .font(.footnote)
+                                .fontWeight(.bold)
+                                .foregroundColor(
+                                    Calendar.current.isDateInWeekend($0) ? .red : .black
+                                )
+                                .frame(maxWidth: .infinity)
+                        }
                     }
+                    .padding(2)
+                    .background(Color.white.clipShape(RoundedRectangle(cornerRadius: 12)))
                 }, dateOutView: { date in
                     Text(DateFormatter.day.string(from: date))
                         .font(.footnote)
@@ -89,6 +94,7 @@ struct ContentView: View {
             }
 
         }
+        .frame(maxWidth: .infinity)
     }
 
     var listButtonDemo: some View {

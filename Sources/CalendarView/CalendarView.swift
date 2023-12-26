@@ -18,7 +18,7 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
     var showDateOut = true
     // MARK: - View Builder
     let dateView: (Date) -> DateView
-    let headerView: (Date) -> HeaderView
+    let headerView: ([Date]) -> HeaderView
     let dateOutView: (Date) -> DateOutView
     var calendar = Calendar.current
     var calendarBackgroundStatus = BackgroundCalendar.hidden
@@ -57,7 +57,7 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
     public init(
         date: Date,
         @ViewBuilder dateView: @escaping (Date) -> DateView,
-        @ViewBuilder headerView: @escaping (Date) -> HeaderView,
+        @ViewBuilder headerView: @escaping ([Date]) -> HeaderView,
         @ViewBuilder dateOutView: @escaping (Date) -> DateOutView,
         onSelectedDate: @escaping (Date) -> Void,
         calendar: Calendar = Calendar.gregorian
@@ -129,9 +129,7 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
             .padding(.all, 16)
             .background(backgroundCalendar)
             .highPriorityGesture(swipeGesture)
-            .onChange(of: isGestureFinished) { value in
-                // onDraggingEnded?()
-            }
+            .onChange(of: isGestureFinished) { value in }
         }
         .scrollIndicators(viewMode.enableScrollIndicator)
         .scrollDisabled(!viewMode.enableScroll)
@@ -169,24 +167,13 @@ extension CalendarView {
                             .fontWeight(.bold)
                         Spacer()
                     }
-                    LazyVGrid(
-                        columns: Array(
-                            repeating: GridItem(
-                                .flexible(),
-                                spacing: spaceBetweenColumns),
-                            count: CalendarDefine.kWeekDays
-                        ),
-                        spacing: spacingBetweenDay
-                    ) {
-                        ForEach(chunkEachMonthsData()[
-                                month, default: []
-                            ].prefix(CalendarDefine.kWeekDays),
-                                id: \.self
-                        ) {
-                            headerView($0)
-                        }
-                    }
+                    headerView(
+                        Array(
+                            chunkEachMonthsData()[month, default: []].prefix(CalendarDefine.kWeekDays)
+                        )
+                    )
                 }
+                .frame(maxWidth: .infinity)
             ) {
                 ForEach(
                     chunkEachMonthsData()[month, default: []], id: \.self
@@ -253,21 +240,15 @@ extension CalendarView {
         }
     }
 
+    @ViewBuilder
     private var weekDayAndMonthView: some View {
         VStack {
             monthTitle(for: date)
-            LazyVGrid(
-                columns: Array(
-                    repeating: GridItem(
-                        .flexible(),
-                        spacing: spaceBetweenColumns),
-                    count: CalendarDefine.kWeekDays
+            headerView(
+                Array(
+                    generateDateByViewMode().prefix(CalendarDefine.kWeekDays)
                 )
-            ) {
-                ForEach(generateDateByViewMode().prefix(7), id: \.self) {
-                    headerView($0)
-                }
-            }
+            )
         }
     }
 }
