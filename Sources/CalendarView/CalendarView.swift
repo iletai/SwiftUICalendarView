@@ -37,21 +37,21 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
             minimumDistance: CalendarDefine.kDistaneSwipeBack,
             coordinateSpace: .global
         )
-            .updating($isGestureFinished) { _, state, _ in
-                state = false
+        .updating($isGestureFinished) { _, state, _ in
+            state = false
+        }
+        .onChanged { value in
+            if value.translation.width >= 50 { // Increase this value
+                onDraggingEnded?(.backward)
             }
-            .onChanged { value in
-                if value.translation.width >= 15 {
-                    onDraggingEnded?(.backward)
-                }
+        }
+        .onEnded { endDrag in
+            if endDrag.translation.width  > 100 { // Increase this value
+                onDraggingEnded?(.forward)
+            } else if endDrag.translation.width < -100 { // Increase this value
+                onDraggingEnded?(.backward)
             }
-            .onEnded { endDrag in
-                if endDrag.translation.width  > 50 {
-                    onDraggingEnded?(.forward)
-                } else if endDrag.translation.width < -50 {
-                    onDraggingEnded?(.backward)
-                }
-            }
+        }
     }
 
     public init(
@@ -85,14 +85,49 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
         withComponent: Calendar.Component = .month,
         dateComponents: DateComponents
     ) -> [Date] {
-        let dateStartRegion = DateInRegion(date.dateAtStartOf(withComponent), region: .current)
-        let dateEndRegion = DateInRegion(date.dateAtEndOf(withComponent), region: .current)
-        let dates = DateInRegion.enumerateDates(
-            from: dateStartRegion, to: dateEndRegion, increment: dateComponents
+        let dateStart = date.dateAtStartOf(withComponent)
+        
+        // Find the first day of the week for the first day of the month
+        var startOfWeek: Date = Date()
+        var interval: TimeInterval = 0
+        _ = calendar.dateInterval(
+            of: .weekOfYear,
+            start: &startOfWeek,
+            interval: &interval,
+            for: dateStart
         )
-            .map {
-                $0.date
-            }
+        
+        // Find the last day of the month
+        let dateEnd = date.dateAtEndOf(withComponent)
+        
+        // Find the last day of the week for the last day of the month
+        var endOfWeek: Date = Date()
+        _ = calendar.dateInterval(
+            of: .weekOfYear,
+            start: &endOfWeek,
+            interval: &interval,
+            for: dateEnd
+        )
+        endOfWeek = endOfWeek.addingTimeInterval(interval - 1)
+        
+        let dateStartRegion = DateInRegion(
+            startOfWeek,
+            region: .currentIn(
+                locale: Locales.vietnamese.toLocale(),
+                calendar: calendar
+            )
+        )
+        let dateEndRegion = DateInRegion(
+            endOfWeek,
+            region: .currentIn(
+                locale: Locales.vietnamese.toLocale(),
+                calendar: calendar
+            )
+        )
+        var dates = DateInRegion.enumerateDates(
+            from: dateStartRegion, to: dateEndRegion, increment: dateComponents
+        ).map { $0.date }
+        
         return dates
     }
 
@@ -178,10 +213,14 @@ extension CalendarView {
                 ForEach(
                     chunkEachMonthsData()[month, default: []], id: \.self
                 ) { date in
-                    dateView(date)
-                        .onTapGesture {
-                            onSelected(date)
-                        }
+                    if date.isInside(date: month, granularity: .month) {
+                        dateView(date)
+                            .onTapGesture {
+                                onSelected(date)
+                            }
+                    } else {
+                        dateOutView(date)
+                    }
                 }
             }
         }

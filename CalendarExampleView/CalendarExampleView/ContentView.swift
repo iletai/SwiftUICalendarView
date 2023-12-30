@@ -34,6 +34,7 @@ struct ContentView: View {
                     .frame(maxWidth: .infinity)
                     .frame(height: 30)
                     .background(listSelectedDate.contains(date) ? .cyan : .clear)
+                    .id(UUID().uuidString + date.toString())
                 }, headerView: { date in
                     HStack {
                         ForEach(date, id: \.self) {
