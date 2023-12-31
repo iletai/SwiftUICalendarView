@@ -29,7 +29,6 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
     var onSelected: (Date) -> Void = { _ in }
 
     @GestureState var isGestureFinished = true
-    @State var listDay = [Date]()
     var onDraggingEnded: ((Direction) -> Void)?
 
     var swipeGesture: some Gesture {
@@ -41,14 +40,14 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
             state = false
         }
         .onChanged { value in
-            if value.translation.width >= 50 { // Increase this value
+            if value.translation.width >= 50 {
                 onDraggingEnded?(.backward)
             }
         }
         .onEnded { endDrag in
-            if endDrag.translation.width  > 100 { // Increase this value
+            if endDrag.translation.width  > 100 {
                 onDraggingEnded?(.forward)
-            } else if endDrag.translation.width < -100 { // Increase this value
+            } else if endDrag.translation.width < -100 {
                 onDraggingEnded?(.backward)
             }
         }
@@ -86,12 +85,12 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
         dateComponents: DateComponents
     ) -> [Date] {
         let dateStart = date.dateAtStartOf(withComponent)
-        
         // Find the first day of the week for the first day of the month
         var startOfWeek: Date = Date()
         var interval: TimeInterval = 0
+        let component: Calendar.Component = withComponent == .year ? .weekOfYear : .weekOfMonth
         _ = calendar.dateInterval(
-            of: .weekOfYear,
+            of: component,
             start: &startOfWeek,
             interval: &interval,
             for: dateStart
@@ -102,7 +101,7 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
         // Find the last day of the week for the last day of the month
         var endOfWeek: Date = Date()
         _ = calendar.dateInterval(
-            of: .weekOfYear,
+            of: component,
             start: &endOfWeek,
             interval: &interval,
             for: dateEnd
@@ -111,34 +110,38 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
 
         let dateStartRegion = DateInRegion(
             startOfWeek,
-            region: .currentIn(
-                locale: Locales.vietnamese.toLocale(),
-                calendar: calendar
-            )
+            region: .local
         )
         let dateEndRegion = DateInRegion(
             endOfWeek,
-            region: .currentIn(
-                locale: Locales.vietnamese.toLocale(),
-                calendar: calendar
-            )
+            region: .local
         )
         var dates = DateInRegion.enumerateDates(
             from: dateStartRegion, 
             to: dateEndRegion,
             increment: dateComponents
         ).map { $0.date }
-        
         return dates
     }
 
     func chunkEachMonthsData() -> [Date: [Date]] {
         generateDateByViewMode().reduce(into: [:]) { month, date in
             month[date] = generateDates(
-                date: date,
+                date: date.dateAtStartOf(.month),
                 dateComponents: CalendarViewMode.month.dateComponent
             )
         }
+    }
+
+    func generateDatesForYear(
+        date: Date,
+        dateComponents: DateComponents = DateComponents(month: 1)
+    ) -> [Date] {
+        return generateDates(
+            date: date,
+            withComponent: .year,
+            dateComponents: dateComponents
+        )
     }
 
     public var body: some View {
@@ -199,7 +202,7 @@ extension CalendarView {
                 LazyVStack {
                     HStack {
                         Spacer()
-                        Text(month.monthName(.defaultStandalone))
+                        Text(month.monthName(.defaultStandalone) + " \(month.year)")
                             .font(.footnote)
                             .fontWeight(.bold)
                         Spacer()
@@ -222,6 +225,7 @@ extension CalendarView {
                             }
                     } else {
                         dateOutView(date)
+                            .opacity(showDateOut ? 1.0 : 0.0)
                     }
                 }
             }
@@ -232,7 +236,7 @@ extension CalendarView {
     fileprivate func monthTitle(for month: Date) -> some View {
         HStack {
             Spacer()
-            Text(month.monthName(.defaultStandalone))
+            Text(month.monthName(.defaultStandalone) + " \(month.year)")
                 .font(.footnote)
                 .fontWeight(.bold)
             Spacer()

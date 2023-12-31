@@ -28,18 +28,9 @@ public enum CalendarViewMode: CaseIterable {
         switch self {
         case .month,
         .week:
-            return DateComponents.create {
-                $0.day = 1
-                $0.hour = 0
-                $0.minute = 0
-            }
+            return DateComponents(day: 1)
         case .year:
-            return DateComponents.create {
-                $0.month = 1
-                $0.day = 0
-                $0.hour = 0
-                $0.minute = 0
-            }
+            return DateComponents(month: 1)
         }
     }
     
