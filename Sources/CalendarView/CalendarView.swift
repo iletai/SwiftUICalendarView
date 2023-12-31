@@ -96,7 +96,6 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
             interval: &interval,
             for: dateStart
         )
-        
         // Find the last day of the month
         let dateEnd = date.dateAtEndOf(withComponent)
         
@@ -109,7 +108,7 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
             for: dateEnd
         )
         endOfWeek = endOfWeek.addingTimeInterval(interval - 1)
-        
+
         let dateStartRegion = DateInRegion(
             startOfWeek,
             region: .currentIn(
@@ -125,7 +124,9 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
             )
         )
         var dates = DateInRegion.enumerateDates(
-            from: dateStartRegion, to: dateEndRegion, increment: dateComponents
+            from: dateStartRegion, 
+            to: dateEndRegion,
+            increment: dateComponents
         ).map { $0.date }
         
         return dates
@@ -146,7 +147,8 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
                 columns: Array(
                     repeating: GridItem(
                         .flexible(),
-                        spacing: spaceBetweenColumns),
+                        spacing: spaceBetweenColumns
+                    ),
                     count: CalendarDefine.kWeekDays
                 ),
                 spacing: spacingBetweenDay,
