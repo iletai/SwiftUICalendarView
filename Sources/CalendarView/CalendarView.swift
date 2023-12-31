@@ -210,7 +210,7 @@ extension CalendarView {
                         )
                     )
                 }
-                .frame(maxWidth: .infinity)
+                .maxWidthAble()
             ) {
                 ForEach(
                     chunkEachMonthsData()[month, default: []], id: \.self
