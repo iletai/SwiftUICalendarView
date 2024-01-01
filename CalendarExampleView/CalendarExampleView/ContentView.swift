@@ -49,9 +49,17 @@ struct ContentView: View {
                     .padding(2)
                     .background(Color.white.clipShape(RoundedRectangle(cornerRadius: 12)))
                 }, dateOutView: { date in
-                    Text(DateFormatter.day.string(from: date))
-                        .font(.footnote)
-                        .foregroundColor(.gray)
+                    VStack {
+                        Text(date.dayName)
+                            .font(.footnote)
+                            .fontWeight(.semibold)
+                            .foregroundColor(
+                                Calendar.current.isDateInWeekend(date) ? .red : .gray
+                            )
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 30)
+                    .background(listSelectedDate.contains(date) ? .cyan : .clear)
                 },
                 onSelectedDate: onSelectedDate
             )
@@ -61,8 +69,8 @@ struct ContentView: View {
             .calendarLocate(locale: Locales.vietnamese.toLocale())
             .enablePinedView(.sectionHeaders)
             .setViewMode(viewMode)
-            .rowsSpacing(0)
-            .columnSpacing(0)
+            .rowsSpacing(8)
+            .columnSpacing(8)
             .backgroundCalendar(.visible(20, .gray.opacity(0.3)))
             .onDraggingEnded { direction in
                 if direction == .forward {
