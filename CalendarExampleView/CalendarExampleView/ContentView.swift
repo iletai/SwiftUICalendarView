@@ -61,8 +61,8 @@ struct ContentView: View {
             .calendarLocate(locale: Locales.vietnamese.toLocale())
             .enablePinedView(.sectionHeaders)
             .setViewMode(viewMode)
-            .rowsSpacing(0)
-            .columnSpacing(0)
+            .rowsSpacing(8)
+            .columnSpacing(8)
             .backgroundCalendar(.visible(20, .gray.opacity(0.3)))
             .onDraggingEnded { direction in
                 if direction == .forward {

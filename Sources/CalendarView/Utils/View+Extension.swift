@@ -18,8 +18,6 @@ extension View {
     }
 
     func frameInfinity() -> some View {
-        self
-            .maxWidthAble()
-            .maxHeightAble()
+        maxWidthAble().maxHeightAble()
     }
 }

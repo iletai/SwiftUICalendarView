@@ -85,23 +85,19 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
         dateComponents: DateComponents
     ) -> [Date] {
         let dateStart = date.dateAtStartOf(withComponent)
-        // Find the first day of the week for the first day of the month
-        var startOfWeek: Date = Date()
+        var startOfWeek = Date()
         var interval: TimeInterval = 0
-        let component: Calendar.Component = withComponent == .year ? .weekOfYear : .weekOfMonth
         _ = calendar.dateInterval(
-            of: component,
+            of: .weekOfMonth,
             start: &startOfWeek,
             interval: &interval,
             for: dateStart
         )
-        // Find the last day of the month
+        startOfWeek = startOfWeek - 1
         let dateEnd = date.dateAtEndOf(withComponent)
-        
-        // Find the last day of the week for the last day of the month
-        var endOfWeek: Date = Date()
+        var endOfWeek = Date()
         _ = calendar.dateInterval(
-            of: component,
+            of: .weekOfMonth,
             start: &endOfWeek,
             interval: &interval,
             for: dateEnd
@@ -110,11 +106,11 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
 
         let dateStartRegion = DateInRegion(
             startOfWeek,
-            region: .local
+            region: .current
         )
         let dateEndRegion = DateInRegion(
             endOfWeek,
-            region: .local
+            region: .current
         )
         var dates = DateInRegion.enumerateDates(
             from: dateStartRegion, 
@@ -125,12 +121,24 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
     }
 
     func chunkEachMonthsData() -> [Date: [Date]] {
-        generateDateByViewMode().reduce(into: [:]) { month, date in
+        yearData().reduce(into: [:]) { month, date in
             month[date] = generateDates(
                 date: date.dateAtStartOf(.month),
                 dateComponents: CalendarViewMode.month.dateComponent
             )
         }
+    }
+
+    func yearData() -> [Date] {
+        let dateStartRegion = DateInRegion(date.dateAtStartOf(.year), region: .current)
+        let dateEndRegion = DateInRegion(date.dateAtEndOf(.year), region: .current)
+        let dates = DateInRegion.enumerateDates(
+            from: dateStartRegion, to: dateEndRegion, increment: DateComponents(month: 1)
+        )
+            .map {
+                $0.date
+            }
+        return dates
     }
 
     func generateDatesForYear(
