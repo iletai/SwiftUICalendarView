@@ -28,6 +28,39 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
     var pinedHeaderView = PinnedScrollableViews()
     var onSelected: (Date) -> Void = { _ in }
 
+    private var yearData: [Date: [Date]] {
+        let dateStartRegion = DateInRegion(date.dateAtStartOf(.year), region: .current)
+        let dateEndRegion = DateInRegion(date.dateAtEndOf(.year), region: .current)
+        let dates = DateInRegion.enumerateDates(
+            from: dateStartRegion, to: dateEndRegion, increment: DateComponents(month: 1)
+        )
+        .map {
+            $0.date
+        }
+        return dates.reduce(into: [:]) { month, date in
+            month[date] = generateDates(
+                date: date.dateAtStartOf(.month),
+                dateComponents: CalendarViewMode.month.dateComponent
+            )
+        }
+    }
+
+    private var monthData: [Date] {
+        generateDates(
+            date: date,
+            withComponent: .month,
+            dateComponents: DateComponents(day: 1)
+        )
+    }
+
+    private var weekData: [Date] {
+        generateDates(
+            date: date,
+            withComponent: .weekOfMonth,
+            dateComponents: DateComponents(day: 1)
+        )
+    }
+
     @GestureState var isGestureFinished = true
     var onDraggingEnded: ((Direction) -> Void)?
 
@@ -45,7 +78,7 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
             }
         }
         .onEnded { endDrag in
-            if endDrag.translation.width  > 100 {
+            if endDrag.translation.width > 100 {
                 onDraggingEnded?(.forward)
             } else if endDrag.translation.width < -100 {
                 onDraggingEnded?(.backward)
@@ -67,89 +100,6 @@ public struct CalendarView<DateView: View, HeaderView: View, DateOutView: View>:
         self.dateOutView = dateOutView
         self.onSelected = onSelectedDate
         self.date = date
-    }
-    
-    /// Return list of date by ViewMode
-    /// - Returns: [Date] With Type Year/Month/Week
-    func generateDateByViewMode() -> [Date] {
-        generateDates(
-            date: date,
-            withComponent: viewMode.component,
-            dateComponents: viewMode.dateComponent
-        )
-    }
-
-    func generateDates(
-        date: Date,
-        withComponent: Calendar.Component = .month,
-        dateComponents: DateComponents
-    ) -> [Date] {
-        let dateStart = date.dateAtStartOf(withComponent)
-        var startOfWeek = Date()
-        var interval: TimeInterval = 0
-        _ = calendar.dateInterval(
-            of: .weekOfMonth,
-            start: &startOfWeek,
-            interval: &interval,
-            for: dateStart
-        )
-        startOfWeek = startOfWeek - 1
-        let dateEnd = date.dateAtEndOf(withComponent)
-        var endOfWeek = Date()
-        _ = calendar.dateInterval(
-            of: .weekOfMonth,
-            start: &endOfWeek,
-            interval: &interval,
-            for: dateEnd
-        )
-        endOfWeek = endOfWeek.addingTimeInterval(interval - 1)
-
-        let dateStartRegion = DateInRegion(
-            startOfWeek,
-            region: .current
-        )
-        let dateEndRegion = DateInRegion(
-            endOfWeek,
-            region: .current
-        )
-        var dates = DateInRegion.enumerateDates(
-            from: dateStartRegion, 
-            to: dateEndRegion,
-            increment: dateComponents
-        ).map { $0.date }
-        return dates
-    }
-
-    func chunkEachMonthsData() -> [Date: [Date]] {
-        yearData().reduce(into: [:]) { month, date in
-            month[date] = generateDates(
-                date: date.dateAtStartOf(.month),
-                dateComponents: CalendarViewMode.month.dateComponent
-            )
-        }
-    }
-
-    func yearData() -> [Date] {
-        let dateStartRegion = DateInRegion(date.dateAtStartOf(.year), region: .current)
-        let dateEndRegion = DateInRegion(date.dateAtEndOf(.year), region: .current)
-        let dates = DateInRegion.enumerateDates(
-            from: dateStartRegion, to: dateEndRegion, increment: DateComponents(month: 1)
-        )
-            .map {
-                $0.date
-            }
-        return dates
-    }
-
-    func generateDatesForYear(
-        date: Date,
-        dateComponents: DateComponents = DateComponents(month: 1)
-    ) -> [Date] {
-        return generateDates(
-            date: date,
-            withComponent: .year,
-            dateComponents: dateComponents
-        )
     }
 
     public var body: some View {
@@ -205,26 +155,27 @@ extension CalendarView {
 extension CalendarView {
     @ViewBuilder
     fileprivate func yearContentView() -> some View {
-        ForEach(chunkEachMonthsData().keys.sorted(), id: \.self) { month in
-            Section(header:
-                LazyVStack {
-                    HStack {
-                        Spacer()
-                        Text(month.monthName(.defaultStandalone) + " \(month.year)")
-                            .font(.footnote)
-                            .fontWeight(.bold)
-                        Spacer()
-                    }
-                    headerView(
-                        Array(
-                            chunkEachMonthsData()[month, default: []].prefix(CalendarDefine.kWeekDays)
+        ForEach(yearData.keys.sorted(), id: \.self) { month in
+            Section(
+                header:
+                    LazyVStack {
+                        HStack {
+                            Spacer()
+                            Text(month.monthName(.defaultStandalone) + " \(month.year)")
+                                .font(.footnote)
+                                .fontWeight(.bold)
+                            Spacer()
+                        }
+                        headerView(
+                            Array(
+                                yearData[month, default: []].prefix(CalendarDefine.kWeekDays)
+                            )
                         )
-                    )
-                }
-                .maxWidthAble()
+                    }
+                    .maxWidthAble()
             ) {
                 ForEach(
-                    chunkEachMonthsData()[month, default: []], id: \.self
+                    yearData[month, default: []], id: \.self
                 ) { date in
                     if date.isInside(date: month, granularity: .month) {
                         dateView(date)
@@ -268,7 +219,7 @@ extension CalendarView {
     @ViewBuilder
     fileprivate func calendarWeekView() -> some View {
         Section(header: weekDayAndMonthView) {
-            ForEach(generateDateByViewMode(), id: \.self) { date in
+            ForEach(weekData, id: \.self) { date in
                 if date.compare(.isThisMonth) {
                     dateView(date)
                 } else {
@@ -282,7 +233,7 @@ extension CalendarView {
     @ViewBuilder
     fileprivate func monthContentView() -> some View {
         Section(header: weekDayAndMonthView) {
-            ForEach(generateDateByViewMode(), id: \.self) { date in
+            ForEach(monthData, id: \.self) { date in
                 if date.compare(.isThisMonth) {
                     dateView(date)
                 } else {
@@ -299,7 +250,7 @@ extension CalendarView {
             monthTitle(for: date)
             headerView(
                 Array(
-                    generateDateByViewMode().prefix(CalendarDefine.kWeekDays)
+                    monthData.prefix(CalendarDefine.kWeekDays)
                 )
             )
         }

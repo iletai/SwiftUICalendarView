@@ -49,9 +49,17 @@ struct ContentView: View {
                     .padding(2)
                     .background(Color.white.clipShape(RoundedRectangle(cornerRadius: 12)))
                 }, dateOutView: { date in
-                    Text(DateFormatter.day.string(from: date))
-                        .font(.footnote)
-                        .foregroundColor(.gray)
+                    VStack {
+                        Text(date.dayName)
+                            .font(.footnote)
+                            .fontWeight(.semibold)
+                            .foregroundColor(
+                                Calendar.current.isDateInWeekend(date) ? .red : .gray
+                            )
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 30)
+                    .background(listSelectedDate.contains(date) ? .cyan : .clear)
                 },
                 onSelectedDate: onSelectedDate
             )
