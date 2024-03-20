@@ -27,8 +27,8 @@ extension CalendarView: RootBuilder {
     /// Sets the background style for the calendar view.
     /// - Parameter status: The background style for the calendar view.
     /// - Returns: An instance of `Self` with the updated configuration.
-    public func backgroundCalendar(_ status: BackgroundCalendar) -> Self {
-        mutating(\.calendarBackgroundStatus, value: status)
+    public func background(_ status: Background) -> Self {
+        mutating(\.backgroundStatus, value: status)
     }
 
     /// Sets the spacing between rows in the calendar view.
@@ -69,7 +69,7 @@ extension CalendarView: RootBuilder {
     /// Sets the callback for when dragging ends in the calendar view.
     /// - Parameter callback: A closure that takes a `Direction` parameter and has no return value.
     /// - Returns: An instance of `Self` with the updated configuration.
-    public func onDraggingEnded(_ callback: ((Direction) -> Void)?) -> Self {
+    public func onDraggingEnded(_ callback: OnEndDragAction?) -> Self {
         mutating(\.onDraggingEnded, value: callback)
     }
 
@@ -78,5 +78,21 @@ extension CalendarView: RootBuilder {
     /// - Returns: An instance of `Self` with the updated configuration.
     public func enablePinedView(_ view: PinnedScrollableViews) -> Self {
         mutating(\.pinedHeaderView, value: [view])
+    }
+
+    public func onSelectDate(_ callback: @escaping OnSelectedDate) -> Self {
+        mutating(\.onSelected, value: callback)
+    }
+
+    public func enableDivider(_ isEnable: Bool) -> Self {
+        mutating(\.showDivider, value: isEnable)
+    }
+
+    public func enableHighlightToDay(_ isEnable: Bool) -> Self {
+        mutating(\.hightLightToDay, value: isEnable)
+    }
+
+    func setDate(_ date: Date) -> Self {
+        mutating(\.date, value: date)
     }
 }

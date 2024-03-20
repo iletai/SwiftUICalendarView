@@ -13,11 +13,12 @@ struct ContentView: View {
     @State var isShowHeader = false
     @State var isShowDateOut = false
     @State var firstWeekDate = 1
+    @State var isShowDivider = false
     @State var viewMode = CalendarViewMode.year
     @State private var selectedDate = Date()
     @State private var colorDay = Color.white
     @State var listSelectedDate = [Date]()
-
+    @State var isHightLightToDay = true
     var body: some View {
         VStack {
             CalendarView(
@@ -31,7 +32,7 @@ struct ContentView: View {
                                 Calendar.current.isDateInWeekend(date) ? .red : .black
                             )
                     }
-                    .frame(maxWidth: .infinity)
+                    .frameInfinity()
                     .frame(height: 30)
                     .background(listSelectedDate.contains(date) ? .cyan : .clear)
                 }, headerView: { date in
@@ -46,8 +47,6 @@ struct ContentView: View {
                                 .frame(maxWidth: .infinity)
                         }
                     }
-                    .padding(2)
-                    .background(Color.white.clipShape(RoundedRectangle(cornerRadius: 12)))
                 }, dateOutView: { date in
                     VStack {
                         Text(date.dayName)
@@ -57,35 +56,39 @@ struct ContentView: View {
                                 Calendar.current.isDateInWeekend(date) ? .red : .gray
                             )
                     }
-                    .frame(maxWidth: .infinity)
+                    .frameInfinity()
                     .frame(height: 30)
                     .background(listSelectedDate.contains(date) ? .cyan : .clear)
-                },
-                onSelectedDate: onSelectedDate
+                }
             )
             .enableHeader(isShowHeader)
             .enableDateOut(isShowDateOut)
             .firstWeekDay(firstWeekDate)
             .calendarLocate(locale: Locales.vietnamese.toLocale())
-            .enablePinedView(.sectionHeaders)
+            .enablePinedView([.sectionHeaders, .sectionFooters])
             .setViewMode(viewMode)
             .rowsSpacing(8)
             .columnSpacing(8)
-            .backgroundCalendar(.visible(20, .gray.opacity(0.3)))
-            .onDraggingEnded { direction in
+            .background(.visible(12, .gray.opacity(0.1)))
+            .onDraggingEnded { direction, viewMode in
                 if direction == .forward {
                     withAnimation(.easeInOut) {
-                        selectedDate = selectedDate.nextWeekday(.friday)
+                        selectedDate = selectedDate.dateAt(
+                            viewMode == .month ? .nextMonth : .nextWeek
+                        ).date
                     }
                 } else {
                     withAnimation(.easeInOut) {
-                        if let previousMonth = Calendar.current.date(byAdding: .month, value: -1, to: selectedDate) {
-                            selectedDate = previousMonth
-                        }
+                        selectedDate = selectedDate.dateAt(
+                            viewMode == .month ? .prevMonth : .prevWeek
+                        ).date
                     }
                 }
             }
-            .padding(.all, 16 )
+            .onSelectDate(onSelectedDate)
+            .enableDivider(isShowDivider)
+            .enableHighlightToDay(isHightLightToDay)
+            .marginDefault()
             .allowsTightening(true)
             Spacer()
             VStack {
@@ -113,6 +116,11 @@ struct ContentView: View {
                 } label: {
                     Text("Header")
                 }
+                Button {
+                    isShowDivider.toggle()
+                } label: {
+                    Text("Dviider")
+                }
 
                 Button {
                     isShowDateOut.toggle()
@@ -129,6 +137,11 @@ struct ContentView: View {
                     selectedDate = nextMonth!
                 } label: {
                     Text("Next month")
+                }
+                Button {
+                    isHightLightToDay.toggle()
+                } label: {
+                    Text("isHightLightToDay")
                 }
 
             }

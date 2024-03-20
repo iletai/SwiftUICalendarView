@@ -14,33 +14,16 @@ extension CalendarView {
         withComponent: Calendar.Component = .month,
         dateComponents: DateComponents
     ) -> [Date] {
+        SwiftDate.defaultRegion = Region(calendar: calendar)
         let dateStart = date.dateAtStartOf(withComponent)
-        var startOfWeek = Date()
-        var interval: TimeInterval = 0
-        _ = calendar.dateInterval(
-            of: .weekOfMonth,
-            start: &startOfWeek,
-            interval: &interval,
-            for: dateStart
-        )
-        startOfWeek = startOfWeek - 1
         let dateEnd = date.dateAtEndOf(withComponent)
-        var endOfWeek = Date()
-        _ = calendar.dateInterval(
-            of: .weekOfMonth,
-            start: &endOfWeek,
-            interval: &interval,
-            for: dateEnd
-        )
-        endOfWeek = endOfWeek.addingTimeInterval(interval - 1)
-
         let dateStartRegion = DateInRegion(
-            startOfWeek,
-            region: .current
+            dateStart.dateAt(.startOfWeek),
+            region: .currentIn(calendar: calendar)
         )
         let dateEndRegion = DateInRegion(
-            endOfWeek,
-            region: .current
+            dateEnd.dateAt(.endOfWeek),
+            region: .currentIn(calendar: calendar)
         )
         var dates = DateInRegion.enumerateDates(
             from: dateStartRegion,
