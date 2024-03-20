@@ -263,9 +263,3 @@ extension View {
         background(color.clipShape(Circle()))
     }
 }
-
-extension CalendarView {
-    public static func ==(lhs: CalendarView, rhs: CalendarView) {
-        lhs.date == rhs.date
-    }
-}
