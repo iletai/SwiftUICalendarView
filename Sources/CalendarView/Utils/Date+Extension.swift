@@ -29,4 +29,20 @@ extension Date {
         dateFormatter.locale = Locales.vietnamese.toLocale()
         return dateFormatter.string(from: self)
     }
+
+    public func startOfYear(_ inCalendar: Calendar) -> DateInRegion {
+        currentDateInRegion(inCalendar).dateAtStartOf(.year)
+    }
+
+    public func startOfMonth(_ inCalendar: Calendar) -> DateInRegion {
+        currentDateInRegion(inCalendar).dateAtStartOf(.month)
+    }
+
+    public func endOfYear(_ inCalendar: Calendar) -> DateInRegion {
+        currentDateInRegion(inCalendar).dateAtEndOf(.year)
+    }
+
+    public func currentDateInRegion(_ calendar: Calendar) -> DateInRegion {
+        DateInRegion(self, region: .currentIn(calendar: calendar))
+    }
 }

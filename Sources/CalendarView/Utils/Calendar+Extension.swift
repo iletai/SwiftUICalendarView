@@ -9,6 +9,6 @@ import SwiftUI
 
 extension Calendar {
     public static var gregorian: Calendar {
-        return Calendar(identifier: .gregorian)
+        Calendar(identifier: .gregorian)
     }
 }

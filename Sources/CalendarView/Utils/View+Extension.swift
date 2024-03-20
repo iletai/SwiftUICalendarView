@@ -9,15 +9,23 @@ import Foundation
 import SwiftUI
 
 extension View {
-    func maxWidthAble() -> some View {
+    public func maxWidthAble() -> some View {
         frame(maxWidth: .infinity)
     }
 
-    func maxHeightAble() -> some View {
+    public func maxHeightAble() -> some View {
         frame(maxHeight: .infinity)
     }
 
-    func frameInfinity() -> some View {
+    public func frameInfinity() -> some View {
         maxWidthAble().maxHeightAble()
+    }
+
+    public func marginDefault() -> some View {
+        padding(.all, 16)
+    }
+
+    public func withRounderConner(_ radius: CGFloat) -> some View {
+        clipShape(RoundedRectangle(cornerRadius: radius))
     }
 }
