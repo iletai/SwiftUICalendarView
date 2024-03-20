@@ -69,25 +69,25 @@ jobs:
           files: ./coverage_report.lcov
           verbose: true
 
-        - name: Return Status Test Fail
-            if: failure()
-            env:
-              GITHUB_TOKEN: ${{ secrets.token }}
-              COMMENT_BODY: "#😭 Unit Test Was Failed!
+      - name: Return Status Test Fail
+        if: failure()
+        env:
+          GITHUB_TOKEN: ${{ secrets.token }}
+          COMMENT_BODY: "#😭 Unit Test Was Failed!
 
-                See more at: ${{ github.event.pull_request.html_url }}/checks
-                "
-              PR_NUMBER: ${{ github.event.number }}
-            run: |
-              # --edit-last
-              gh pr comment $PR_NUMBER --body "$COMMENT_BODY" --edit-last || gh pr comment $PR_NUMBER --body "$COMMENT_BODY" 
+            See more at: ${{ github.event.pull_request.html_url }}/checks
+            "
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          # --edit-last
+          gh pr comment $PR_NUMBER --body "$COMMENT_BODY" --edit-last || gh pr comment $PR_NUMBER --body "$COMMENT_BODY"
 
-          - name: Return Status Test Success
-            if: success()
-            env:
-              GITHUB_TOKEN: ${{ secrets.token }}
-              COMMENT_BODY: "# ✅ Unit Test Success! <3"
-              PR_NUMBER: ${{ github.event.number }}
-            run: |
-              # --edit-last
-              gh pr comment $PR_NUMBER --body "$COMMENT_BODY" --edit-last || gh pr comment $PR_NUMBER --body "$COMMENT_BODY" 
+      - name: Return Status Test Success
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.token }}
+          COMMENT_BODY: "# ✅ Unit Test Success! <3"
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          # --edit-last
+          gh pr comment $PR_NUMBER --body "$COMMENT_BODY" --edit-last || gh pr comment $PR_NUMBER --body "$COMMENT_BODY"
