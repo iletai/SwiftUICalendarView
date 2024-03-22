@@ -19,7 +19,7 @@ To integrate SwiftUICalendarView into your project, add the GitHub URL to the de
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/iletai/SwiftUICalendarView.git", from: "1.0.0"),
+    .package(url: "https://github.com/iletai/SwiftUICalendarView.git", from: "1.0.3"),
 ],
 targets: [
     .target(name: "YourTarget", dependencies: ["CalendarView"]),
@@ -27,11 +27,12 @@ targets: [
 ```
 
 
+
 ## Calendar Mode Support: 
  
 |  Month Mode 	| Year Mode  	|  Week Mode 	|
 |---	|---	|---	|
-|  ![image](https://github.com/iletai/SwiftUICalendarView/assets/26614687/6dc00b90-ab06-4ad2-ade7-41cab66cd2b7) 	|   ![image](https://github.com/iletai/SwiftUICalendarView/assets/26614687/29e86851-96d1-47c7-bce3-54ec3d9f5275) 	|  ![image](https://github.com/iletai/SwiftUICalendarView/assets/26614687/589e7a68-9e1e-45d1-a73b-e12ffb2d7915)  	|
+|  <img src="https://github.com/iletai/SwiftUICalendarView/assets/26614687/6dc00b90-ab06-4ad2-ade7-41cab66cd2b7" width="300"> 	|   <img src="https://github.com/iletai/SwiftUICalendarView/assets/26614687/29e86851-96d1-47c7-bce3-54ec3d9f5275" width="300"> 	|  <img src="https://github.com/iletai/SwiftUICalendarView/assets/26614687/589e7a68-9e1e-45d1-a73b-e12ffb2d7915" width="300">  	|
 
 ## Usable Example Calendar View
 

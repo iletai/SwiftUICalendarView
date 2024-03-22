@@ -61,16 +61,16 @@ jobs:
           show-code-coverage: false
           upload-bundles: never
 
-      - name: Gather code coverage
-        run: xcrun llvm-cov export -format="lcov" .build/debug/CalendarViewPackageTests.xctest/Contents/MacOS/CalendarViewPackageTests -instr-profile .build/debug/codecov/default.profdata > coverage_report.lcov
+      # - name: Gather code coverage
+      #   run: xcrun llvm-cov export -format="lcov" .build/debug/CalendarViewPackageTests.xctest/Contents/MacOS/CalendarViewPackageTests -instr-profile .build/debug/codecov/default.profdata > coverage_report.lcov
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v2
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: fail
-          files: ./coverage_report.lcov
-          verbose: true
+      # - name: Upload coverage to Codecov
+      #   uses: codecov/codecov-action@v2
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     fail_ci_if_error: fail
+      #     files: ./coverage_report.lcov
+      #     verbose: true
 
       - name: Return Status Test Fail
         if: failure()
@@ -93,4 +93,4 @@ jobs:
           PR_NUMBER: ${{ github.event.number }}
         run: |
           # --edit-last
-          gh pr comment $PR_NUMBER --body "$COMMENT_BODY" --edit-last || gh pr comment $PR_NUMBER --body "$COMMENT_BODY"
+          gh pr comment $PR_NUMBER --body "$COMMENT_BODY" || gh pr comment $PR_NUMBER --body "$COMMENT_BODY"
