@@ -1,3 +1,4 @@
+---
 name: Release Tag
 on:
   workflow_call:
@@ -9,26 +10,35 @@ on:
       - master
 jobs:
   create_tag:
-    - uses: actions/checkout@v4
-
-    - name: Create tag
-      uses: actions/github-script@v5
-      with:
-        script: |
-          github.rest.git.createRef({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            ref: 'refs/tags/${{ github.event.inputs.tagname }}',
-            sha: context.sha
-          })
-    - name: Build executable for release
-      run: swift build -c release --arch arm64 --arch x86_64 --product
-        SwiftUICalendarView
-    - name: Compress archive
-      run: tar -czf ${{ github.event.inputs.tagname }}.tar.gz -C
-        .build/apple/Products/Release SwiftUICalendarView
-    - name: Release
-      uses: softprops/action-gh-release@v2
-      with:
-        files: ${{ github.event.inputs.tagname }}.tar.gz
-        token: ${{ secrets.GH_TOKEN }}
+    name: Setup Tag
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - macos-14
+        swift:
+          - "5.9"
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Create tag
+        uses: actions/github-script@v5
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/${{ github.event.inputs.tagname }}',
+              sha: context.sha
+            })
+      - name: Build executable for release
+        run: swift build -c release --arch arm64 --arch x86_64 --product
+          SwiftUICalendarView
+      - name: Compress archive
+        run: tar -czf ${{ github.event.inputs.tagname }}.tar.gz -C
+          .build/apple/Products/Release SwiftUICalendarView
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ github.event.inputs.tagname }}.tar.gz
+          token: ${{ secrets.GH_TOKEN }}
