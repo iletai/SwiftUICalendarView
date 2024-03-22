@@ -6,8 +6,8 @@ on:
       token:
         required: true
   push:
-    branches:
-      - master
+    tags:
+      - v*.*.*
 jobs:
   create_tag:
     name: Setup Tag
