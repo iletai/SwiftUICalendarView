@@ -4,11 +4,9 @@ Build a Calendar By Pure SwiftUI with SwiftDate Library for calculator date.
 # SwiftUICalendarView
 
 ![Swift](https://img.shields.io/badge/Swift-5.9-orange.svg)
-![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20macOS-lightgrey.svg)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Build Project](https://github.com/iletai/SwiftUICalendarView/actions/workflows/build.yml/badge.svg)](https://github.com/iletai/SwiftUICalendarView/actions/workflows/build.yml)
-[![codecov](https://codecov.io/gh/iletai/SwiftUICalendarView/graph/badge.svg?token=9TFPRGF3UU)](https://codecov.io/gh/iletai/SwiftUICalendarView)
-
+[![PR Checklist Checker](https://github.com/iletai/SwiftUICalendarView/actions/workflows/checklist_pullrequest.yml/badge.svg)](https://github.com/iletai/SwiftUICalendarView/actions/workflows/checklist_pullrequest.yml)
 SwiftUICalendarView is a Swift Package for building and displaying a simple calendar interface in SwiftUI. This library provides an easy way to integrate a calendar into your app.
 
 ## Installation
@@ -19,7 +17,7 @@ To integrate SwiftUICalendarView into your project, add the GitHub URL to the de
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/iletai/SwiftUICalendarView.git", from: "1.0.0"),
+    .package(url: "https://github.com/iletai/SwiftUICalendarView.git", from: "1.0.3"),
 ],
 targets: [
     .target(name: "YourTarget", dependencies: ["CalendarView"]),
@@ -27,11 +25,12 @@ targets: [
 ```
 
 
+
 ## Calendar Mode Support: 
  
 |  Month Mode 	| Year Mode  	|  Week Mode 	|
 |---	|---	|---	|
-|  ![image](https://github.com/iletai/SwiftUICalendarView/assets/26614687/6dc00b90-ab06-4ad2-ade7-41cab66cd2b7) 	|   ![image](https://github.com/iletai/SwiftUICalendarView/assets/26614687/29e86851-96d1-47c7-bce3-54ec3d9f5275) 	|  ![image](https://github.com/iletai/SwiftUICalendarView/assets/26614687/589e7a68-9e1e-45d1-a73b-e12ffb2d7915)  	|
+|  <img src="https://github.com/iletai/SwiftUICalendarView/assets/26614687/6dc00b90-ab06-4ad2-ade7-41cab66cd2b7" width="300"> 	|   <img src="https://github.com/iletai/SwiftUICalendarView/assets/26614687/29e86851-96d1-47c7-bce3-54ec3d9f5275" width="300"> 	|  <img src="https://github.com/iletai/SwiftUICalendarView/assets/26614687/589e7a68-9e1e-45d1-a73b-e12ffb2d7915" width="300">  	|
 
 ## Usable Example Calendar View
 
