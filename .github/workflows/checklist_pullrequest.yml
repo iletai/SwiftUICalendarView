@@ -7,6 +7,18 @@ jobs:
   task-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: venkatsarvesh/pr-tasks-completed-action@v1.0.0
+      - name: Pull Request Checklist Checker
+        uses: venkatsarvesh/pr-tasks-completed-action@v1.0.0
         with:
           repo-token: "${{ secrets.GH_TOKEN }}"
+        if: failure()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          COMMENT_BODY: "# Check List Not Yet Finish ✅!
+
+            See more at: ${{ github.event.pull_request.html_url }}/checks
+            "
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          # --edit-last
+          gh pr comment $PR_NUMBER --body "$COMMENT_BODY" --edit-last || gh pr comment $PR_NUMBER --body "$COMMENT_BODY"
