@@ -1,20 +1,22 @@
 name: Release Tag
+
 on:
   workflow_dispatch:
-    secrets:
-      token:
+    inputs:
+      tagname:
+        description: 'The name of the tag to create'
         required: true
-    
+
 jobs:
   create_tag:
-    if: ${{ github.event.pull_request.merged == true}}
+    if: ${{ github.event.action == 'workflow_dispatch' }}
     runs-on: macos-latest
     timeout-minutes: 25
     env:
       GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Create tag
         uses: actions/github-script@v5
@@ -23,15 +25,18 @@ jobs:
             github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: 'refs/tags/<tagname>',
+              ref: 'refs/tags/${{ github.event.inputs.tagname }}',
               sha: context.sha
             })
+
       - name: Build executable for release
-      run: swift build -c release --arch arm64 --arch x86_64 --product SwiftUICalendarView
+        run: swift build -c release --arch arm64 --arch x86_64 --product SwiftUICalendarView
+
       - name: Compress archive
-      run: tar -czf ${{ github.ref_name }}.tar.gz -C .build/apple/Products/Release SwiftUICalendarView
+        run: tar -czf ${{ github.event.inputs.tagname }}.tar.gz -C .build/apple/Products/Release SwiftUICalendarView
+
       - name: Release
-      uses: softprops/action-gh-release@v2
-      with:
-        files: ${{ github.ref_name }}.tar.gz
-        token: ${{ secrets.GH_TOKEN }}
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ github.event.inputs.tagname }}.tar.gz
+          token: ${{ secrets.GH_TOKEN }}
