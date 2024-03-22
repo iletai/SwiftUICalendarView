@@ -22,8 +22,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
       - name: Build executable for release
-        run: swift build -c release --arch arm64 --arch x86_64 --product
-          SwiftUICalendarView
+        run: swift build -c release --arch arm64 --arch x86_64 --product CalendarView
       - name: Compress archive
         run: tar -czf ${{ github.event.inputs.tagname }}.tar.gz -C
           .build/apple/Products/Release SwiftUICalendarView
