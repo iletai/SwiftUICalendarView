@@ -9,7 +9,7 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-        
+
       - name: Pull Request Checklist Checker
         uses: venkatsarvesh/pr-tasks-completed-action@v1.0.0
         with:
@@ -26,4 +26,4 @@ jobs:
           PR_NUMBER: ${{ github.event.number }}
         run: |
           # --edit-last
-          gh pr comment $PR_NUMBER --body "$COMMENT_BODY" --edit-last || gh pr comment $PR_NUMBER --body "$COMMENT_BODY"
+          gh pr comment $PR_NUMBER --body "$COMMENT_BODY" || gh pr comment $PR_NUMBER --body "$COMMENT_BODY"
