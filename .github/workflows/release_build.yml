@@ -1,6 +1,6 @@
 name: Release Tag
 on:
-  workflow_call:
+  workflow_dispatch:
     secrets:
       token:
         required: true
@@ -26,13 +26,14 @@ jobs:
               ref: 'refs/tags/<tagname>',
               sha: context.sha
             })
+
   release_tag:
-      - name: Build executable for release
-        run: swift build -c release --arch arm64 --arch x86_64 --product SwiftUICalendarView
-      - name: Compress archive
-        run: tar -czf ${{ github.ref_name }}.tar.gz -C .build/apple/Products/Release SwiftUICalendarView
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: ${{ github.ref_name }}.tar.gz
-          token: ${{ secrets.GH_TOKEN }}
+    - name: Build executable for release
+      run: swift build -c release --arch arm64 --arch x86_64 --product SwiftUICalendarView
+    - name: Compress archive
+      run: tar -czf ${{ github.ref_name }}.tar.gz -C .build/apple/Products/Release SwiftUICalendarView
+    - name: Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: ${{ github.ref_name }}.tar.gz
+        token: ${{ secrets.GH_TOKEN }}
