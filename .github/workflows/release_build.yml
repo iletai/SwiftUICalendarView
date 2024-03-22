@@ -21,13 +21,30 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+      - name: Set Dist Version
+        run: |
+          BUILD_NUMBER="${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}"
+          echo "${BUILD_NUMBER}"
+          VERSION="$(mvn -q -U -Dexpression=project.build.finalName help:evaluate -DforceStdout=true -DbuildNumber=${BUILD_NUMBER})"
+          echo "DIST_VERSION=${VERSION}" >> $GITHUB_ENV
+      - name: Create Tag
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const {DIST_VERSION} = process.env          
+            github.rest.git.createRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: `refs/tags/${DIST_VERSION}`,
+                sha: context.sha
+            })  
       - name: Build executable for release
         run: swift build -c release --arch arm64 --arch x86_64 --product CalendarView
       - name: Compress archive
-        run: tar -czf ${{ github.event.inputs.tagname }}.tar.gz -C
+        run: tar -czf ${{ refs/tags/${DIST_VERSION} }}.tar.gz -C
           .build/apple/Products/Release CalendarView.swiftmodule
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ github.event.inputs.tagname }}.tar.gz
+          files: ${{ refs/tags/${DIST_VERSION} }}.tar.gz
           token: ${{ secrets.GH_TOKEN }}
