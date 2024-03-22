@@ -1,4 +1,3 @@
----
 name: Release Tag
 on:
   workflow_call:
@@ -10,8 +9,8 @@ on:
       - master
 jobs:
   create_tag:
-    - name: Checkout
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
+
     - name: Create tag
       uses: actions/github-script@v5
       with:
