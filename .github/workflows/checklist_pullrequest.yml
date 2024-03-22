@@ -11,6 +11,8 @@ jobs:
         uses: venkatsarvesh/pr-tasks-completed-action@v1.0.0
         with:
           repo-token: "${{ secrets.GH_TOKEN }}"
+
+      - name: Response Status Checklist
         if: failure()
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
