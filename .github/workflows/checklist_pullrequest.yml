@@ -7,6 +7,9 @@ jobs:
   task-check:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        
       - name: Pull Request Checklist Checker
         uses: venkatsarvesh/pr-tasks-completed-action@v1.0.0
         with:
