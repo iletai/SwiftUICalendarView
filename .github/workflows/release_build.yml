@@ -25,7 +25,7 @@ jobs:
         run: swift build -c release --arch arm64 --arch x86_64 --product CalendarView
       - name: Compress archive
         run: tar -czf ${{ github.event.inputs.tagname }}.tar.gz -C
-          .build/apple/Products/Release SwiftUICalendarView
+          .build/apple/Products/Release CalendarView
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
