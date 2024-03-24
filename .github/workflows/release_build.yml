@@ -6,7 +6,7 @@ on:
         required: true
   push:
     tags:
-      - v*.*.*
+      - *.*.*
 jobs:
   create_tag:
     name: Setup Tag
