@@ -1,10 +1,13 @@
-name: 'PR TaskList Completed Checker'
+name: 'Pull Request'
+
 on: 
   pull_request:
+    branches:
+      - "master"
     types: [edited, opened, synchronize, reopened]
 
 jobs:
-  task-check:
+  checklist:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -13,12 +16,12 @@ jobs:
       - name: Pull Request Checklist Checker
         uses: venkatsarvesh/pr-tasks-completed-action@v1.0.0
         with:
-          repo-token: "${{ secrets.GH_TOKEN }}"
+            repo-token: "${{ secrets.GITHUB_TOKEN }}"
 
       - name: Response Status Checklist
         if: failure()
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COMMENT_BODY: "# Check List Not Yet Finish ✅!
 
             See more at: ${{ github.event.pull_request.html_url }}/checks
