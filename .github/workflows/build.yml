@@ -1,7 +1,7 @@
 name: Build Project
 
 on:
-  workflow_dispatch:
+  workflow_call:
     secrets:
       token:
         required: true
