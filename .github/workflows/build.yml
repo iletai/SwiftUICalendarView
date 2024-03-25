@@ -131,9 +131,12 @@ jobs:
           gh pr comment $PR_NUMBER --body "$COMMENT_BODY" || gh pr comment $PR_NUMBER --body "$COMMENT_BODY"
    
   allowgithub:
+      name: PR Approve
       needs: build
       runs-on: ubuntu-latest
       steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
       - name: Approved PR
         if: success()
         env:
