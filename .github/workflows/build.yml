@@ -148,8 +148,10 @@ jobs:
         if: success()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO_OWNER: ${{ github.repository_owner }}
         # Using CLI Merge Pull Request
         run: |
-          if [[ "${{ github.event.pull_request.user.login }}" == "iletai" ]]; then
+          # Check if the PR is create by owner this repo
+          if [[ "${{ github.event.pull_request.user.login }}" == "${REPO_OWNER}" ]]; then
             gh pr merge ${{ github.event.number }} --squash --auto
           fi
