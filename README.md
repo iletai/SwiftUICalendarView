@@ -26,12 +26,11 @@ targets: [
 ```
 
 
-
 ## Calendar Mode Support: 
  
 |  Month Mode 	| Year Mode  	|  Week Mode 	|
 |---	|---	|---	|
-|  <img src="https://github.com/iletai/SwiftUICalendarView/assets/26614687/6dc00b90-ab06-4ad2-ade7-41cab66cd2b7" width="300"> 	|   <img src="https://github.com/iletai/SwiftUICalendarView/assets/26614687/29e86851-96d1-47c7-bce3-54ec3d9f5275" width="300"> 	|  <img src="https://github.com/iletai/SwiftUICalendarView/assets/26614687/589e7a68-9e1e-45d1-a73b-e12ffb2d7915" width="300">  	|
+|  <img src="https://github.com/iletai/SwiftUICalendarView/assets/26614687/36233624-3dac-4283-b03a-0fd3c092584d" width="300"> 	|   <img src="https://github.com/iletai/SwiftUICalendarView/assets/26614687/343820a3-c3bb-484b-8166-18142105f4a5" width="300"> 	|  <img src="https://github.com/iletai/SwiftUICalendarView/assets/26614687/deb6fd83-916b-4c17-b9e6-46b6d53bb294" width="300">  	|
 
 ## Usable Example Calendar View
 
