@@ -5,7 +5,7 @@ Build a Calendar By Pure SwiftUI with SwiftDate Library for calculator date.
 
 ![Swift](https://img.shields.io/badge/Swift-5.9-orange.svg)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Build Project](https://github.com/iletai/SwiftUICalendarView/actions/workflows/build.yml/badge.svg)](https://github.com/iletai/SwiftUICalendarView/actions/workflows/build.yml)
+[![Build Project](https://github.com/iletai/SwiftUICalendarView/actions/workflows/build_master.yml/badge.svg?branch=master)](https://github.com/iletai/SwiftUICalendarView/actions/workflows/build_master.yml)
 [![PR Checklist Checker](https://github.com/iletai/SwiftUICalendarView/actions/workflows/checklist_pullrequest.yml/badge.svg)](https://github.com/iletai/SwiftUICalendarView/actions/workflows/checklist_pullrequest.yml)
 
 SwiftUICalendarView is a Swift Package for building and displaying a simple calendar interface in SwiftUI. This library provides an easy way to integrate a calendar into your app.
