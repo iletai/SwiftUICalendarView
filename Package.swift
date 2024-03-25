@@ -12,7 +12,8 @@ let package = Package(
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "CalendarView",
-            targets: ["CalendarView"]),
+            targets: ["CalendarView"]
+        )
     ],
     dependencies: [
         .package(url: "https://github.com/malcommac/SwiftDate.git", branch: "master")
@@ -28,6 +29,7 @@ let package = Package(
         ),
         .testTarget(
             name: "CalendarViewTests",
-            dependencies: ["CalendarView"]),
+            dependencies: ["CalendarView"]
+        )
     ]
 )

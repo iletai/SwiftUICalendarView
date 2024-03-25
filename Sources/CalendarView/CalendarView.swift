@@ -132,7 +132,7 @@ public struct CalendarView<
             .marginDefault()
             .background(backgroundCalendar)
             .highPriorityGesture(swipeGesture)
-            .onChange(of: isGestureFinished) { value in }
+            .onChange(of: isGestureFinished) { _ in }
         }
         .scrollIndicators(viewMode.enableScrollIndicator)
         .scrollDisabled(viewMode.isDisableScroll)

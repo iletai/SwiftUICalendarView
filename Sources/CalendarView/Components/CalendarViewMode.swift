@@ -34,7 +34,7 @@ public enum CalendarViewMode: CaseIterable {
             return DateComponents(month: 1)
         }
     }
-    
+
     var enableScroll: Bool {
         switch self {
         case .month:
