@@ -110,7 +110,7 @@ jobs:
       - name: Return Status Test Fail
         if: failure()
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COMMENT_BODY: "# 😭 Unit Test Was Failed!
 
             See more at: ${{ github.event.pull_request.html_url }}/checks
@@ -123,12 +123,19 @@ jobs:
       - name: Return Status Test Success
         if: success()
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COMMENT_BODY: "# ✅ Unit Test Success! <3"
           PR_NUMBER: ${{ github.event.number }}
         run: |
           # --edit-last
           gh pr comment $PR_NUMBER --body "$COMMENT_BODY" || gh pr comment $PR_NUMBER --body "$COMMENT_BODY"
+      - name: Allow and Merge When Succes
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Approved PR
+        run: |
+          gh pr review ${{ github.event.number }} --approve
       - name: Allow and Merge When Succes
         if: success()
         env:
