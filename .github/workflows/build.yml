@@ -134,4 +134,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         # Using CLI Merge Pull Request
-        run: gh pr merge ${{ github.event.number }} --squash --auto
+        run: |
+          if [[ "${{ github.event.pull_request.user.login }}" == "iletai" ]]; then
+            gh pr merge ${{ github.event.number }} --squash --auto
+          fi
