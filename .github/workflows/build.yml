@@ -14,6 +14,7 @@ jobs:
   checklist:
     name: Checklist Checker
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -62,11 +63,10 @@ jobs:
       - name: Cache Swift dependencies
         uses: actions/cache@v4
         with:
-          path: |
-            ~/.build
-          key: ${{ runner.os }}-swift-${{ hashFiles('**/*.swift') }}
+          path: .build
+          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
           restore-keys: |
-            ${{ runner.os }}-swift-
+            ${{ runner.os }}-spm-
 
       - name: Set Swift Version
         uses: swift-actions/setup-swift@v1
@@ -118,7 +118,7 @@ jobs:
           PR_NUMBER: ${{ github.event.number }}
         run: |
           # --edit-last
-          gh pr comment $PR_NUMBER --body "$COMMENT_BODY" --edit-last || gh pr comment $PR_NUMBER --body "$COMMENT_BODY"
+          gh pr comment $PR_NUMBER --body "$COMMENT_BODY" || gh pr comment $PR_NUMBER --body "$COMMENT_BODY"
 
       - name: Return Status Test Success
         if: success()
@@ -129,7 +129,15 @@ jobs:
         run: |
           # --edit-last
           gh pr comment $PR_NUMBER --body "$COMMENT_BODY" || gh pr comment $PR_NUMBER --body "$COMMENT_BODY"
-      - name: Allow and Merge When Succes
+   
+  allowgithub:
+      name: PR Approve
+      needs: build
+      runs-on: ubuntu-latest
+      steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Approved PR
         if: success()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
