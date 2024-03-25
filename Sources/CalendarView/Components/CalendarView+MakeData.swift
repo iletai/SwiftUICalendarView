@@ -25,7 +25,7 @@ extension CalendarView {
             dateEnd.dateAt(.endOfWeek),
             region: .currentIn(calendar: calendar)
         )
-        var dates = DateInRegion.enumerateDates(
+        let dates = DateInRegion.enumerateDates(
             from: dateStartRegion,
             to: dateEndRegion,
             increment: dateComponents

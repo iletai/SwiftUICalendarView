@@ -11,7 +11,33 @@ on:
       - "master"
 
 jobs:
+  checklist:
+    name: Checklist Checker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Pull Request Checklist Checker
+        uses: venkatsarvesh/pr-tasks-completed-action@v1.0.0
+        with:
+            repo-token: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Response Status Checklist
+        if: failure()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMENT_BODY: "# Check List Not Yet Finish ✅!
+
+            See more at: ${{ github.event.pull_request.html_url }}/checks
+            "
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          # --edit-last
+          gh pr comment $PR_NUMBER --body "$COMMENT_BODY" || gh pr comment $PR_NUMBER --body "$COMMENT_BODY"
+
   checklint:
+    needs: checklist
     name: Check Lint
     runs-on: ubuntu-latest
     steps:
@@ -23,6 +49,7 @@ jobs:
           args: --strict
   build:
     name: Setup Enviroment ${{ matrix.swift }} on ${{ matrix.os }}
+    needs: checklint
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -47,6 +74,7 @@ jobs:
           swift-version: ${{ matrix.swift }}
 
       - name: Build
+        id: build
         run: swift build
 
       - name: Run tests
@@ -83,7 +111,7 @@ jobs:
         if: failure()
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          COMMENT_BODY: "#😭 Unit Test Was Failed!
+          COMMENT_BODY: "# 😭 Unit Test Was Failed!
 
             See more at: ${{ github.event.pull_request.html_url }}/checks
             "

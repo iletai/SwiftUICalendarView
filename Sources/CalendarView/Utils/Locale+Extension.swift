@@ -8,7 +8,7 @@
 import Foundation
 import SwiftDate
 
-extension Locale: LocaleConvertible {
+extension Locale {
     static var vietnam: Locale {
         Locales.vietnamese.toLocale()
     }
