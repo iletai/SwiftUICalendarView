@@ -129,3 +129,9 @@ jobs:
         run: |
           # --edit-last
           gh pr comment $PR_NUMBER --body "$COMMENT_BODY" || gh pr comment $PR_NUMBER --body "$COMMENT_BODY"
+      - name: Allow and Merge When Succes
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Using CLI Merge Pull Request
+        run: gh pr merge ${{ github.event.number }} --squash --auto
