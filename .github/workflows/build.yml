@@ -18,7 +18,6 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-      
       - name: Pull Request Checklist Checker
         uses: venkatsarvesh/pr-tasks-completed-action@v1.0.0
         with:
@@ -67,6 +66,7 @@ jobs:
           key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
           restore-keys: |
             ${{ runner.os }}-spm-
+
       - name: Set Swift Version
         uses: swift-actions/setup-swift@v1
         with:
