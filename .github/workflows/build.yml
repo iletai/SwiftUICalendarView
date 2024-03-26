@@ -200,7 +200,7 @@ jobs:
             # generate new tag from github.repository.tag.latest
             new_version=$(echo $PREVIOUS_TAG | cut -c 2-)
             tar -czf v$new_version.tar.gz -C .build/apple/Products/Release ${{secrets.PRODUCT_NAME}}.swiftmodule  
-      
+            echo "New Version: $new_version"
             # Create a new tag with the incremented version number
-            gh release create v$new_version --title "Release v$incremented_version" --notes "Release v$incremented_version" --prerelease 'v${new_version}.tar.gz'
+            gh release create v$new_version --title "Release v$incremented_version" --notes "Release v$incremented_version" --prerelease v${new_version}.tar.gz
 
