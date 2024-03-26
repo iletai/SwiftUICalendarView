@@ -125,7 +125,7 @@ jobs:
         if: failure()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COMMENT_BODY: "## 😭 Unit Test Was Failed!
+          COMMENT_BODY: "### 😭 Unit Test Was Failed!
 
             See more at: ${{ github.event.pull_request.html_url }}/checks
             "
@@ -138,7 +138,7 @@ jobs:
         if: success()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COMMENT_BODY: "## ✅ Unit Test Success! <3"
+          COMMENT_BODY: "### ✅ Unit Test Success!"
           PR_NUMBER: ${{ github.event.number }}
         run: |
           # --edit-last
@@ -193,14 +193,15 @@ jobs:
           if: success() && github.event.pull_request.user.login == github.repository_owner
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            PREVIOUS_TAG: ${{ github.repository.tag.latest }}
             PRODUCT_NAME: ${{ secrets.PRODUCT_NAME}}
           run: |
-            # Create a tarball of the built product
-            # generate new tag from github.repository.tag.latest
-            new_version=$(echo $PREVIOUS_TAG | cut -c 2-)
-            tar -czf v$new_version.tar.gz -C .build/apple/Products/Release ${{secrets.PRODUCT_NAME}}.swiftmodule  
-            echo "New Version: $new_version"
-            # Create a new tag with the incremented version number
-            gh release create v$new_version --title "Release v$incremented_version" --notes "Release v$incremented_version" --prerelease v${new_version}.tar.gz
+            # get lastest release tag with type lastest gh
+            LASTEST_TAG=$(gh release list | head -n 1 | awk '{print $1}')
+            # Generate new tag from lastest tag up 1
+            NEW_TAG=$(echo $LASTEST_TAG | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g')
+            # Zip tar with new tag version
+            tar -czf $NEW_TAG.tar.gz .build/release/${{ secrets.PRODUCT_NAME }}
+            # Create new release with new tag
+            gh release create $NEW_TAG $NEW_TAG.tar.gz -t "Release $NEW_TAG" -n "Release $NEW_TAG"
+
 
