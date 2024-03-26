@@ -157,7 +157,13 @@ jobs:
   createtaggithub:
        name: Create Tag Release
        needs: allowgithub
-       runs-on: ubuntu-latest
+       runs-on: ${{ matrix.os }}
+       strategy:
+          matrix:
+            os:
+              - macos-14
+            swift:
+              - "5.9"
        steps:
         - name: Checkout Repository
           uses: actions/checkout@v4
