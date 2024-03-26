@@ -155,3 +155,18 @@ jobs:
           if [[ "${{ github.event.pull_request.user.login }}" == "${REPO_OWNER}" ]]; then
             gh pr merge ${{ github.event.number }} --squash --auto
           fi
+  createtaggithub:
+       name: Create Tag Release
+       needs: allowgithub
+       runs-on: ubuntu-latest
+       steps:
+        - name: Checkout Repository
+          uses: actions/checkout@v4
+        - name: Create Tag
+          if: success() && github.event.pull_request.user.login == github.repository_owner
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          run: |
+            # Create Tag
+            gh release create v${{ github.run_number }} --title "Release v${{ github.run_number }}" --notes "Release v${{ github.run_number }}" --prerelease
+
