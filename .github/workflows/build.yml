@@ -170,10 +170,10 @@ jobs:
         - name: Build executable for release
           env:
             PRODUCT_NAME: ${{ secrets.PRODUCT_NAME }}
-          run: swift build -c release --arch arm64 --arch x86_64 --product ${PRODUCT_NAME}
+          run: swift build -c release --arch arm64 --arch x86_64 --product ${{secrets.PRODUCT_NAME }}
         - name: Compress archive
           run: tar -czf ${{ github.ref_name }}.tar.gz -C
-            .build/apple/Products/Release  ${PRODUCT_NAME}.swiftmodule  
+            .build/apple/Products/Release  ${{secrets.PRODUCT_NAME}}.swiftmodule  
         - name: Create Tag
           if: success() && github.event.pull_request.user.login == github.repository_owner
           env:
