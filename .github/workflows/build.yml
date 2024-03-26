@@ -194,18 +194,14 @@ jobs:
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           run: |
-            latest_tag=$(git describe --tags --abbrev=0)
-            if [[ -z "$latest_tag" ]]; then
-              echo "No previous tags found, starting at 1.0.0"
-              latest_tag="v1.0.0"
-            fi
-            echo "LATEST_TAG=$latest_tag" >> $GITHUB_ENV # Export tag as environment variable
-  
-        - name: Generate new version
-          run: |
+              latest_tag=$(git describe --tags --abbrev=0)
+              if [[ -z "$latest_tag" ]]; then
+                echo "No previous tags found, starting at 1.0.0"
+                latest_tag="v1.0.0"
+              fi
               # Extract major, minor, and patch from latest tag (adjust regex if needed)
               version_regex="^v([0-9]+)\.([0-9]+)\.([0-9]+)$"
-              if [[ $LATEST_TAG =~ $version_regex ]]; then
+              if [[ $latest_tag =~ $version_regex ]]; then
                 major=${BASH_REMATCH[1]}
                 minor=${BASH_REMATCH[2]}
                 patch=$(( ${BASH_REMATCH[3]} + 1 ))
@@ -214,11 +210,9 @@ jobs:
                 exit 1
               fi
               new_version="v${major}.${minor}.${patch}"
-              echo "VERSION=$new_version" >> $GITHUB_ENV # Export version as environment variable  
-
 
               # Create a tarball of the built product
-              tar -czf v$VERSION.tar.gz -C .build/apple/Products/Release ${{secrets.PRODUCT_NAME}}.swiftmodule  
+              tar -czf v$new_version.tar.gz -C .build/apple/Products/Release ${{secrets.PRODUCT_NAME}}.swiftmodule  
         
               # Create a new tag with the incremented version number
-              gh release create v$VERSION --title "Release v$incremented_version" --notes "Release v$incremented_version" --prerelease 'v${$VERSION}.tar.gz'
+              gh release create v$new_version --title "Release v$incremented_version" --notes "Release v$incremented_version" --prerelease 'v${new_version}.tar.gz'
