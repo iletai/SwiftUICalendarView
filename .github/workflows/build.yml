@@ -11,6 +11,20 @@ on:
       - "master"
 
 jobs:
+  createinfo:
+    name: Create Some Infomation PR
+    runs-on: ununtu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: PR Github Control
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          gh pr edit $PR_NUMBER --add-assignee "@me"
+          gh pr edit $PR_NUMBER --add-label "enhancement"
   checklist:
     name: Checklist Checker
     runs-on: ubuntu-latest
@@ -37,7 +51,6 @@ jobs:
           gh pr comment $PR_NUMBER --body "$COMMENT_BODY" || gh pr comment $PR_NUMBER --body "$COMMENT_BODY"
 
   checklint:
-    needs: checklist
     name: Check Lint
     runs-on: ubuntu-latest
     steps:
@@ -49,7 +62,10 @@ jobs:
           args: --strict
   build:
     name: Setup Enviroment ${{ matrix.swift }} on ${{ matrix.os }}
-    needs: checklint
+    needs: 
+      - checklint
+      - checklist
+      - createinfo
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -110,7 +126,7 @@ jobs:
         if: failure()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COMMENT_BODY: "# 😭 Unit Test Was Failed!
+          COMMENT_BODY: "## 😭 Unit Test Was Failed!
 
             See more at: ${{ github.event.pull_request.html_url }}/checks
             "
@@ -123,7 +139,7 @@ jobs:
         if: success()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COMMENT_BODY: "# ✅ Unit Test Success! <3"
+          COMMENT_BODY: "## ✅ Unit Test Success! <3"
           PR_NUMBER: ${{ github.event.number }}
         run: |
           # --edit-last
@@ -152,7 +168,7 @@ jobs:
         run: |
           # Check if the PR is create by owner this repo
           if [[ "${{ github.event.pull_request.user.login }}" == "${REPO_OWNER}" ]]; then
-            gh pr merge ${{ github.event.number }} --squash --auto
+            # gh pr merge ${{ github.event.number }} --squash --auto
           fi
   createtaggithub:
        name: Create Tag Release
@@ -176,18 +192,31 @@ jobs:
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           run: |
-            # Create Tag
-            # Fetch the latest tag
-            latest_tag=$(gh api repos/${{ github.repository }}/tags --jq '.[0].name')
+            latest_tag=$(git describe --tags --abbrev=0)
+            if [[ -z "$latest_tag" ]]; then
+              echo "No previous tags found, starting at 1.0.0"
+              latest_tag="v1.0.0"
+            fi
+            echo "LATEST_TAG=$latest_tag" >> $GITHUB_ENV # Export tag as environment variable
+  
+        - name: Generate new version
+          run: |
+              # Extract major, minor, and patch from latest tag (adjust regex if needed)
+              version_regex="^v([0-9]+)\.([0-9]+)\.([0-9]+)$"
+              if [[ $LATEST_TAG =~ $version_regex ]]; then
+                major=${BASH_REMATCH[1]}
+                minor=${BASH_REMATCH[2]}
+                patch=$(( ${BASH_REMATCH[3]} + 1 ))
+              else
+                echo "Failed to parse version from tag"
+                exit 1
+              fi
+              new_version="v${major}.${minor}.${patch}"
+              echo "VERSION=$new_version" >> $GITHUB_ENV # Export version as environment variable  
 
-            # Extract the version number from the latest tag
-            version=$(echo $latest_tag | sed 's/v//')
 
-            # Increment the version number
-            incremented_version=$(echo $version | awk -F. -v OFS=. '{$NF++; print}')
-
-            # Create a tarball of the built product
-            tar -czf v'${incremented_version}'.tar.gz -C .build/apple/Products/Release ${{secrets.PRODUCT_NAME}}.swiftmodule  
+              # Create a tarball of the built product
+              tar -czf v$VERSION.tar.gz -C .build/apple/Products/Release ${{secrets.PRODUCT_NAME}}.swiftmodule  
         
-            # Create a new tag with the incremented version number
-            gh release create v$incremented_version --title "Release v$incremented_version" --notes "Release v$incremented_version" --prerelease 'v${incremented_version}.tar.gz'
+              # Create a new tag with the incremented version number
+              gh release create v$VERSION --title "Release v$incremented_version" --notes "Release v$incremented_version" --prerelease 'v${$VERSION}.tar.gz'
