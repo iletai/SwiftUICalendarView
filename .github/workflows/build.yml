@@ -199,9 +199,8 @@ jobs:
             LASTEST_TAG=$(gh release list | head -n 1 | awk '{print $1}')
             # Generate new tag from lastest tag up 1
             NEW_TAG=$(echo $LASTEST_TAG | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g')
-            # Zip tar with new tag version
-            tar -czf $NEW_TAG.tar.gz .build/release/${{ secrets.PRODUCT_NAME }}
-            # Create new release with new tag
-            gh release create $NEW_TAG $NEW_TAG.tar.gz -t "Release $NEW_TAG" -n "Release $NEW_TAG"
+            # Create pre-release from new tag
+            gh release create $NEW_TAG -t "Release $NEW_TAG" -n "Release $NEW_TAG" --prerelease
+            
 
 
