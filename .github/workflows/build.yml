@@ -193,26 +193,14 @@ jobs:
           if: success() && github.event.pull_request.user.login == github.repository_owner
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            PREVIOUS_TAG: ${{ github.repository.tag.latest }}
+            PRODUCT_NAME: ${{ secrets.PRODUCT_NAME}}
           run: |
-              latest_tag=$(git describe --tags --abbrev=0)
-              if [[ -z "$latest_tag" ]]; then
-                echo "No previous tags found, starting at 1.0.0"
-                latest_tag="v1.0.0"
-              fi
-              # Extract major, minor, and patch from latest tag (adjust regex if needed)
-              version_regex="^v([0-9]+)\.([0-9]+)\.([0-9]+)$"
-              if [[ $latest_tag =~ $version_regex ]]; then
-                major=${BASH_REMATCH[1]}
-                minor=${BASH_REMATCH[2]}
-                patch=$(( ${BASH_REMATCH[3]} + 1 ))
-              else
-                echo "Failed to parse version from tag"
-                exit 1
-              fi
-              new_version="v${major}.${minor}.${patch}"
+            # Create a tarball of the built product
+            # generate new tag from github.repository.tag.latest
+            new_version=$(echo $PREVIOUS_TAG | cut -c 2-)
+            tar -czf v$new_version.tar.gz -C .build/apple/Products/Release ${{secrets.PRODUCT_NAME}}.swiftmodule  
+      
+            # Create a new tag with the incremented version number
+            gh release create v$new_version --title "Release v$incremented_version" --notes "Release v$incremented_version" --prerelease 'v${new_version}.tar.gz'
 
-              # Create a tarball of the built product
-              tar -czf v$new_version.tar.gz -C .build/apple/Products/Release ${{secrets.PRODUCT_NAME}}.swiftmodule  
-        
-              # Create a new tag with the incremented version number
-              gh release create v$new_version --title "Release v$incremented_version" --notes "Release v$incremented_version" --prerelease 'v${new_version}.tar.gz'
