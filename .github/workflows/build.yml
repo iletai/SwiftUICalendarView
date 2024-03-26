@@ -23,7 +23,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.number }}
         run: |
-          gh pr edit $PR_NUMBER --add-assignee "@me"
+          gh pr edit $PR_NUMBER --add-assignee "${{ github.repository_owner_id }}"
           gh pr edit $PR_NUMBER --add-label "enhancement"
   checklist:
     name: Checklist Checker
