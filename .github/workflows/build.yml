@@ -170,11 +170,8 @@ jobs:
         - name: Build executable for release
           env:
             PRODUCT_NAME: ${{ secrets.PRODUCT_NAME }}
-          run: swift build -c release --arch arm64 --arch x86_64 --product ${{secrets.PRODUCT_NAME }}
-        - name: Compress archive
-          run: tar -czf ${{ github.ref_name }}.tar.gz -C
-            .build/apple/Products/Release  ${{secrets.PRODUCT_NAME}}.swiftmodule  
-        - name: Create Tag
+          run: swift build -c release --arch arm64 --arch x86_64 --product ${{ secrets.PRODUCT_NAME }}
+        - name: Create Tag And Zip File
           if: success() && github.event.pull_request.user.login == github.repository_owner
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -189,6 +186,10 @@ jobs:
             # Increment the version number
             incremented_version=$(echo $version | awk -F. -v OFS=. '{$NF++; print}')
 
+            # Create a tarball of the built product
+            tar -czf v$(echo {incremented_version}).tar.gz -C
+            .build/apple/Products/Release  ${{secrets.PRODUCT_NAME}}.swiftmodule  
+        
             # Create a new tag with the incremented version number
             gh release create v$incremented_version --title "Release v$incremented_version" --notes "Release v$incremented_version" --prerelease '${{ github.ref_name }}.tar.gz'
 
