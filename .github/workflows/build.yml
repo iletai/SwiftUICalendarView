@@ -18,7 +18,13 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-
+      - name: Cache Swift dependencies
+        uses: actions/cache@v4
+        with:
+          path: .build
+          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
       - name: Pull Request Checklist Checker
         uses: venkatsarvesh/pr-tasks-completed-action@v1.0.0
         with:
@@ -60,13 +66,6 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-      - name: Cache Swift dependencies
-        uses: actions/cache@v4
-        with:
-          path: .build
-          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
-          restore-keys: |
-            ${{ runner.os }}-spm-
 
       - name: Set Swift Version
         uses: swift-actions/setup-swift@v1
@@ -168,5 +167,16 @@ jobs:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           run: |
             # Create Tag
-            gh release create v${{ github.run_number }} --title "Release v${{ github.run_number }}" --notes "Release v${{ github.run_number }}" --prerelease
+            # Fetch the latest tag
+            latest_tag=$(gh api repos/${{ github.repository }}/tags --jq '.[0].name')
+
+            # Extract the version number from the latest tag
+            version=$(echo $latest_tag | sed 's/v//')
+
+            # Increment the version number
+            incremented_version=$(echo $version | awk -F. -v OFS=. '{$NF++; print}')
+
+            # Create a new tag with the incremented version number
+            gh release create v$incremented_version --title "Release v$incremented_version" --notes "Release v$incremented_version" --prerelease
+
 
