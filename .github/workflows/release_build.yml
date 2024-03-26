@@ -1,0 +1,33 @@
+name: Release Tag
+
+on:
+  workflow_call:
+    secrets:
+      token:
+        required: true
+  push:
+    tags:
+      - v*.*.*
+jobs:
+  create_tag:
+    name: Setup Tag
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - macos-14
+        swift:
+          - "5.9"
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Build executable for release
+        run: swift build -c release --arch arm64 --arch x86_64 --product CalendarView
+      - name: Compress archive
+        run: tar -czf ${{ github.ref_name }}.tar.gz -C
+          .build/apple/Products/Release CalendarView.swiftmodule
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ github.ref_name }}.tar.gz
+          token: ${{ secrets.GH_TOKEN }}

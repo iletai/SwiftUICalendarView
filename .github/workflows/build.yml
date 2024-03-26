@@ -1,0 +1,206 @@
+name: Build Project
+
+on:
+  workflow_call:
+    secrets:
+      token:
+        required: true
+
+  pull_request:
+    branches:
+      - "master"
+
+jobs:
+  createinfo:
+    name: Create Some Infomation PR
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: PR Github Control
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          gh pr edit $PR_NUMBER --add-assignee "${{ github.repository_owner }}"
+          gh pr edit $PR_NUMBER --add-label "enhancement"
+  checklist:
+    name: Checklist Checker
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Pull Request Checklist Checker
+        uses: venkatsarvesh/pr-tasks-completed-action@v1.0.0
+        with:
+            repo-token: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Response Status Checklist
+        if: failure()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMENT_BODY: "# Check List Not Yet Finish ✅!
+
+            See more at: ${{ github.event.pull_request.html_url }}/checks
+            "
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          # --edit-last
+          gh pr comment $PR_NUMBER --body "$COMMENT_BODY" || gh pr comment $PR_NUMBER --body "$COMMENT_BODY"
+
+  checklint:
+    name: Check Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Check SwiftLint
+        uses: norio-nomura/action-swiftlint@3.2.1
+        with:
+          args: --strict
+  build:
+    name: Setup Enviroment ${{ matrix.swift }} on ${{ matrix.os }}
+    needs: 
+      - checklint
+      - checklist
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-14]
+        swift: ["5.9"]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Cache Swift dependencies
+        uses: actions/cache@v4
+        with:
+          path: .build
+          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+
+      - name: Set Swift Version
+        uses: swift-actions/setup-swift@v1
+        with:
+          swift-version: ${{ matrix.swift }}
+
+      - name: Build
+        id: build
+        run: swift build
+
+      - name: Run tests
+        run: swift test --enable-code-coverage -v
+      
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1.4.0
+        with:
+          xcode-version: latest-stable
+
+      - name: Get TestResult
+        run: xcodebuild -scheme CalendarView -destination 'platform=iOS Simulator,name=iPhone 12' -resultBundlePath TestResults test
+
+      - uses: kishikawakatsumi/xcresulttool@v1
+        if: success() || failure()
+        with:
+          path: TestResults.xcresult
+          show-passed-tests: false
+          show-code-coverage: false
+          upload-bundles: never
+
+      # - name: Gather code coverage
+      #   run: xcrun llvm-cov export -format="lcov" .build/debug/CalendarViewPackageTests.xctest/Contents/MacOS/CalendarViewPackageTests -instr-profile .build/debug/codecov/default.profdata > coverage_report.lcov
+
+      # - name: Upload coverage to Codecov
+      #   uses: codecov/codecov-action@v2
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     fail_ci_if_error: fail
+      #     files: ./coverage_report.lcov
+      #     verbose: true
+
+      - name: Return Status Test Fail
+        if: failure()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMENT_BODY: "### 😭 Unit Test Was Failed!
+
+            See more at: ${{ github.event.pull_request.html_url }}/checks
+            "
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          # --edit-last
+          gh pr comment $PR_NUMBER --body "$COMMENT_BODY" || gh pr comment $PR_NUMBER --body "$COMMENT_BODY"
+
+      - name: Return Status Test Success
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMENT_BODY: "### ✅ Unit Test Success!"
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          # --edit-last
+          gh pr comment $PR_NUMBER --body "$COMMENT_BODY" || gh pr comment $PR_NUMBER --body "$COMMENT_BODY"
+   
+  allowgithub:
+      name: PR Approve
+      needs: 
+        - build
+        - createinfo
+      runs-on: ubuntu-latest
+      steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Approved PR
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Approved PR
+        run: |
+          gh pr review ${{ github.event.number }} --approve
+      - name: Allow and Merge When Succes
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO_OWNER: ${{ github.repository_owner }}
+        # Using CLI Merge Pull Request
+        run: |
+          # Check if the PR is create by owner this repo
+          if [[ "${{ github.event.pull_request.user.login }}" == "${REPO_OWNER}" ]]; then
+            # gh pr merge ${{ github.event.number }} --squash --auto
+            echo "OK"
+          fi
+  createtaggithub:
+       name: Create Tag Release
+       needs: allowgithub
+       runs-on: ${{ matrix.os }}
+       strategy:
+          matrix:
+            os:
+              - macos-14
+            swift:
+              - "5.9"
+       steps:
+        - name: Checkout Repository
+          uses: actions/checkout@v4
+        - name: Build executable for release
+          env:
+            PRODUCT_NAME: ${{ secrets.PRODUCT_NAME }}
+          run: swift build -c release --arch arm64 --arch x86_64 --product ${{ secrets.PRODUCT_NAME }}
+        - name: Create Tag And Zip File
+          if: success() && github.event.pull_request.user.login == github.repository_owner
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            PRODUCT_NAME: ${{ secrets.PRODUCT_NAME}}
+          run: |
+            # get lastest release tag with type lastest gh
+            LASTEST_TAG=$(gh release list | head -n 1 | awk '{print $1}')
+            # Generate new tag from lastest tag up 1
+            NEW_TAG=$(echo $LASTEST_TAG | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g')
+            # Create pre-release from new tag
+            gh release create $NEW_TAG -t "Release $NEW_TAG" -n "Release $NEW_TAG" --prerelease
+            
+
+
