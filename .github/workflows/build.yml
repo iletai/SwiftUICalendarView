@@ -187,7 +187,7 @@ jobs:
             incremented_version=$(echo $version | awk -F. -v OFS=. '{$NF++; print}')
 
             # Create a tarball of the built product
-            tar -czf v${incremented_version}.tar.gz -C .build/apple/Products/Release ${{secrets.PRODUCT_NAME}}.swiftmodule  
+            tar -czf v'${incremented_version}'.tar.gz -C .build/apple/Products/Release ${{secrets.PRODUCT_NAME}}.swiftmodule  
         
             # Create a new tag with the incremented version number
             gh release create v$incremented_version --title "Release v$incremented_version" --notes "Release v$incremented_version" --prerelease 'v${incremented_version}.tar.gz'
