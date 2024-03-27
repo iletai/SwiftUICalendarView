@@ -1,13 +1,27 @@
-# SwiftUICalendarView
-Build a Calendar By Pure SwiftUI with SwiftDate Library for calculator date.
+<p align="center">
+  <img src="https://github.com/iletai/SwiftUICalendarView/assets/26614687/cc7b3b91-73ff-4195-9377-4ece5fd299fe" height="128">
+  <h1 align="center">Calendar For SwiftUI</h1>
+</p>
 
-# SwiftUICalendarView
+<p align="center">
+  <a aria-label="Follow Me on Instagram" href="https://www.instagram.com/tai.lqt" target="_blank">
+    <img alt="" src="https://github.com/iletai/SwiftUICalendarView/assets/26614687/176e7212-8803-459a-8940-d209c7177643" height="28">
+  </a>
+</p>
+
+
+SwiftUI is a component for creating a calendar view with SwiftUI Framework.
+Build a Calendar By Pure SwiftUI with SwiftDate Library for calculator date. SwiftUICalendarView is a Swift Package for building and displaying a simple calendar interface in SwiftUI. This library provides an easy way to integrate a calendar into your app.
+
+
+<img width="1012" height="500" alt="github-banner" src="https://github.com/iletai/SwiftUICalendarView/assets/26614687/96833803-42c3-41ca-9270-852a81e290c6">
+
+## SwiftUICalendarView
 
 ![Swift](https://img.shields.io/badge/Swift-5.9-orange.svg)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Build Project](https://github.com/iletai/SwiftUICalendarView/actions/workflows/build_master.yml/badge.svg?branch=master)](https://github.com/iletai/SwiftUICalendarView/actions/workflows/build_master.yml)
 
-SwiftUICalendarView is a Swift Package for building and displaying a simple calendar interface in SwiftUI. This library provides an easy way to integrate a calendar into your app.
 
 ## Installation
 
@@ -26,13 +40,15 @@ targets: [
 
 
 
-## Calendar Mode Support: 
- 
-|  Month Mode 	| Year Mode  	|  Week Mode 	|
-|---	|---	|---	|
-|  <img src="https://github.com/iletai/SwiftUICalendarView/assets/26614687/6dc00b90-ab06-4ad2-ade7-41cab66cd2b7" width="300"> 	|   <img src="https://github.com/iletai/SwiftUICalendarView/assets/26614687/29e86851-96d1-47c7-bce3-54ec3d9f5275" width="300"> 	|  <img src="https://github.com/iletai/SwiftUICalendarView/assets/26614687/589e7a68-9e1e-45d1-a73b-e12ffb2d7915" width="300">  	|
+### Feature Support: 
+ - Calendar Mode: Week, Month, Year
+ - First WeekDay
+ - Show Date Out
+ - Pin Header Calendar
+ - Allow Custom Owner Calendar Date View
 
-## Usable Example Calendar View
+
+### Usable Example Calendar View
 
 ```swift
 import SwiftUI
@@ -81,7 +97,7 @@ struct ContentView: View {
             )
 ```
 
-## Customizing the Interface
+### Customizing the Interface
 You can customize the calendar's interface using properties like accentColor, selectedDateColor, and disabledDateColor,...
 ```swift
             .enableHeader(isShowHeader)
@@ -97,9 +113,11 @@ You can customize the calendar's interface using properties like accentColor, se
                 selectedDate = selectedDate.nextWeekday(.friday)
             }
 ```
-
+### Example:
+> [!NOTE]
+> For example using this repository, please help to see more at: https://github.com/iletai/SwiftUICalendarView/tree/master/CalendarExampleView
 ## Contribution
 If you find a bug or have a way to improve the library, create an Issue or propose a Pull Request. We welcome contributions from the community.
 
-# License
+### License
 SwiftUICalendarView is released under the MIT License. See details in LICENSE.
