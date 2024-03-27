@@ -8,8 +8,7 @@
 import Foundation
 
 extension CalendarView {
-    public enum Weekday: Int, CustomStringConvertible
-    {
+    public enum Weekday: Int, CustomStringConvertible {
         case sunday = 1
         case monday
         case tuesday
