@@ -21,15 +21,16 @@ jobs:
 
     steps:
       - name: Checkout Repository
+        id: checkout
         uses: actions/checkout@v4
       - name: Cache Swift dependencies
         uses: actions/cache@v4
         with:
-          path: |
-            ~/.build
-          key: ${{ runner.os }}-swift-${{ hashFiles('**/*.swift') }}
+          path: .build
+          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
           restore-keys: |
-            ${{ runner.os }}-swift-
+            ${{ runner.os }}-spm-
+
 
       - name: Set Swift Version
         uses: swift-actions/setup-swift@v1
