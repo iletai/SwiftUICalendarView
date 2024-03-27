@@ -76,7 +76,7 @@ public struct CalendarView<
     @GestureState var isGestureFinished = true
     var onDraggingEnded: OnEndDragAction?
 
-    var swipeGesture: some Gesture {
+    private var swipeGesture: some Gesture {
         DragGesture(
             minimumDistance: CalendarDefine.kDistaneSwipeBack,
             coordinateSpace: .global
@@ -119,16 +119,7 @@ public struct CalendarView<
                 ),
                 spacing: spacingBetweenDay,
                 pinnedViews: pinedHeaderView
-            ) {
-                switch viewMode {
-                case .month:
-                    monthContentView()
-                case .year:
-                    yearContentView()
-                case .week:
-                    calendarWeekView()
-                }
-            }
+            ) { bodyContentView }
             .marginDefault()
             .background(backgroundCalendar)
             .highPriorityGesture(swipeGesture)
@@ -142,6 +133,18 @@ public struct CalendarView<
 
 // MARK: - ViewBuilder Private API
 extension CalendarView {
+    @ViewBuilder
+    private var bodyContentView: some View {
+        switch viewMode {
+        case .month:
+            monthContentView()
+        case .year:
+            yearContentView()
+        case .week:
+            calendarWeekView()
+        }
+    }
+
     @ViewBuilder
     fileprivate func yearContentView() -> some View {
         ForEach(yearData.keys.sorted(), id: \.self) { month in
