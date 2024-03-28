@@ -159,13 +159,13 @@ jobs:
       steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-      # - name: Approved PR
-      #   if: success()
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   # Approved PR
-      #   run: |
-      #     gh pr review ${{ github.event.number }} --approve -b ":octocat: LGTM! :octocat:"
+      - name: Approved PR
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Approved PR
+        run: |
+          gh pr review ${{ github.event.number }} --approve -b ":octocat: LGTM! :octocat:"
       - name: Allow and Merge When Succes
         if: success()
         env:
@@ -191,10 +191,10 @@ jobs:
        steps:
         - name: Checkout Repository
           uses: actions/checkout@v4
-        - name: Build executable for release
-          env:
-            PRODUCT_NAME: ${{ secrets.PRODUCT_NAME }}
-          run: swift build -c release --arch arm64 --arch x86_64 --product ${{ secrets.PRODUCT_NAME }}
+        # - name: Build executable for release
+        #   env:
+        #     PRODUCT_NAME: ${{ secrets.PRODUCT_NAME }}
+        #   run: swift build -c release --arch arm64 --arch x86_64 --product ${{ secrets.PRODUCT_NAME }}
         - name: Create Tag And Zip File
           if: success() && github.event.pull_request.user.login == github.repository_owner
           env:
