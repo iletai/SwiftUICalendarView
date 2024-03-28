@@ -37,6 +37,12 @@ jobs:
         with:
             repo-token: "${{ secrets.GITHUB_TOKEN }}"
 
+      - name: Response Status Checklist If Pass
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr edit ${{ github.event.number }} --add-label "passchecklist"
       - name: Response Status Checklist
         if: failure()
         env:
@@ -125,14 +131,14 @@ jobs:
         if: failure()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COMMENT_BODY: "### 😭 Unit Test Was Failed!
+          COMMENT_BODY: "### 😭 Unit Test Was Failed! :exclamation:
 
             See more at: ${{ github.event.pull_request.html_url }}/checks
             "
           PR_NUMBER: ${{ github.event.number }}
         run: |
           # --edit-last
-          gh pr comment $PR_NUMBER --body "$COMMENT_BODY" || gh pr comment $PR_NUMBER --body "$COMMENT_BODY"
+          gh pr comment $PR_NUMBER --body "$COMMENT_BODY" --edit-last || gh pr comment $PR_NUMBER --body "$COMMENT_BODY"
 
       - name: Return Status Test Success
         if: success()
@@ -142,7 +148,7 @@ jobs:
           PR_NUMBER: ${{ github.event.number }}
         run: |
           # --edit-last
-          gh pr comment $PR_NUMBER --body "$COMMENT_BODY" || gh pr comment $PR_NUMBER --body "$COMMENT_BODY"
+          gh pr comment $PR_NUMBER --body "$COMMENT_BODY" --edit-last || gh pr comment $PR_NUMBER --body "$COMMENT_BODY"
    
   allowgithub:
       name: PR Approve
@@ -153,13 +159,13 @@ jobs:
       steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-      - name: Approved PR
-        if: success()
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # Approved PR
-        run: |
-          gh pr review ${{ github.event.number }} --approve
+      # - name: Approved PR
+      #   if: success()
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   # Approved PR
+      #   run: |
+      #     gh pr review ${{ github.event.number }} --approve -b ":octocat: LGTM! :octocat:"
       - name: Allow and Merge When Succes
         if: success()
         env:
@@ -200,7 +206,7 @@ jobs:
             # Generate new tag from lastest tag up 1
             NEW_TAG=$(echo $LASTEST_TAG | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g')
             # Create pre-release from new tag
-            gh release create $NEW_TAG -t "Release $NEW_TAG" -n "Release $NEW_TAG" --prerelease
+            gh release create $NEW_TAG -t "Release $NEW_TAG" -n "Release $NEW_TAG" --generate-notes --prerelease || gh release edit $NEW_TAG -t "Release $NEW_TAG" -n "Release $NEW_TAG" --generate-notes --prerelease
             
 
 
