@@ -55,7 +55,7 @@ jobs:
           PR_NUMBER: ${{ github.event.number }}
         run: |
           # add failed checklist label
-          gh pr edit ${{ github.event.number }} --add-label "passchecklist"
+          gh pr edit ${{ github.event.number }} --remove-label "passchecklist"
           gh pr edit ${{ github.event.number }} --add-label "failedchecklist"
           
   checklint:
