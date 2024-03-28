@@ -206,7 +206,7 @@ jobs:
             # Generate new tag from lastest tag up 1
             NEW_TAG=$(echo $LASTEST_TAG | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g')
             # Create pre-release from new tag
-            gh release create $NEW_TAG -t "Release $NEW_TAG" -n "Release $NEW_TAG" --generate-notes --prerelease || gh release edit $NEW_TAG -t "Release $NEW_TAG" -n "Release $NEW_TAG" --generate-notes --prerelease
+            gh release edit $NEW_TAG -t "Release $NEW_TAG" -n "Release $NEW_TAG" --generate-notes --prerelease || gh release create $NEW_TAG -t "Release $NEW_TAG" -n "Release $NEW_TAG" --generate-notes --prerelease
             
 
 
