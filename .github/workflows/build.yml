@@ -42,6 +42,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          gh pr edit ${{ github.event.number }} --remove-label "failedchecklist"
           gh pr edit ${{ github.event.number }} --add-label "passchecklist"
       - name: Response Status Checklist
         if: failure()
@@ -53,9 +54,10 @@ jobs:
             "
           PR_NUMBER: ${{ github.event.number }}
         run: |
-          # --edit-last
-          gh pr comment $PR_NUMBER --body "$COMMENT_BODY" || gh pr comment $PR_NUMBER --body "$COMMENT_BODY"
-
+          # add failed checklist label
+          gh pr edit ${{ github.event.number }} --add-label "passchecklist"
+          gh pr edit ${{ github.event.number }} --add-label "failedchecklist"
+          
   checklint:
     name: Check Lint
     runs-on: ubuntu-latest
@@ -137,8 +139,8 @@ jobs:
             "
           PR_NUMBER: ${{ github.event.number }}
         run: |
-          # --edit-last
-          gh pr comment $PR_NUMBER --body "$COMMENT_BODY" --edit-last || gh pr comment $PR_NUMBER --body "$COMMENT_BODY"
+          # add lable pr failed checklist
+          gh pr edit ${{ github.event.number }} --add-label "failedchecklist"
 
       - name: Return Status Test Success
         if: success()
@@ -213,5 +215,7 @@ jobs:
               exit 0
             fi
             gh release create $NEW_TAG -t "Release $NEW_TAG" -n "Release $NEW_TAG" --generate-notes --prerelease
-            # Add comments new tag was create and waiting for release. New tag in block code markdown
-            gh pr comment ${{ github.event.number }} --body " 🚀 New Tag \`$NEW_TAG\` was created and waiting for release!"
+            # Add comments new tag was create and waiting for release. New tag in block code markdown with url
+            # get link to new pre-release tag
+            NEW_TAG_URL=$(gh release view $NEW_TAG --json html_url | jq -r '.html_url')
+            gh pr comment ${{ github.event.number }} --body "🚀 New Tag \`$NEW_TAG\` was created and waiting for release! [Release Note]($NEW_TAG_URL)"
