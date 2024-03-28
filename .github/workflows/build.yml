@@ -209,7 +209,7 @@ jobs:
             # Check exist tag
             if [[ $(gh release list --json tagName | jq -r '.[].tagName' | grep -w $NEW_TAG) ]]; then
               echo "Tag $NEW_TAG is exist"
-              exit 1
+              exit 0
             fi
             gh release create $NEW_TAG -t "Release $NEW_TAG" -n "Release $NEW_TAG" --generate-notes --prerelease
             # Add comments new tag was create and waiting for release. New tag in block code markdown
