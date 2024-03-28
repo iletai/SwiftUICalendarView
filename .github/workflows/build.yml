@@ -131,7 +131,7 @@ jobs:
         if: failure()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COMMENT_BODY: "### 😭 Unit Test Was Failed! :exclamation:
+          COMMENT_BODY: "😭 Unit Test Was Failed! :exclamation:
 
             See more at: ${{ github.event.pull_request.html_url }}/checks
             "
@@ -144,7 +144,7 @@ jobs:
         if: success()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COMMENT_BODY: "### ✅ Unit Test Success!"
+          COMMENT_BODY: "✅ Unit Test Success!"
           PR_NUMBER: ${{ github.event.number }}
         run: |
           # --edit-last
@@ -206,7 +206,14 @@ jobs:
             # Generate new tag from lastest tag up 1
             NEW_TAG=$(echo $LASTEST_TAG | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g')
             # Create pre-release from new tag
+            # Check exist tag
+            if [[ $(gh release list --json tagName | jq -r '.[].tagName' | grep -w $NEW_TAG) ]]; then
+              echo "Tag $NEW_TAG is exist"
+              exit 1
+            fi
             gh release create $NEW_TAG -t "Release $NEW_TAG" -n "Release $NEW_TAG" --generate-notes --prerelease
+            # Add comments new tag was create and waiting for release. New tag in block code markdown
+            gh pr comment ${{ github.event.number }} --body " 🚀 New Tag \`$NEW_TAG\` was created and waiting for release!"
             
 
 
