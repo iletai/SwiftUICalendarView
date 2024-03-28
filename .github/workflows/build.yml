@@ -37,6 +37,12 @@ jobs:
         with:
             repo-token: "${{ secrets.GITHUB_TOKEN }}"
 
+      - name: Response Status Checklist If Pass
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr edit ${{ github.event.number }} --add-label "passchecklist"
       - name: Response Status Checklist
         if: failure()
         env:
@@ -125,24 +131,24 @@ jobs:
         if: failure()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COMMENT_BODY: "### 😭 Unit Test Was Failed!
+          COMMENT_BODY: "😭 Unit Test Was Failed! :exclamation:
 
             See more at: ${{ github.event.pull_request.html_url }}/checks
             "
           PR_NUMBER: ${{ github.event.number }}
         run: |
           # --edit-last
-          gh pr comment $PR_NUMBER --body "$COMMENT_BODY" || gh pr comment $PR_NUMBER --body "$COMMENT_BODY"
+          gh pr comment $PR_NUMBER --body "$COMMENT_BODY" --edit-last || gh pr comment $PR_NUMBER --body "$COMMENT_BODY"
 
       - name: Return Status Test Success
         if: success()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COMMENT_BODY: "### ✅ Unit Test Success!"
+          COMMENT_BODY: "✅ Unit Test Success!"
           PR_NUMBER: ${{ github.event.number }}
         run: |
           # --edit-last
-          gh pr comment $PR_NUMBER --body "$COMMENT_BODY" || gh pr comment $PR_NUMBER --body "$COMMENT_BODY"
+          gh pr comment $PR_NUMBER --body "$COMMENT_BODY" --edit-last || gh pr comment $PR_NUMBER --body "$COMMENT_BODY"
    
   allowgithub:
       name: PR Approve
@@ -159,7 +165,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         # Approved PR
         run: |
-          gh pr review ${{ github.event.number }} --approve
+          gh pr review ${{ github.event.number }} --approve -b ":octocat: LGTM! :octocat:"
       - name: Allow and Merge When Succes
         if: success()
         env:
@@ -185,10 +191,10 @@ jobs:
        steps:
         - name: Checkout Repository
           uses: actions/checkout@v4
-        - name: Build executable for release
-          env:
-            PRODUCT_NAME: ${{ secrets.PRODUCT_NAME }}
-          run: swift build -c release --arch arm64 --arch x86_64 --product ${{ secrets.PRODUCT_NAME }}
+        # - name: Build executable for release
+        #   env:
+        #     PRODUCT_NAME: ${{ secrets.PRODUCT_NAME }}
+        #   run: swift build -c release --arch arm64 --arch x86_64 --product ${{ secrets.PRODUCT_NAME }}
         - name: Create Tag And Zip File
           if: success() && github.event.pull_request.user.login == github.repository_owner
           env:
@@ -196,11 +202,18 @@ jobs:
             PRODUCT_NAME: ${{ secrets.PRODUCT_NAME}}
           run: |
             # get lastest release tag with type lastest gh
-            LASTEST_TAG=$(gh release list | head -n 1 | awk '{print $1}')
+            LASTEST_TAG=$(gh release list --exclude-drafts --limit 1 --exclude-pre-releases --json tagName | jq -r '.[0].tagName')
             # Generate new tag from lastest tag up 1
             NEW_TAG=$(echo $LASTEST_TAG | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g')
             # Create pre-release from new tag
-            gh release create $NEW_TAG -t "Release $NEW_TAG" -n "Release $NEW_TAG" --prerelease
+            # Check exist tag
+            if [[ $(gh release list --json tagName | jq -r '.[].tagName' | grep -w $NEW_TAG) ]]; then
+              echo "Tag $NEW_TAG is exist"
+              exit 0
+            fi
+            gh release create $NEW_TAG -t "Release $NEW_TAG" -n "Release $NEW_TAG" --generate-notes --prerelease
+            # Add comments new tag was create and waiting for release. New tag in block code markdown
+            gh pr comment ${{ github.event.number }} --body " 🚀 New Tag \`$NEW_TAG\` was created and waiting for release!"
             
 
 

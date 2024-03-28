@@ -38,8 +38,6 @@ targets: [
 ]
 ```
 
-
-
 ### Feature Support: 
  - Calendar Mode: Week, Month, Year
  - First WeekDay
@@ -113,10 +111,11 @@ You can customize the calendar's interface using properties like accentColor, se
                 selectedDate = selectedDate.nextWeekday(.friday)
             }
 ```
+
 ### Example:
 > [!NOTE]
 > For example using this repository, please help to see more at: https://github.com/iletai/SwiftUICalendarView/tree/master/CalendarExampleView
-## Contribution
+
 If you find a bug or have a way to improve the library, create an Issue or propose a Pull Request. We welcome contributions from the community.
 
 ### License

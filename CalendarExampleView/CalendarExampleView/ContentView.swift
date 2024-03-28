@@ -63,7 +63,7 @@ struct ContentView: View {
             )
             .enableHeader(isShowHeader)
             .enableDateOut(isShowDateOut)
-            .firstWeekDay(firstWeekDate)
+            .firstWeekDay(.sunday)
             .calendarLocate(locale: Locales.vietnamese.toLocale())
             .enablePinedView([.sectionHeaders, .sectionFooters])
             .setViewMode(viewMode)
