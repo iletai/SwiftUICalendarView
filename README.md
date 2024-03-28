@@ -1,17 +1,17 @@
 <p align="center">
-  <img src="https://github.com/iletai/SwiftUICalendarView/assets/26614687/cc7b3b91-73ff-4195-9377-4ece5fd299fe" height="128">
-  <h1 align="center">Calendar For SwiftUI</h1>
+<img src="https://github.com/iletai/SwiftUICalendarView/assets/26614687/cc7b3b91-73ff-4195-9377-4ece5fd299fe" height="128">
+<h1 align="center">Calendar For SwiftUI</h1>
 </p>
 
 <p align="center">
-  <a aria-label="Follow Me on Instagram" href="https://www.instagram.com/tai.lqt" target="_blank">
+<a aria-label="Follow Me on Instagram" href="https://www.instagram.com/tai.lqt" target="_blank">
     <img alt="" src="https://github.com/iletai/SwiftUICalendarView/assets/26614687/176e7212-8803-459a-8940-d209c7177643" height="28">
-  </a>
+</a>
 </p>
 
-
-SwiftUI is a component for creating a calendar view with SwiftUI Framework.
-Build a Calendar By Pure SwiftUI with SwiftDate Library for calculator date. SwiftUICalendarView is a Swift Package for building and displaying a simple calendar interface in SwiftUI. This library provides an easy way to integrate a calendar into your app.
+> [!NOTE]
+> SwiftUI is a component for creating a calendar view with SwiftUI Framework.
+> Build a Calendar By Pure SwiftUI with SwiftDate Library for calculator date. SwiftUICalendarView is a Swift Package for building and displaying a simple calendar interface in SwiftUI. This library provides an easy way to integrate a calendar into your app.
 
 
 <img width="1012" height="400" alt="github-banner" src="https://github.com/iletai/SwiftUICalendarView/assets/26614687/96833803-42c3-41ca-9270-852a81e290c6">
@@ -22,10 +22,18 @@ Build a Calendar By Pure SwiftUI with SwiftDate Library for calculator date. Swi
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Build Project](https://github.com/iletai/SwiftUICalendarView/actions/workflows/build_master.yml/badge.svg?branch=master)](https://github.com/iletai/SwiftUICalendarView/actions/workflows/build_master.yml)
 
+## Requirements
+
+> [!IMPORTANT]
+> | **Platforms** | **Minimum Swift Version** |
+> |:----------|:----------|
+> | iOS 16+ | 5.9 |
+
+
 
 ## Installation
 
-### Swift Package Manager
+#### Swift Package Manager
 
 To integrate SwiftUICalendarView into your project, add the GitHub URL to the dependencies section in your Package.swift file:
 
@@ -38,15 +46,33 @@ targets: [
 ]
 ```
 
+#### Cocoapods
+Cocoapods is a dependency manager for Swift and Objective-C Cocoa projects that helps to scale them elegantly.
+
+[Installation steps](https://cocoapods.org/pods/SwiftUICalendarView):
+- Install CocoaPods 1.10.0 (or later)
+- Add CocoaPods dependency into your `Podfile`   
+
+```shell
+target 'MyApp' do
+pod 'SwiftUICalendarView'
+end
+```
+
+
 ### Feature Support: 
- - Calendar Mode: Week, Month, Year
- - First WeekDay
- - Show Date Out
- - Pin Header Calendar
- - Allow Custom Owner Calendar Date View
+- Calendar Mode: Week, Month, Year
+- First WeekDay
+- Show Date Out
+- Pin Header Calendar
+- Allow Custom Owner Calendar Date View
 
 
 ### Usable Example Calendar View
+
+> [!WARNING]
+> Because with mindset don't want to related method reload of Obseverble SwiftUI.
+> Let control owner application reload with `@State` `@StateObject` or `Obsever` by themself
 
 ```swift
 import SwiftUI
