@@ -196,7 +196,7 @@ jobs:
             PRODUCT_NAME: ${{ secrets.PRODUCT_NAME}}
           run: |
             # get lastest release tag with type lastest gh
-            LASTEST_TAG=$(gh release list | head -n 1 | awk '{print $1}')
+            LASTEST_TAG=$(gh release list --exclude-drafts --limit 1 --exclude-pre-releases --json tagName | jq -r '.[0].tagName')
             # Generate new tag from lastest tag up 1
             NEW_TAG=$(echo $LASTEST_TAG | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g')
             # Create pre-release from new tag
