@@ -1,0 +1,82 @@
+name: Deploy Version To Cocoapods
+
+on:
+  workflow_call:
+    secrets:
+      token:
+        required: true
+  push:
+    tags:
+      - v*.*.*
+jobs:
+  deploytag:
+    name: Setup Tag
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - macos-14
+        swift:
+          - "5.9"
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Install Cocoapod
+        run: gem install cocoapods
+      - name: Compress Push To Cocoapods
+        run: |
+            set -eo pipefail
+            pod lib lint --allow-warnings
+            # Set version source pod spec and remove v before tag version example v1.4.2 -> 1.4.2
+            version=$(echo "${GITHUB_REF}" | sed -e "s/^refs\/tags\/v//")
+            sed -i '' "s/s.version = '.*'/s.version = '${version}'/" Pod/Source/YourPod.podspec
+            pod trunk push --allow-warnings
+        env:
+            COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPOD_TOKEN }}
+  informstatus:
+     name: Inform Status Release Deploy To Cocoapods
+     needs: deploytag
+     runs-on: ubuntu-latest
+     # Check status of deploytag job with sucess and failure
+     if: ${{ needs.deploytag.result == 'success' }}
+     steps:
+       - name: Send Slack Message
+         uses: rtCamp/action-slack-notify@v2
+         with:
+            status: ${{ job.status }}
+            author_name: ${{ github.actor }}
+            author_icon: ${{ github.actor }}
+            title: ${{ github.event_name }}
+            text: ${{ github.event_name }} - ${{ github.sha }}
+            fields: ${{ job.status }}
+            color: ${{ job.status }}
+            author_link: ${{ github.event.sender.html_url }}
+            footer: ${{ github.event.repository.full_name }}
+            footer_icon: ${{ github.event.repository.owner.avatar_url }}
+            ts: ${{ github.run_id }}
+            env:
+            SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+  informstatusfailure:
+     name: Inform Status Release Deploy To Cocoapods
+     needs: deploytag
+     runs-on: ubuntu-latest
+     # Check status of deploytag job with sucess and failure
+     if: ${{ needs.deploytag.result == 'failure' }}
+     steps:
+       - name: Send Slack Message
+         uses: rtCamp/action-slack-notify@v2
+         with:
+            status: ${{ job.status }}
+            author_name: ${{ github.actor }}
+            author_icon: ${{ github.actor }}
+            title: ${{ github.event_name }}
+            text: ${{ github.event_name }} - ${{ github.sha }}
+            fields: ${{ job.status }}
+            color: ${{ job.status }}
+            author_link: ${{ github.event.sender.html_url }}
+            footer: ${{ github.event.repository.full_name }}
+            footer_icon: ${{ github.event.repository.owner.avatar_url }}
+            ts: ${{ github.run_id }}
+            env:
+            SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        
