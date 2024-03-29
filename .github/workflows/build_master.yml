@@ -21,7 +21,6 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        id: checkout
         uses: actions/checkout@v4
       - name: Cache Swift dependencies
         uses: actions/cache@v4
@@ -36,7 +35,75 @@ jobs:
         uses: swift-actions/setup-swift@v1
         with:
           swift-version: ${{ matrix.swift }}
-
-      - name: Build
-        id: build
-        run: swift build
+      
+      
+  deploytag:
+    name: Setup Tag
+    needs: build
+    runs-on: ${{ matrix.os }}
+    continue-on-error: true
+    strategy:
+      matrix:
+        os:
+          - macos-14
+        swift:
+          - "5.9"
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Install Cocoapod
+        run: gem install cocoapods
+      - name: Compress Push To Cocoapods
+        run: |
+            set -eo pipefail
+            pod lib lint --allow-warnings
+            pod trunk push --allow-warnings
+        env:
+            COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPOD_TOKEN }}
+  informstatus:
+    name: Inform Status Release Deploy To Cocoapods
+    needs: deploytag
+    runs-on: ubuntu-latest
+    # Check status of deploytag job with sucess and failure
+    if: ${{ needs.deploytag.result == 'success' }}
+    steps:
+      - name: Send Slack Message
+        uses: rtCamp/action-slack-notify@v2
+        with:
+          status: ${{ job.status }}
+          author_name: ${{ github.actor }}
+          author_icon: ${{ github.actor }}
+          title: ${{ github.event_name }}
+          text: ${{ github.event_name }} - ${{ github.sha }}
+          fields: ${{ job.status }}
+          color: ${{ job.status }}
+          author_link: ${{ github.event.sender.html_url }}
+          footer: ${{ github.event.repository.full_name }}
+          footer_icon: ${{ github.event.repository.owner.avatar_url }}
+          ts: ${{ github.run_id }}
+          env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+  informstatusfailure:
+    name: Inform Status Release Deploy To Cocoapods
+    needs: deploytag
+    runs-on: ubuntu-latest
+    # Check status of deploytag job with sucess and failure
+    if: ${{ needs.deploytag.result == 'failure' }}
+    steps:
+      - name: Send Slack Message
+        uses: rtCamp/action-slack-notify@v2
+        with:
+          status: ${{ job.status }}
+          author_name: ${{ github.actor }}
+          author_icon: ${{ github.actor }}
+          title: ${{ github.event_name }}
+          text: ${{ github.event_name }} - ${{ github.sha }}
+          fields: ${{ job.status }}
+          color: ${{ job.status }}
+          author_link: ${{ github.event.sender.html_url }}
+          footer: ${{ github.event.repository.full_name }}
+          footer_icon: ${{ github.event.repository.owner.avatar_url }}
+          ts: ${{ github.run_id }}
+          env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+                
