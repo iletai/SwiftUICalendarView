@@ -38,7 +38,7 @@ jobs:
       
       
   deploytag:
-    name: Setup Tag
+    name: Setup pod
     needs: build
     runs-on: ${{ matrix.os }}
     continue-on-error: true
