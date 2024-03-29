@@ -48,7 +48,7 @@ extension CalendarView: RootBuilder {
     /// Sets the first day of the week in the calendar view.
     /// - Parameter first: The index of the first day of the week (1 for Sunday, 2 for Monday, etc.).
     /// - Returns: An instance of `Self` with the updated configuration.
-    public func firstWeekDay(_ first: CalendarView.Weekday) -> Self {
+    public func firstWeekDay(_ first: CalendarWeekday) -> Self {
         mutating(\.calendar.firstWeekday, value: first.rawValue)
     }
 

@@ -12,7 +12,7 @@ import SwiftDate
 struct ContentView: View {
     @State var isShowHeader = false
     @State var isShowDateOut = false
-    @State var firstWeekDate = 1
+    @State var firstWeekDate = CalendarWeekday.monday
     @State var isShowDivider = false
     @State var viewMode = CalendarViewMode.year
     @State private var selectedDate = Date()
@@ -63,7 +63,7 @@ struct ContentView: View {
             )
             .enableHeader(isShowHeader)
             .enableDateOut(isShowDateOut)
-            .firstWeekDay(.sunday)
+            .firstWeekDay(firstWeekDate)
             .calendarLocate(locale: Locales.vietnamese.toLocale())
             .enablePinedView([.sectionHeaders, .sectionFooters])
             .setViewMode(viewMode)
@@ -109,8 +109,8 @@ struct ContentView: View {
     }
 
     var listButtonDemo: some View {
-        ScrollView(.horizontal) {
-            HStack {
+        Grid(horizontalSpacing: 8.0, verticalSpacing: 8.0) {
+            GridRow {
                 Button {
                     isShowHeader.toggle()
                 } label: {
@@ -119,7 +119,7 @@ struct ContentView: View {
                 Button {
                     isShowDivider.toggle()
                 } label: {
-                    Text("Dviider")
+                    Text("Divider")
                 }
 
                 Button {
@@ -127,26 +127,28 @@ struct ContentView: View {
                 } label: {
                     Text("DateOut")
                 }
+            }
+            GridRow {
                 Button {
-                    firstWeekDate = Int.random(in: 1...6)
+                    firstWeekDate = CalendarWeekday.allCases.randomElement()!
                 } label: {
-                    Text("First Week Date")
+                    Text("WeekDate")
                 }
                 Button {
                     let nextMonth = Calendar.gregorian.date(byAdding: .month, value: 1, to: selectedDate)
                     selectedDate = nextMonth!
                 } label: {
-                    Text("Next month")
+                    Text("Next")
                 }
                 Button {
                     isHightLightToDay.toggle()
                 } label: {
-                    Text("isHightLightToDay")
+                    Text("ToDay")
                 }
-
             }
-            .buttonStyle(.bordered)
         }
+        .buttonStyle(.bordered)
+        .maxWidthAble()
     }
 
     func onSelectedDate(_ date: Date) {
@@ -160,4 +162,10 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+}
+
+extension CalendarWeekday: CaseIterable {
+    static public var allCases: [CalendarWeekday] {
+        [.friday, .monday, .saturday, .thursday, .wednesday, .sunday, .tuesday]
+    }
 }

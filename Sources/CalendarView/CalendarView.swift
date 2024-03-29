@@ -40,39 +40,6 @@ public struct CalendarView<
     var pinedHeaderView = PinnedScrollableViews()
     var onSelected: OnSelectedDate = { _ in }
 
-    private var yearData: YearData {
-        let dates = DateInRegion.enumerateDates(
-            from: date.startOfYear(calendar),
-            to: date.endOfYear(calendar),
-            increment: DateComponents(month: 1)
-        )
-        .map {
-            $0.date
-        }
-        return dates.reduce(into: [:]) { month, date in
-            month[date] = generateDates(
-                date: date.startOfMonth(calendar).date,
-                dateComponents: CalendarViewMode.month.dateComponent
-            )
-        }
-    }
-
-    private var monthData: MonthDateData {
-        generateDates(
-            date: date,
-            withComponent: .month,
-            dateComponents: DateComponents(day: 1)
-        )
-    }
-
-    private var weekData: WeekDataData {
-        generateDates(
-            date: date,
-            withComponent: .weekOfMonth,
-            dateComponents: DateComponents(day: 1)
-        )
-    }
-
     @GestureState var isGestureFinished = true
     var onDraggingEnded: OnEndDragAction?
 
@@ -110,16 +77,12 @@ public struct CalendarView<
     public var body: some View {
         ScrollView {
             LazyVGrid(
-                columns: Array(
-                    repeating: GridItem(
-                        .flexible(),
-                        spacing: spaceBetweenColumns
-                    ),
-                    count: CalendarDefine.kWeekDays
-                ),
+                columns: columnGridLayout,
                 spacing: spacingBetweenDay,
                 pinnedViews: pinedHeaderView
-            ) { bodyContentView }
+            ) {
+                bodyContentView
+            }
             .marginDefault()
             .background(backgroundCalendar)
             .highPriorityGesture(swipeGesture)
@@ -162,11 +125,7 @@ extension CalendarView {
                         if showDivider {
                             Divider()
                         }
-                        headerView(
-                            Array(
-                                yearData[month, default: []].prefix(CalendarDefine.kWeekDays)
-                            )
-                        )
+                        headerView(headerDates)
                     }
                     .maxWidthAble()
             ) {
@@ -255,7 +214,7 @@ extension CalendarView {
             if showDivider {
                 Divider()
             }
-            headerView(Array(monthData.prefix(CalendarDefine.kWeekDays)))
+            headerView(headerDates)
         }
     }
 }
@@ -264,5 +223,57 @@ extension View {
     @ViewBuilder
     func hightLightToDayView(_ color: Color = .orange) -> some View {
         background(color.clipShape(Circle()))
+    }
+}
+
+// MARK: - Data For Calendar
+private extension CalendarView {
+    var yearData: YearData {
+        let dates = DateInRegion.enumerateDates(
+            from: date.startOfYear(calendar),
+            to: date.endOfYear(calendar),
+            increment: DateComponents(month: 1)
+        )
+            .map {
+                $0.date
+            }
+        return dates.reduce(into: [:]) { month, date in
+            month[date] = generateDates(
+                date: date.startOfMonth(calendar).date,
+                dateComponents: CalendarViewMode.month.dateComponent
+            )
+        }
+    }
+
+    var columnGridLayout: [GridItem] {
+        Array(
+            repeating: GridItem(.flexible(), spacing: spaceBetweenColumns),
+            count: CalendarDefine.kWeekDays
+        )
+    }
+
+    var monthData: MonthDateData {
+        generateDates(
+            date: date,
+            withComponent: .month,
+            dateComponents: DateComponents(day: 1)
+        )
+    }
+
+    var weekData: WeekDataData {
+        generateDates(
+            date: date,
+            withComponent: .weekOfMonth,
+            dateComponents: DateComponents(day: 1)
+        )
+    }
+
+    var headerDates: [Date] {
+        switch viewMode {
+        case .month, .week:
+            return Array(monthData.prefix(CalendarDefine.kWeekDays))
+        case .year:
+            return Array(yearData[date.dateAtStartOf(.year), default: []].prefix(CalendarDefine.kWeekDays))
+        }
     }
 }
