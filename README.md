@@ -39,7 +39,7 @@ To integrate SwiftUICalendarView into your project, add the GitHub URL to the de
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/iletai/SwiftUICalendarView.git", from: "v1.0.4"),
+    .package(url: "https://github.com/iletai/SwiftUICalendarView.git", from: "v1.4.5"),
 ],
 targets: [
     .target(name: "YourTarget", dependencies: ["CalendarView"]),
