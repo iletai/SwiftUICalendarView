@@ -5,9 +5,8 @@ on:
     secrets:
       token:
         required: true
-  push:
-    tags:
-      - v*.*.*
+  release:
+     types: [published]
 jobs:
   deploytag:
     name: Setup Tag
@@ -27,7 +26,7 @@ jobs:
         run: |
             set -eo pipefail
             pod lib lint --allow-warnings
-            # Set version source pod spec and remove v before tag version example v1.4.2 -> 1.4.2
+            # Set version source pod spec
             version=$(echo "${GITHUB_REF}" | sed -e "s/^refs\/tags\/v//")
             sed -i '' "s/s.version = '.*'/s.version = '${version}'/" Pod/Source/YourPod.podspec
             pod trunk push --allow-warnings
