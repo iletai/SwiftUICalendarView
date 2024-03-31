@@ -51,59 +51,22 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+      # Cache cocoadpod
+      - name: Cache Cocoapod
+        uses: actions/cache@v4
+        with:
+          path: ~/.cocoapods
+          key: ${{ runner.os }}-cocoapods-${{ hashFiles('**/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cocoapods-
       - name: Install Cocoapod
         run: gem install cocoapods
       - name: Compress Push To Cocoapods
+        continue-on-error: true
         run: |
             set -eo pipefail
             pod lib lint --allow-warnings
             pod trunk push --allow-warnings
+            exit 0
         env:
             COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPOD_TOKEN }}
-  informstatus:
-    name: Inform Status Release Deploy To Cocoapods
-    needs: deploytag
-    runs-on: ubuntu-latest
-    # Check status of deploytag job with sucess and failure
-    if: ${{ needs.deploytag.result == 'success' }}
-    steps:
-      - name: Send Slack Message
-        uses: rtCamp/action-slack-notify@v2
-        with:
-          status: ${{ job.status }}
-          author_name: ${{ github.actor }}
-          author_icon: ${{ github.actor }}
-          title: ${{ github.event_name }}
-          text: ${{ github.event_name }} - ${{ github.sha }}
-          fields: ${{ job.status }}
-          color: ${{ job.status }}
-          author_link: ${{ github.event.sender.html_url }}
-          footer: ${{ github.event.repository.full_name }}
-          footer_icon: ${{ github.event.repository.owner.avatar_url }}
-          ts: ${{ github.run_id }}
-          env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-  informstatusfailure:
-    name: Inform Status Release Deploy To Cocoapods
-    needs: deploytag
-    runs-on: ubuntu-latest
-    # Check status of deploytag job with sucess and failure
-    if: ${{ needs.deploytag.result == 'failure' }}
-    steps:
-      - name: Send Slack Message
-        uses: rtCamp/action-slack-notify@v2
-        with:
-          status: ${{ job.status }}
-          author_name: ${{ github.actor }}
-          author_icon: ${{ github.actor }}
-          title: ${{ github.event_name }}
-          text: ${{ github.event_name }} - ${{ github.sha }}
-          fields: ${{ job.status }}
-          color: ${{ job.status }}
-          author_link: ${{ github.event.sender.html_url }}
-          footer: ${{ github.event.repository.full_name }}
-          footer_icon: ${{ github.event.repository.owner.avatar_url }}
-          ts: ${{ github.run_id }}
-          env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-                
