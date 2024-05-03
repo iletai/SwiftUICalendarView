@@ -13,6 +13,7 @@ public enum CalendarViewMode: CaseIterable {
     case month
     case week
     case year
+    case single
 
     var component: Calendar.Component {
         switch self {
@@ -22,12 +23,15 @@ public enum CalendarViewMode: CaseIterable {
             return .weekOfMonth
         case .year:
             return .year
+        case .single:
+            return .day
         }
     }
 
     var dateComponent: DateComponents {
         switch self {
         case .month,
+        .single,
         .week:
             return DateComponents(day: 1)
         case .year:
@@ -43,6 +47,8 @@ public enum CalendarViewMode: CaseIterable {
             return false
         case .year:
             return true
+        case .single:
+            return false
         }
     }
 
@@ -50,9 +56,9 @@ public enum CalendarViewMode: CaseIterable {
 
     var enableScrollIndicator: ScrollIndicatorVisibility {
         switch self {
-        case .month:
-            return .never
-        case .week:
+        case .month,
+        .single,
+        .week:
             return .never
         case .year:
             return .visible
@@ -67,6 +73,8 @@ public enum CalendarViewMode: CaseIterable {
             return .nextWeek
         case .year:
             return .nextYear
+        case .single:
+            return .nextWeekday(.sunday)
         }
     }
 }

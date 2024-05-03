@@ -105,6 +105,8 @@ extension CalendarView {
             yearContentView()
         case .week:
             calendarWeekView()
+        case .single:
+            singleDayContentView()
         }
     }
 
@@ -130,17 +132,12 @@ extension CalendarView {
                     .maxWidthAble()
             ) {
                 ForEach(
-                    yearData[month, default: []], id: \.self
+                    yearData[month, default: []],
+                    id: \.self
                 ) { date in
-                    if date.isInside(date: date, granularity: .month) {
-                        if date.isToday, hightLightToDay {
-                            dateView(date).hightLightToDayView()
-                        } else {
-                            dateView(date)
-                                .onTapGesture {
-                                    onSelected(date)
-                                }
-                        }
+                    if date.compare(.isSameMonth(month)) {
+                        dateView(date)
+                            .hightLightToDayView(date.isToday && hightLightToDay)
                     } else {
                         dateOutView(date)
                             .opacity(showDateOut ? 1.0 : 0.0)
@@ -174,12 +171,8 @@ extension CalendarView {
         Section(header: weekDayAndMonthView) {
             ForEach(weekData, id: \.self) { date in
                 if date.compare(.isSameWeek(self.date)) {
-                    if date.isToday, hightLightToDay {
-                        dateView(date)
-                            .hightLightToDayView()
-                    } else {
-                        dateView(date)
-                    }
+                    dateView(date)
+                        .hightLightToDayView(date.isToday && hightLightToDay)
                 } else {
                     dateOutView(date)
                         .opacity(showDateOut ? 1.0 : 0.0)
@@ -193,12 +186,8 @@ extension CalendarView {
         Section(header: weekDayAndMonthView) {
             ForEach(monthData, id: \.self) { date in
                 if date.compare(.isSameMonth(self.date)) {
-                    if date.isToday, hightLightToDay {
-                        dateView(date)
-                            .hightLightToDayView()
-                    } else {
-                        dateView(date)
-                    }
+                    dateView(date)
+                        .hightLightToDayView(date.isToday && hightLightToDay)
                 } else {
                     dateOutView(date)
                         .opacity(showDateOut ? 1.0 : 0.0)
@@ -217,26 +206,44 @@ extension CalendarView {
             headerView(headerDates)
         }
     }
+
+    @ViewBuilder
+    private func singleDayContentView() -> some View {
+        VStack(spacing: 0) {
+            Text(date.dayName)
+                .font(.headline)
+            Text(date.toString(.date(.full)))
+                .font(.headline)
+                .maxWidthAble()
+                .maxHeightAble()
+        }
+        .maxWidthAble()
+        .maxHeightAble()
+    }
 }
 
 extension View {
     @ViewBuilder
-    func hightLightToDayView(_ color: Color = .orange) -> some View {
-        background(color.clipShape(Circle()))
+    func hightLightToDayView(_ isToday: Bool, _ color: Color = .orange) -> some View {
+        if isToday {
+            background(color.clipShape(Circle()))
+        } else {
+            self
+        }
     }
 }
 
 // MARK: - Data For Calendar
-private extension CalendarView {
-    var yearData: YearData {
+extension CalendarView {
+    fileprivate var yearData: YearData {
         let dates = DateInRegion.enumerateDates(
             from: date.startOfYear(calendar),
             to: date.endOfYear(calendar),
             increment: DateComponents(month: 1)
         )
-            .map {
-                $0.date
-            }
+        .map {
+            $0.date
+        }
         return dates.reduce(into: [:]) { month, date in
             month[date] = generateDates(
                 date: date.startOfMonth(calendar).date,
@@ -245,14 +252,22 @@ private extension CalendarView {
         }
     }
 
-    var columnGridLayout: [GridItem] {
-        Array(
-            repeating: GridItem(.flexible(), spacing: spaceBetweenColumns),
-            count: CalendarDefine.kWeekDays
-        )
+    fileprivate var columnGridLayout: [GridItem] {
+        switch viewMode {
+        case .single:
+            return Array(
+                repeating: GridItem(.flexible()),
+                count: 1
+            )
+        default:
+            return Array(
+                repeating: GridItem(.flexible(), spacing: spaceBetweenColumns),
+                count: CalendarDefine.kWeekDays
+            )
+        }
     }
 
-    var monthData: MonthDateData {
+    fileprivate var monthData: MonthDateData {
         generateDates(
             date: date,
             withComponent: .month,
@@ -260,7 +275,7 @@ private extension CalendarView {
         )
     }
 
-    var weekData: WeekDataData {
+    fileprivate var weekData: WeekDataData {
         generateDates(
             date: date,
             withComponent: .weekOfMonth,
@@ -268,12 +283,16 @@ private extension CalendarView {
         )
     }
 
-    var headerDates: [Date] {
+    fileprivate var headerDates: [Date] {
         switch viewMode {
         case .month, .week:
             return Array(monthData.prefix(CalendarDefine.kWeekDays))
         case .year:
-            return Array(yearData[date.dateAtStartOf(.year), default: []].prefix(CalendarDefine.kWeekDays))
+            return Array(
+                yearData[date.dateAtStartOf(.year), default: []].prefix(CalendarDefine.kWeekDays)
+            )
+        case .single:
+            return [date]
         }
     }
 }
