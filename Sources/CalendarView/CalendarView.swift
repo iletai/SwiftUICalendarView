@@ -292,7 +292,7 @@ extension CalendarView {
                 yearData[date.dateAtStartOf(.year), default: []].prefix(CalendarDefine.kWeekDays)
             )
         case .single:
-            return Array(arrayLiteral: date)
+            return [date]
         }
     }
 }
