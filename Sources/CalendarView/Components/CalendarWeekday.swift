@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// Represents the days of the week in a calendar.
 public enum CalendarWeekday: Int, CustomStringConvertible {
     case sunday = 1
     case monday
@@ -16,6 +17,7 @@ public enum CalendarWeekday: Int, CustomStringConvertible {
     case friday
     case saturday
 
+    /// A textual representation of the weekday.
     public var description: String {
         switch self {
         case .sunday:

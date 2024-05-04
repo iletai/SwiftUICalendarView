@@ -1,11 +1,11 @@
 Pod::Spec.new do |s|
     s.name                  = 'SwiftUICalendarView'
-    s.summary               = 'Create fully customisable calendar in no time. Keep your code clean'
+    s.summary               = 'Create fully customizable calendar in no time. Keep your code clean'
     s.description           = <<-DESC
       SwiftUICalendarView is a free and open-source library in SwiftUI to make calendar.
                                  DESC
     
-    s.version               = '1.4.5'
+    s.version               = '1.4.9'
     s.platform     = :ios
     s.ios.deployment_target = '16.0' # Updated deployment target to a valid iOS version
     s.swift_version         = '5.9'
