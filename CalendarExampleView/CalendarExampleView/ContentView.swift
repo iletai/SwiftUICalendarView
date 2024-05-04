@@ -38,7 +38,7 @@ struct ContentView: View {
                 }, headerView: { date in
                     HStack {
                         ForEach(date, id: \.self) {
-                            Text($0.weekDayShortName)
+                            Text($0.weekDayShortName.uppercased())
                                 .font(.footnote)
                                 .fontWeight(.bold)
                                 .foregroundColor(
@@ -53,7 +53,7 @@ struct ContentView: View {
                             .font(.footnote)
                             .fontWeight(.semibold)
                             .foregroundColor(
-                                Calendar.current.isDateInWeekend(date) ? .red : .gray
+                                Calendar.current.isDateInWeekend(date) ? .red.opacity(0.4) : .gray
                             )
                     }
                     .frameInfinity()

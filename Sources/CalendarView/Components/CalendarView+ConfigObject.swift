@@ -16,9 +16,4 @@ extension CalendarView {
         /// Swiping from right to left
         case backward
     }
-
-    public enum Background {
-        case hidden
-        case visible(CGFloat, Color)
-    }
 }
