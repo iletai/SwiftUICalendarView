@@ -150,21 +150,16 @@ public struct CalendarView<
 
     // MARK: - Main Body View
     public var body: some View {
-        ScrollView {
-            LazyVGrid(
-                columns: columnGridLayout,
-                spacing: calendarOptions.spacingBetweenDay,
-                pinnedViews: pinedHeaderView
-            ) {
-                bodyContentView
-            }
-            .marginDefault()
-            .background(backgroundCalendar)
-            .simultaneousGesture(swipeGesture)
+        LazyVGrid(
+            columns: columnGridLayout,
+            spacing: calendarOptions.spacingBetweenDay,
+            pinnedViews: pinedHeaderView
+        ) {
+            bodyContentView
         }
-        .scrollIndicators(calendarOptions.viewMode.enableScrollIndicator)
-        .scrollDisabled(calendarOptions.viewMode.isDisableScroll)
-        .frameInfinity()
+        .highPriorityGesture(swipeGesture)
+        .marginDefault()
+        .background(backgroundCalendar)
     }
 }
 
@@ -211,7 +206,7 @@ extension CalendarView {
         ForEach(yearData.keys.sorted(), id: \.self) { month in
             Section(
                 header:
-                    LazyVStack(alignment: .center) {
+                    LazyVStack(alignment: .leading) {
                         HStack {
                             Spacer()
                             Text(month.monthName(.defaultStandalone) + " \(month.year)")
