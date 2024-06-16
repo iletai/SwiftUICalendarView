@@ -28,7 +28,7 @@ public struct CalendarViewOption {
         self.calendar = .gregorian
         self.backgroundStatus = .hidden
         self.spacingBetweenDay = 8.0
-        self.viewMode = .year
+        self.viewMode = .year(.full)
         self.spaceBetweenColumns = 8.0
     }
 }
@@ -44,7 +44,7 @@ public extension CalendarViewOption {
         options.isShowHeader = true
         options.spaceBetweenColumns = 8.0
         options.spacingBetweenDay = 8.0
-        options.viewMode = .year
+        options.viewMode = .year(.full)
         options.isShowDivider = true
         return options
     }
