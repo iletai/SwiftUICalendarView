@@ -14,11 +14,28 @@ struct ContentView: View {
     @State var isShowDateOut = false
     @State var firstWeekDate = CalendarWeekday.monday
     @State var isShowDivider = false
-    @State var viewMode = CalendarViewMode.year
+    @State var viewMode = CalendarViewMode.year(.full)
     @State private var selectedDate = Date()
     @State private var colorDay = Color.white
     @State var listSelectedDate = [Date]()
     @State var isHightLightToDay = true
+
+    var fontDate: Font {
+        switch viewMode {
+            case .month,
+            .week,
+            .single:
+                return .footnote
+            case .year(let yearDisplayMode):
+                switch yearDisplayMode {
+                    case .compact:
+                        return .system(size: 10, weight: .regular)
+                    case .full:
+                        return .footnote.weight(.semibold)
+                }
+        }
+    }
+
     var body: some View {
         VStack {
             ScrollView {
@@ -28,8 +45,7 @@ struct ContentView: View {
                         , dateView: { date in
                             VStack {
                                 Text(date.dayName)
-                                    .font(.footnote)
-                                    .fontWeight(.semibold)
+                                    .font(fontDate)
                                     .foregroundColor(
                                         Calendar.current.isDateInWeekend(date) ? .red : .black
                                     )
@@ -41,8 +57,7 @@ struct ContentView: View {
                             HStack {
                                 ForEach(date, id: \.self) {
                                     Text($0.weekDayShortName.uppercased())
-                                        .font(.footnote)
-                                        .fontWeight(.bold)
+                                        .font(fontDate)
                                         .foregroundColor(
                                             Calendar.current.isDateInWeekend($0) ? .red : .black
                                         )
@@ -52,8 +67,7 @@ struct ContentView: View {
                         }, dateOutView: { date in
                             VStack {
                                 Text(date.dayName)
-                                    .font(.footnote)
-                                    .fontWeight(.semibold)
+                                    .font(fontDate)
                                     .foregroundColor(
                                         Calendar.current.isDateInWeekend(date) ? .red.opacity(0.4) : .gray
                                     )

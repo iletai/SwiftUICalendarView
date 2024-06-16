@@ -10,10 +10,14 @@ import SwiftUI
 import SwiftDate
 
 /// Represents the different modes of the calendar view.
-public enum CalendarViewMode: CaseIterable {
+public enum CalendarViewMode: CaseIterable, Hashable {
+    public static var allCases: [CalendarViewMode] {
+        [CalendarViewMode.year(.full), CalendarViewMode.year(.compact), CalendarViewMode.month, CalendarViewMode.single]
+    }
+
     case month
     case week
-    case year
+    case year(YearDisplayMode)
     case single
 
     /// The corresponding `Calendar.Component` for each mode.
@@ -76,4 +80,11 @@ public enum CalendarViewMode: CaseIterable {
             return .nextWeekday(.sunday)
         }
     }
+}
+
+extension CalendarViewMode: Equatable {}
+
+public enum YearDisplayMode {
+    case compact
+    case full
 }

@@ -70,6 +70,19 @@ extension CalendarView {
                 repeating: GridItem(.flexible()),
                 count: 1
             )
+        case .year(let mode):
+        switch mode {
+        case .compact:
+            return Array(
+                repeating: GridItem(.flexible(), alignment: .top),
+                count: 2
+            )
+        case .full:
+                return Array(
+                    repeating: GridItem(.flexible(), spacing: calendarOptions.spaceBetweenColumns),
+                    count: CalendarDefine.kWeekDays
+                )
+        }
         default:
             return Array(
                 repeating: GridItem(.flexible(), spacing: calendarOptions.spaceBetweenColumns),
