@@ -186,8 +186,13 @@ extension CalendarView {
         switch calendarOptions.viewMode {
         case .month:
             monthContentView()
-        case .year:
-            yearContentView()
+        case .year(let displayMode):
+            switch displayMode {
+            case .compact:
+                yearContentCompactView()
+            case .full:
+                yearContentView()
+            }
         case .week:
             calendarWeekView()
         case .single:
@@ -232,6 +237,42 @@ extension CalendarView {
                     } else {
                         dateOutView(date)
                             .allowVisibleWith(calendarOptions.isShowDateOut)
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    fileprivate func yearContentCompactView() -> some View {
+        ForEach(yearData.keys.sorted(), id: \.self) { month in
+            LazyVStack(alignment: .leading, spacing: .zero) {
+                HStack {
+                    Text(month.monthName(.short))
+                        .font(.system(size: 10))
+                        .fontWeight(.regular)
+                    Spacer()
+                }
+                .allowVisibleWith(calendarOptions.isShowHeader)
+                Divider()
+                    .allowVisibleWith(calendarOptions.isShowDivider)
+                    .padding(.bottom, 2)
+                LazyVGrid(columns: Array(
+                    repeating: GridItem(.flexible(), spacing: 0, alignment: .top),
+                    count: CalendarDefine.kWeekDays
+                ), alignment: .leading, spacing: .zero
+                ) {
+                    ForEach(
+                        yearData[month, default: []],
+                        id: \.self
+                    ) { date in
+                        if date.compare(.isSameMonth(month)) {
+                            dateView(date)
+                                .hightLightToDayView(date.isToday && calendarOptions.isShowHightLightToDay)
+                        } else {
+                            dateOutView(date)
+                                .allowVisibleWith(calendarOptions.isShowDateOut)
+                        }
                     }
                 }
             }
