@@ -22,17 +22,17 @@ struct ContentView: View {
 
     var fontDate: Font {
         switch viewMode {
-            case .month,
-            .week,
-            .single:
-                return .footnote
-            case .year(let yearDisplayMode):
-                switch yearDisplayMode {
-                    case .compact:
-                        return .system(size: 10, weight: .regular)
-                    case .full:
-                        return .footnote.weight(.semibold)
-                }
+        case .month,
+        .week,
+        .single:
+            return .footnote
+        case .year(let yearDisplayMode):
+            switch yearDisplayMode {
+            case .compact:
+                return .system(size: 10, weight: .regular)
+            case .full:
+                return .footnote.weight(.semibold)
+            }
         }
     }
 
