@@ -125,7 +125,7 @@ extension CalendarView {
 
     var fontTitle: Font {
         switch calendarOptions.viewMode {
-        case .month, 
+        case .month,
         .single,
         .year(.full):
             return .footnote.bold()
