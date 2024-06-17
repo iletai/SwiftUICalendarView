@@ -12,7 +12,13 @@ import SwiftDate
 /// Represents the different modes of the calendar view.
 public enum CalendarViewMode: CaseIterable, Hashable {
     public static var allCases: [CalendarViewMode] {
-        [CalendarViewMode.year(.full), CalendarViewMode.year(.compact), CalendarViewMode.month, CalendarViewMode.single]
+        [
+            CalendarViewMode.year(.full),
+            CalendarViewMode.year(.compact),
+            CalendarViewMode.month,
+            CalendarViewMode.week,
+            CalendarViewMode.single
+        ]
     }
 
     case month

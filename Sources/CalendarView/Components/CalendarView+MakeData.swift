@@ -74,18 +74,18 @@ extension CalendarView {
         switch mode {
         case .compact:
             return Array(
-                repeating: GridItem(.flexible(), alignment: .top),
-                count: 2
+                repeating: GridItem(.flexible(), spacing: calendarOptions.spaceBetweenColumns, alignment: .top),
+                count: calendarOptions.compactMonthCount
             )
         case .full:
                 return Array(
-                    repeating: GridItem(.flexible(), spacing: calendarOptions.spaceBetweenColumns),
+                    repeating: GridItem(.flexible(), spacing: calendarOptions.spaceBetweenColumns, alignment: .top),
                     count: CalendarDefine.kWeekDays
                 )
         }
         default:
             return Array(
-                repeating: GridItem(.flexible(), spacing: calendarOptions.spaceBetweenColumns),
+                repeating: GridItem(.flexible(), spacing: calendarOptions.spaceBetweenColumns, alignment: .top),
                 count: CalendarDefine.kWeekDays
             )
         }
@@ -120,6 +120,18 @@ extension CalendarView {
             )
         case .single:
             return [date]
+        }
+    }
+
+    var fontTitle: Font {
+        switch calendarOptions.viewMode {
+        case .month,
+        .single,
+        .year(.full):
+            return .footnote.bold()
+        case .year(.compact):
+            return .system(size: 10, weight: .semibold)
+        default: return .footnote.bold()
         }
     }
 }

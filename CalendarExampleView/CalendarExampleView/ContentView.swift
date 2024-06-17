@@ -29,9 +29,25 @@ struct ContentView: View {
         case .year(let yearDisplayMode):
             switch yearDisplayMode {
             case .compact:
-                return .system(size: 10, weight: .regular)
+                return .system(size: 8, weight: .regular)
             case .full:
                 return .footnote.weight(.semibold)
+            }
+        }
+    }
+
+    var heightCellCalendar: CGFloat {
+        switch viewMode {
+        case .month,
+        .week,
+        .single:
+            return 30.0
+        case .year(let yearDisplayMode):
+            switch yearDisplayMode {
+            case .compact:
+                return 20.0
+            case .full:
+                return 30.0
             }
         }
     }
@@ -51,7 +67,7 @@ struct ContentView: View {
                                     )
                             }
                             .frameInfinity()
-                            .frame(height: 30)
+                            .frame(height: heightCellCalendar)
                             .background(listSelectedDate.contains(date) ? .cyan : .clear)
                         }, headerView: { date in
                             HStack {
@@ -73,7 +89,7 @@ struct ContentView: View {
                                     )
                             }
                             .frameInfinity()
-                            .frame(height: 30)
+                            .frame(height: heightCellCalendar)
                             .background(listSelectedDate.contains(date) ? .cyan : .clear)
                         }
                     )
@@ -81,7 +97,6 @@ struct ContentView: View {
                     .enableDateOut(isShowDateOut)
                     .firstWeekDay(firstWeekDate)
                     .calendarLocate(locale: Locales.vietnamese.toLocale())
-                    .enablePinedView([.sectionHeaders, .sectionFooters])
                     .setViewMode(viewMode)
                     .rowsSpacing(8)
                     .columnSpacing(8)
