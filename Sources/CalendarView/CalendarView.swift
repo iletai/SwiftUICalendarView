@@ -218,20 +218,7 @@ extension CalendarView {
             Section(
                 header:
                     LazyVStack(alignment: .leading) {
-                        HStack {
-                            Spacer()
-                            Text(
-                                month.toFormat(
-                                    "MMM",
-                                    locale: calendarOptions.calendar.locale
-                                )
-                                .uppercased()
-                            )
-                                .font(.footnote)
-                                .fontWeight(.bold)
-                            Spacer()
-                        }
-                        .allowVisibleWith(calendarOptions.isShowHeader)
+                        monthTitle(for: month)
                         Divider()
                             .allowVisibleWith(calendarOptions.isShowDivider)
                             .padding(.bottom, 4)
@@ -259,19 +246,7 @@ extension CalendarView {
     fileprivate func yearContentCompactView() -> some View {
         ForEach(yearData.keys.sorted(), id: \.self) { month in
             LazyVStack(alignment: .leading, spacing: .zero) {
-                HStack {
-                    Text(
-                        month.toFormat(
-                            "MMM",
-                            locale: calendarOptions.calendar.locale
-                        )
-                        .uppercased()
-                    )
-                        .font(.system(size: 10))
-                        .fontWeight(.regular)
-                    Spacer()
-                }
-                .allowVisibleWith(calendarOptions.isShowHeader)
+                monthTitle(for: month)
                 Divider()
                     .allowVisibleWith(calendarOptions.isShowDivider)
                     .padding(.bottom, 2)
@@ -317,9 +292,7 @@ extension CalendarView {
                     locale: calendarOptions.calendar.locale
                 )
                 .uppercased()
-            )
-                .font(.footnote)
-                .fontWeight(.bold)
+            ).font(fontTitle)
             Spacer()
         }
         .allowVisibleWith(calendarOptions.isShowHeader)

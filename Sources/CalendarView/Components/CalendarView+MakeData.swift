@@ -74,7 +74,7 @@ extension CalendarView {
         switch mode {
         case .compact:
             return Array(
-                repeating: GridItem(.flexible(), spacing: 0, alignment: .top),
+                repeating: GridItem(.flexible(), spacing: calendarOptions.spaceBetweenColumns, alignment: .top),
                 count: calendarOptions.compactMonthCount
             )
         case .full:
@@ -120,6 +120,18 @@ extension CalendarView {
             )
         case .single:
             return [date]
+        }
+    }
+
+    var fontTitle: Font {
+        switch calendarOptions.viewMode {
+        case .month, 
+        .single,
+        .year(.full):
+            return .footnote.bold()
+        case .year(.compact):
+            return .system(size: 10, weight: .semibold)
+        default: return .footnote.bold()
         }
     }
 }
