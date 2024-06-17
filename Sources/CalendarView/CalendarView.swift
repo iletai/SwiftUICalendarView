@@ -160,6 +160,7 @@ public struct CalendarView<
         .highPriorityGesture(swipeGesture)
         .marginDefault()
         .background(backgroundCalendar)
+        .animation(calendarOptions.swapAnimation, value: calendarOptions.viewMode)
     }
 }
 
@@ -186,17 +187,22 @@ extension CalendarView {
         switch calendarOptions.viewMode {
         case .month:
             monthContentView()
+                .transition(calendarOptions.swapRight)
         case .year(let displayMode):
             switch displayMode {
             case .compact:
                 yearContentCompactView()
+                    .transition(calendarOptions.swapRight)
             case .full:
                 yearContentView()
+                    .transition(calendarOptions.swapLeft)
             }
         case .week:
             calendarWeekView()
+                .transition(calendarOptions.swapLeft)
         case .single:
             singleDayContentView()
+                .transition(calendarOptions.swapLeft)
         }
     }
 
@@ -214,7 +220,13 @@ extension CalendarView {
                     LazyVStack(alignment: .leading) {
                         HStack {
                             Spacer()
-                            Text(month.monthName(.defaultStandalone) + " \(month.year)")
+                            Text(
+                                month.toFormat(
+                                    "MMM",
+                                    locale: calendarOptions.calendar.locale
+                                )
+                                .uppercased()
+                            )
                                 .font(.footnote)
                                 .fontWeight(.bold)
                             Spacer()
@@ -248,7 +260,13 @@ extension CalendarView {
         ForEach(yearData.keys.sorted(), id: \.self) { month in
             LazyVStack(alignment: .leading, spacing: .zero) {
                 HStack {
-                    Text(month.monthName(.short))
+                    Text(
+                        month.toFormat(
+                            "MMM",
+                            locale: calendarOptions.calendar.locale
+                        )
+                        .uppercased()
+                    )
                         .font(.system(size: 10))
                         .fontWeight(.regular)
                     Spacer()
@@ -257,10 +275,13 @@ extension CalendarView {
                 Divider()
                     .allowVisibleWith(calendarOptions.isShowDivider)
                     .padding(.bottom, 2)
-                LazyVGrid(columns: Array(
+                LazyVGrid(
+                    columns: Array(
                     repeating: GridItem(.flexible(), spacing: 0, alignment: .top),
                     count: CalendarDefine.kWeekDays
-                ), alignment: .leading, spacing: .zero
+                    ),
+                    alignment: .leading,
+                    spacing: .zero
                 ) {
                     ForEach(
                         yearData[month, default: []],
@@ -290,7 +311,13 @@ extension CalendarView {
     fileprivate func monthTitle(for month: Date) -> some View {
         HStack {
             Spacer()
-            Text(month.monthName(.defaultStandalone) + " \(month.year)")
+            Text(
+                month.toFormat(
+                    "MMM",
+                    locale: calendarOptions.calendar.locale
+                )
+                .uppercased()
+            )
                 .font(.footnote)
                 .fontWeight(.bold)
             Spacer()

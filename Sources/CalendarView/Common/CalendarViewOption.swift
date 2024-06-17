@@ -6,6 +6,8 @@
 //
 
 import Foundation
+import SwiftDate
+import SwiftUI
 
 /// A struct that represents the options for a calendar view.
 public struct CalendarViewOption {
@@ -18,6 +20,17 @@ public struct CalendarViewOption {
     public var spacingBetweenDay: CGFloat
     public var viewMode: CalendarViewMode
     public var spaceBetweenColumns: CGFloat
+    public var compactMonthCount = 3
+    public var locateForCalendar: Locale
+    public let swapAnimation: Animation = .easeInOut(duration: 0.3)
+    public let swapRight = AnyTransition.asymmetric(
+        insertion: .scale(scale: 1.5, anchor: .center),
+        removal: .opacity
+    )
+    public let swapLeft = AnyTransition.asymmetric(
+        insertion: .scale(scale: 1.5, anchor: .center),
+        removal: .opacity
+    )
 
     /// Initializes a new instance of `CalendarViewOption` with default values.
     init() {
@@ -30,12 +43,13 @@ public struct CalendarViewOption {
         self.spacingBetweenDay = 8.0
         self.viewMode = .year(.full)
         self.spaceBetweenColumns = 8.0
+        self.locateForCalendar = Locale.vietnam.toLocale()
     }
 }
 
-public extension CalendarViewOption {
+extension CalendarViewOption {
     /// The default `CalendarViewOption` instance.
-    static var defaultOption: CalendarViewOption {
+    public static var defaultOption: CalendarViewOption {
         var options = CalendarViewOption()
         options.backgroundStatus = .hidden
         options.calendar = .gregorian
@@ -46,6 +60,8 @@ public extension CalendarViewOption {
         options.spacingBetweenDay = 8.0
         options.viewMode = .year(.full)
         options.isShowDivider = true
+        options.compactMonthCount = 3
+        options.locateForCalendar = Locale.vietnam.toLocale()
         return options
     }
 }

@@ -74,18 +74,18 @@ extension CalendarView {
         switch mode {
         case .compact:
             return Array(
-                repeating: GridItem(.flexible(), alignment: .top),
-                count: 2
+                repeating: GridItem(.flexible(), spacing: 0, alignment: .top),
+                count: calendarOptions.compactMonthCount
             )
         case .full:
                 return Array(
-                    repeating: GridItem(.flexible(), spacing: calendarOptions.spaceBetweenColumns),
+                    repeating: GridItem(.flexible(), spacing: calendarOptions.spaceBetweenColumns, alignment: .top),
                     count: CalendarDefine.kWeekDays
                 )
         }
         default:
             return Array(
-                repeating: GridItem(.flexible(), spacing: calendarOptions.spaceBetweenColumns),
+                repeating: GridItem(.flexible(), spacing: calendarOptions.spaceBetweenColumns, alignment: .top),
                 count: CalendarDefine.kWeekDays
             )
         }
