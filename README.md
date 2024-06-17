@@ -14,7 +14,7 @@
 > Build a Calendar By Pure SwiftUI with SwiftDate Library for calculator date. SwiftUICalendarView is a Swift Package for building and displaying a simple calendar interface in SwiftUI. This library provides an easy way to integrate a calendar into your app.
 
 <p align="center">
-<img alt="github-banner" src="screenshot.gif" class="center">
+<img width="300" alt="github-banner" src="screenshot.gif" class="center">
 </p>
 
 ## SwiftUICalendarView
@@ -40,7 +40,7 @@ To integrate SwiftUICalendarView into your project, add the GitHub URL to the de
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/iletai/SwiftUICalendarView.git", from: "v1.4.5"),
+    .package(url: "https://github.com/iletai/SwiftUICalendarView.git", from: "v1.4.11"),
 ],
 targets: [
     .target(name: "YourTarget", dependencies: ["CalendarView"]),
