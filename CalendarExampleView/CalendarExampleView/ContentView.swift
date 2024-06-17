@@ -38,7 +38,9 @@ struct ContentView: View {
 
     var heightCellCalendar: CGFloat {
         switch viewMode {
-        case .month,.week, .single:
+        case .month,
+        .week,
+        .single:
             return 30.0
         case .year(let yearDisplayMode):
             switch yearDisplayMode {
