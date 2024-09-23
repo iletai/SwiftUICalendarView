@@ -16,7 +16,7 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(url: "https://github.com/malcommac/SwiftDate.git", branch: "master")
+        .package(url: "https://github.com/malcommac/SwiftDate.git", from: "7.0.0")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
