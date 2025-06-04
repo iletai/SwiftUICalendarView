@@ -14,7 +14,6 @@ extension Date {
     public var weekDayName: String {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "EEEE"
-        dateFormatter.locale = Locales.vietnamese.toLocale()
         return dateFormatter.string(from: self)
     }
 
@@ -22,7 +21,6 @@ extension Date {
     public var weekDayShortName: String {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "EE"
-        dateFormatter.locale = Locales.vietnamese.toLocale()
         return dateFormatter.string(from: self)
     }
 
@@ -30,7 +28,6 @@ extension Date {
     public var dayName: String {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "d"
-        dateFormatter.locale = Locales.vietnamese.toLocale()
         return dateFormatter.string(from: self)
     }
 
