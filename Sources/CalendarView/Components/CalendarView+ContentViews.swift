@@ -146,15 +146,18 @@ extension CalendarView {
     func yearContentCompactView() -> some View {
         let calendar = calendarOptions.calendar
         ForEach(yearData.keys.sorted(), id: \.self) { month in
-            LazyVStack(alignment: .leading, spacing: .zero) {
+            LazyVStack(alignment: .leading, spacing: 2) {
                 monthTitle(for: month)
                 Divider()
                     .allowVisibleWith(calendarOptions.isShowDivider)
-                    .padding(.bottom, 2)
+                    .padding(.bottom, 1)
+                compactWeekdayHeader(calendar: calendar)
                 LazyVGrid(
                     columns: Array(
                         repeating: GridItem(
-                            .flexible(), spacing: 0, alignment: .top
+                            .flexible(),
+                            spacing: 0,
+                            alignment: .top
                         ),
                         count: CalendarDefine.kWeekDays
                     ),
@@ -169,14 +172,33 @@ extension CalendarView {
                             as: month, using: calendar
                         ) {
                             compactDateView(date)
+                                .clipped()
                         } else {
                             dateOutView(date)
                                 .allowVisibleWith(
                                     calendarOptions.isShowDateOut
                                 )
+                                .clipped()
                         }
                     }
                 }
+            }
+        }
+    }
+
+    /// Tiny weekday initial labels for compact year view.
+    @ViewBuilder
+    private func compactWeekdayHeader(calendar: Calendar) -> some View {
+        let symbols = calendar.veryShortWeekdaySymbols
+        let firstIdx = calendar.firstWeekday - 1
+        let ordered = Array(symbols[firstIdx...])
+            + Array(symbols[..<firstIdx])
+        HStack(spacing: 0) {
+            ForEach(ordered, id: \.self) { symbol in
+                Text(symbol)
+                    .font(.system(size: 7, weight: .medium))
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity)
             }
         }
     }

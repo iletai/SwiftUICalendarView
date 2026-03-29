@@ -24,6 +24,10 @@ struct ContentView: View {
     @State private var disableWeekends = false
 
     // MARK: - Computed Properties
+    private var isCompact: Bool {
+        viewMode == .year(.compact)
+    }
+
     private var currentTheme: CalendarTheme {
         useDarkTheme ? .dark : .default
     }
@@ -33,8 +37,8 @@ struct ContentView: View {
         let today = Date()
         var dates = Set<Date>()
         for offset in [2, 5, 8, 14, 21] {
-            if let d = cal.date(byAdding: .day, value: offset, to: today) {
-                dates.insert(cal.startOfDay(for: d))
+            if let day = cal.date(byAdding: .day, value: offset, to: today) {
+                dates.insert(cal.startOfDay(for: day))
             }
         }
         return dates
@@ -57,37 +61,56 @@ struct ContentView: View {
                         CalendarView(
                             date: selectedDate,
                             dateView: { date in
-                                VStack(spacing: 2) {
-                                    Text(date.dayName)
-                                        .font(currentTheme.dayFont)
-                                        .foregroundColor(dayColor(for: date))
-                                }
-                                .frameInfinity()
-                                .frame(height: 30)
-                                .background(dayBackground(for: date))
-                                .clipShape(RoundedRectangle(cornerRadius: 6))
+                                Text(date.dayName)
+                                    .font(
+                                        isCompact
+                                            ? .system(size: 9)
+                                            : currentTheme.dayFont
+                                    )
+                                    .foregroundColor(dayColor(for: date))
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: isCompact ? 14 : 30)
+                                    .background(
+                                        isCompact
+                                            ? .clear
+                                            : dayBackground(for: date)
+                                    )
+                                    .clipShape(
+                                        RoundedRectangle(
+                                            cornerRadius: isCompact ? 0 : 6
+                                        )
+                                    )
                             },
                             headerView: { dates in
                                 HStack {
                                     ForEach(dates, id: \.self) { day in
-                                        Text(day.weekDayShortName.uppercased())
-                                            .font(currentTheme.headerFont)
-                                            .foregroundColor(
-                                                Calendar.current.isDateInWeekend(day)
-                                                    ? currentTheme.weekendColor : .primary
-                                            )
-                                            .frame(maxWidth: .infinity)
+                                        Text(
+                                            day.weekDayShortName
+                                                .uppercased()
+                                        )
+                                        .font(currentTheme.headerFont)
+                                        .foregroundColor(
+                                            Calendar.current
+                                                .isDateInWeekend(day)
+                                                ? currentTheme.weekendColor
+                                                : .primary
+                                        )
+                                        .frame(maxWidth: .infinity)
                                     }
                                 }
                             },
                             dateOutView: { date in
-                                VStack(spacing: 2) {
-                                    Text(date.dayName)
-                                        .font(currentTheme.dayFont)
-                                        .foregroundColor(currentTheme.dateOutColor)
-                                }
-                                .frameInfinity()
-                                .frame(height: 30)
+                                Text(date.dayName)
+                                    .font(
+                                        isCompact
+                                            ? .system(size: 9)
+                                            : currentTheme.dayFont
+                                    )
+                                    .foregroundColor(
+                                        currentTheme.dateOutColor
+                                    )
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: isCompact ? 14 : 30)
                             }
                         )
                         .enableHeader(isShowHeader)
