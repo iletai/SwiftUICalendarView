@@ -11,7 +11,7 @@
 
 > [!NOTE]
 > SwiftUI is a component for creating a calendar view with SwiftUI Framework.
-> Build a Calendar By Pure SwiftUI with SwiftDate Library for calculator date. SwiftUICalendarView is a Swift Package for building and displaying a simple calendar interface in SwiftUI. This library provides an easy way to integrate a calendar into your app.
+> Build a Calendar By Pure SwiftUI using native Calendar and Date APIs. SwiftUICalendarView is a Swift Package for building and displaying a simple calendar interface in SwiftUI. This library provides an easy way to integrate a calendar into your app.
 
 <p align="center">
 <img width="300" alt="github-banner" src="screenshot.gif" class="center">
@@ -28,31 +28,31 @@
 > [!IMPORTANT]
 > | **Platforms** | **Minimum Swift Version** |
 > |:----------|:----------|
-> | iOS 16+ | 5.9 |
-
-
+> | iOS 17+ | 5.9 |
 
 ## Installation
 
-#### Swift Package Manager
+### Swift Package Manager
 
 To integrate SwiftUICalendarView into your project, add the GitHub URL to the dependencies section in your Package.swift file:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/iletai/SwiftUICalendarView.git", from: "v1.4.11"),
+    .package(url: "https://github.com/iletai/SwiftUICalendarView.git", from: "v2.0.0"),
 ],
 targets: [
     .target(name: "YourTarget", dependencies: ["CalendarView"]),
 ]
 ```
 
-#### Cocoapods
-Cocoapods is a dependency manager for Swift and Objective-C Cocoa projects that helps to scale them elegantly.
+### CocoaPods
+
+CocoaPods is a dependency manager for Swift and Objective-C Cocoa projects that helps to scale them elegantly.
 
 [Installation steps](https://cocoapods.org/pods/SwiftUICalendarView):
+
 - Install CocoaPods 1.10.0 (or later)
-- Add CocoaPods dependency into your `Podfile`   
+- Add CocoaPods dependency into your `Podfile`
 
 ```shell
 target 'MyApp' do
@@ -60,25 +60,29 @@ pod 'SwiftUICalendarView'
 end
 ```
 
+## Feature Support
 
-### Feature Support: 
-- Calendar Mode: Week, Month, Year
+- Calendar Mode: Week, Month, Year (Full & Compact), Single
 - First WeekDay
 - Show Date Out
 - Pin Header Calendar
 - Allow Custom Owner Calendar Date View
+- Highlight Today
+- Drag Direction & Mode Callbacks
+- Calendar Locale
+- Background Customization
+- Row & Column Spacing
+- Divider Support
 
-
-### Usable Example Calendar View
+## Usable Example Calendar View
 
 > [!WARNING]
-> Because with mindset don't want to related method reload of Obseverble SwiftUI.
-> Let control owner application reload with `@State` `@StateObject` or `Obsever` by themself
+> To avoid interfering with the Observable reload mechanism in SwiftUI,
+> let the application control reloads using `@State`, `@StateObject`, or `Observer` directly.
 
 ```swift
 import SwiftUI
 import CalendarView
-import SwiftDate
 
 struct ContentView: View {
     @State var isShowHeader = false
@@ -122,28 +126,72 @@ struct ContentView: View {
             )
 ```
 
-### Customizing the Interface
-You can customize the calendar's interface using properties like accentColor, selectedDateColor, and disabledDateColor,...
+## Customizing the Interface
+
+You can customize the calendar's interface using properties like accentColor, selectedDateColor, and disabledDateColor:
+
 ```swift
             .enableHeader(isShowHeader)
             .enableDateOut(isShowDateOut)
             .firstWeekDay(firstWeekDate)
-            .calendarLocate(locale: Locales.vietnamese.toLocale())
-            .enablePinedView(.sectionHeaders)
+            .calendarLocale(Locale(identifier: "vi"))
+            .enablePinnedView(.sectionHeaders)
             .setViewMode(viewMode)
             .rowsSpacing(0)
             .columnSpacing(0)
             .backgroundCalendar(.visible(20, .gray.opacity(0.3)))
-            .onDraggingEnded {
-                selectedDate = selectedDate.nextWeekday(.friday)
+            .onDraggingEnded { direction, mode in
+                if direction == .forward {
+                    selectedDate = Calendar.current.date(
+                        byAdding: mode == .week ? .weekOfYear : .month,
+                        value: 1,
+                        to: selectedDate
+                    ) ?? selectedDate
+                }
             }
 ```
 
-### Example:
+## Migration Guide
+
+### Migrating from v1.x to v2.0
+
+#### SwiftDate Dependency Removed
+
+The `SwiftDate` dependency has been removed. Use native `Calendar` and `Date` APIs instead:
+
+```swift
+// Before (SwiftDate)
+import SwiftDate
+selectedDate = selectedDate.nextWeekday(.friday)
+
+// After (native)
+let nextFriday = Calendar.current.nextDate(
+    after: selectedDate,
+    matching: DateComponents(weekday: 6),
+    matchingPolicy: .nextTime
+)
+selectedDate = nextFriday ?? selectedDate
+```
+
+#### Renamed APIs
+
+The following APIs have been renamed. Deprecated aliases are provided for backward compatibility:
+
+| Old Name | New Name |
+|:---------|:---------|
+| `calendarLocate(locale:)` | `calendarLocale(_:)` |
+| `enablePinedView(_:)` | `enablePinnedView(_:)` |
+| `hightLightToDayView(_:_:)` | `highlightTodayView(_:_:)` |
+| `withRounderConner(_:)` | `withRoundedCorner(_:)` |
+| `enableHighlightToDay(_:)` | `enableHighlightToday(_:)` |
+
+## Example
+
 > [!NOTE]
-> For example using this repository, please help to see more at: https://github.com/iletai/SwiftUICalendarView/tree/master/CalendarExampleView
+> For example using this repository, please help to see more at: <https://github.com/iletai/SwiftUICalendarView/tree/master/CalendarExampleView>
 
 If you find a bug or have a way to improve the library, create an Issue or propose a Pull Request. We welcome contributions from the community.
 
-### License
+## License
+
 SwiftUICalendarView is released under the MIT License. See details in LICENSE.

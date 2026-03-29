@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import SwiftDate
 import SwiftUI
 
 /// A struct that represents the options for a calendar view.
@@ -14,14 +13,30 @@ public struct CalendarViewOption {
     public var isShowHeader: Bool
     public var isShowDateOut: Bool
     public var isShowDivider: Bool
-    public var isShowHightLightToDay: Bool
+    public var isHighlightToday: Bool
     public var calendar: Calendar
     public var backgroundStatus: CalendarBackground
     public var spacingBetweenDay: CGFloat
     public var viewMode: CalendarViewMode
     public var spaceBetweenColumns: CGFloat
+    public var contentPadding: CGFloat = 16
     public var compactMonthCount = 3
-    public var locateForCalendar: Locale
+    public var locale: Locale
+    public var selectedDateRange: ClosedRange<Date>?
+    public var onRangeSelected: ((ClosedRange<Date>) -> Void)?
+    public var eventDates: Set<Date>?
+    public var disabledDateRule: ((Date) -> Bool)?
+    public var selectionMode: CalendarSelectionMode = .single
+    public var selectedDates: Set<Date> = []
+    public var onSelectionChanged: (([Date]) -> Void)?
+    public var minimumDate: Date?
+    public var maximumDate: Date?
+    public var scrollToDateOnAppear: Date?
+    public var showTodayButton: Bool = false
+    public var onTodayTapped: (() -> Void)?
+    public var enableMonthYearPicker: Bool = false
+    public var onMonthYearChanged: ((Date) -> Void)?
+    public var theme: CalendarTheme = .default
     public let swapAnimation: Animation = .easeInOut(duration: 0.3)
     public let swapRight = AnyTransition.asymmetric(
         insertion: .scale(scale: 1.5, anchor: .center),
@@ -32,36 +47,52 @@ public struct CalendarViewOption {
         removal: .opacity
     )
 
+    /// Deprecated: Use `isHighlightToday` instead.
+    @available(*, deprecated, renamed: "isHighlightToday")
+    public var isShowHightLightToDay: Bool {
+        get { isHighlightToday }
+        set { isHighlightToday = newValue }
+    }
+
+    /// Deprecated: Use `locale` instead.
+    @available(*, deprecated, renamed: "locale")
+    public var locateForCalendar: Locale {
+        get { locale }
+        set { locale = newValue }
+    }
+
     /// Initializes a new instance of `CalendarViewOption` with default values.
     init() {
         self.isShowHeader = true
         self.isShowDateOut = true
         self.isShowDivider = true
-        self.isShowHightLightToDay = true
+        self.isHighlightToday = true
         self.calendar = .gregorian
         self.backgroundStatus = .hidden
         self.spacingBetweenDay = 8.0
         self.viewMode = .year(.full)
         self.spaceBetweenColumns = 8.0
-        self.locateForCalendar = Locale.vietnam.toLocale()
+        self.locale = .vietnam
+        self.selectedDateRange = nil
+        self.onRangeSelected = nil
+        self.eventDates = nil
+        self.disabledDateRule = nil
+        self.selectionMode = .single
+        self.selectedDates = []
+        self.onSelectionChanged = nil
+        self.minimumDate = nil
+        self.maximumDate = nil
+        self.scrollToDateOnAppear = nil
+        self.showTodayButton = false
+        self.onTodayTapped = nil
+        self.enableMonthYearPicker = false
+        self.onMonthYearChanged = nil
     }
 }
 
 extension CalendarViewOption {
     /// The default `CalendarViewOption` instance.
     public static var defaultOption: CalendarViewOption {
-        var options = CalendarViewOption()
-        options.backgroundStatus = .hidden
-        options.calendar = .gregorian
-        options.isShowHightLightToDay = true
-        options.isShowDateOut = true
-        options.isShowHeader = true
-        options.spaceBetweenColumns = 8.0
-        options.spacingBetweenDay = 8.0
-        options.viewMode = .year(.full)
-        options.isShowDivider = true
-        options.compactMonthCount = 3
-        options.locateForCalendar = Locale.vietnam.toLocale()
-        return options
+        CalendarViewOption()
     }
 }

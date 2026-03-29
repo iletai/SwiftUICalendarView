@@ -1,12 +1,336 @@
 import XCTest
 @testable import CalendarView
 
-final class CalendarViewTests: XCTestCase {
-    func testExample() throws {
-        // XCTest Documentation
-        // https://developer.apple.com/documentation/xctest
+// MARK: - Date Extension Tests
 
-        // Defining Test Cases and Test Methods
-        // https://developer.apple.com/documentation/xctest/defining_test_cases_and_test_methods
+final class DateExtensionTests: XCTestCase {
+    private var calendar: Calendar!
+
+    override func setUp() {
+        super.setUp()
+        calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+        calendar.firstWeekday = 1 // Sunday
+    }
+
+    private func makeDate(
+        year: Int, month: Int, day: Int,
+        hour: Int = 0, minute: Int = 0, second: Int = 0
+    ) -> Date {
+        var components = DateComponents()
+        components.year = year
+        components.month = month
+        components.day = day
+        components.hour = hour
+        components.minute = minute
+        components.second = second
+        return calendar.date(from: components)!
+    }
+
+    // MARK: - startOfYear / endOfYear
+
+    func testStartOfYear() {
+        let date = makeDate(year: 2024, month: 6, day: 15, hour: 14)
+        let result = date.startOfYear(using: calendar)
+        let comps = calendar.dateComponents([.year, .month, .day, .hour], from: result)
+        XCTAssertEqual(comps.year, 2024)
+        XCTAssertEqual(comps.month, 1)
+        XCTAssertEqual(comps.day, 1)
+        XCTAssertEqual(comps.hour, 0)
+    }
+
+    func testEndOfYear() {
+        let date = makeDate(year: 2024, month: 3, day: 10)
+        let result = date.endOfYear(using: calendar)
+        let comps = calendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: result)
+        XCTAssertEqual(comps.year, 2024)
+        XCTAssertEqual(comps.month, 12)
+        XCTAssertEqual(comps.day, 31)
+        XCTAssertEqual(comps.hour, 23)
+        XCTAssertEqual(comps.minute, 59)
+        XCTAssertEqual(comps.second, 59)
+    }
+
+    func testStartOfYearOnJanFirst() {
+        let date = makeDate(year: 2023, month: 1, day: 1)
+        let result = date.startOfYear(using: calendar)
+        XCTAssertEqual(
+            calendar.dateComponents([.year, .month, .day], from: result),
+            calendar.dateComponents([.year, .month, .day], from: date)
+        )
+    }
+
+    func testEndOfYearOnDecThirtyFirst() {
+        let date = makeDate(year: 2023, month: 12, day: 31)
+        let result = date.endOfYear(using: calendar)
+        let comps = calendar.dateComponents([.year, .month, .day], from: result)
+        XCTAssertEqual(comps.year, 2023)
+        XCTAssertEqual(comps.month, 12)
+        XCTAssertEqual(comps.day, 31)
+    }
+
+    // MARK: - startOfMonth / endOfMonth
+
+    func testStartOfMonth() {
+        let date = makeDate(year: 2024, month: 7, day: 20, hour: 10)
+        let result = date.startOfMonth(using: calendar)
+        let comps = calendar.dateComponents([.year, .month, .day, .hour], from: result)
+        XCTAssertEqual(comps.year, 2024)
+        XCTAssertEqual(comps.month, 7)
+        XCTAssertEqual(comps.day, 1)
+        XCTAssertEqual(comps.hour, 0)
+    }
+
+    func testEndOfMonth_February_LeapYear() {
+        let date = makeDate(year: 2024, month: 2, day: 10)
+        let result = date.endOfMonth(using: calendar)
+        let comps = calendar.dateComponents([.year, .month, .day], from: result)
+        XCTAssertEqual(comps.month, 2)
+        XCTAssertEqual(comps.day, 29) // 2024 is a leap year
+    }
+
+    func testEndOfMonth_February_NonLeapYear() {
+        let date = makeDate(year: 2023, month: 2, day: 5)
+        let result = date.endOfMonth(using: calendar)
+        let comps = calendar.dateComponents([.day], from: result)
+        XCTAssertEqual(comps.day, 28)
+    }
+
+    func testEndOfMonth_ThirtyDayMonth() {
+        let date = makeDate(year: 2024, month: 4, day: 15)
+        let result = date.endOfMonth(using: calendar)
+        let comps = calendar.dateComponents([.day], from: result)
+        XCTAssertEqual(comps.day, 30)
+    }
+
+    func testEndOfMonth_ThirtyOneDayMonth() {
+        let date = makeDate(year: 2024, month: 1, day: 5)
+        let result = date.endOfMonth(using: calendar)
+        let comps = calendar.dateComponents([.day], from: result)
+        XCTAssertEqual(comps.day, 31)
+    }
+
+    // MARK: - startOfWeek / endOfWeek
+
+    func testStartOfWeek_SundayFirstDay() {
+        // 2024-07-17 is Wednesday
+        let date = makeDate(year: 2024, month: 7, day: 17)
+        let result = date.startOfWeek(using: calendar)
+        let comps = calendar.dateComponents([.year, .month, .day], from: result)
+        XCTAssertEqual(comps.day, 14) // Sunday July 14
+        XCTAssertEqual(calendar.component(.weekday, from: result), 1) // Sunday
+    }
+
+    func testEndOfWeek_SundayFirstDay() {
+        let date = makeDate(year: 2024, month: 7, day: 17)
+        let result = date.endOfWeek(using: calendar)
+        let comps = calendar.dateComponents([.year, .month, .day], from: result)
+        XCTAssertEqual(comps.day, 20) // Saturday July 20
+        XCTAssertEqual(calendar.component(.weekday, from: result), 7) // Saturday
+    }
+
+    func testStartOfWeek_MondayFirstDay() {
+        var mondayCal = calendar!
+        mondayCal.firstWeekday = 2 // Monday
+        let date = makeDate(year: 2024, month: 7, day: 17) // Wednesday
+        let result = date.startOfWeek(using: mondayCal)
+        let comps = mondayCal.dateComponents([.day], from: result)
+        XCTAssertEqual(comps.day, 15) // Monday July 15
+    }
+
+    func testStartOfWeek_WhenDateIsSunday() {
+        let date = makeDate(year: 2024, month: 7, day: 14) // Sunday
+        let result = date.startOfWeek(using: calendar)
+        let comps = calendar.dateComponents([.day], from: result)
+        XCTAssertEqual(comps.day, 14) // Should be itself
+    }
+
+    // MARK: - startOf / endOf (generic component)
+
+    func testStartOfDay() {
+        let date = makeDate(year: 2024, month: 5, day: 10, hour: 15, minute: 30)
+        let result = date.startOf(.day, using: calendar)
+        let comps = calendar.dateComponents([.hour, .minute, .second], from: result)
+        XCTAssertEqual(comps.hour, 0)
+        XCTAssertEqual(comps.minute, 0)
+        XCTAssertEqual(comps.second, 0)
+    }
+
+    func testEndOfDay() {
+        let date = makeDate(year: 2024, month: 5, day: 10, hour: 8)
+        let result = date.endOf(.day, using: calendar)
+        let comps = calendar.dateComponents([.hour, .minute, .second], from: result)
+        XCTAssertEqual(comps.hour, 23)
+        XCTAssertEqual(comps.minute, 59)
+        XCTAssertEqual(comps.second, 59)
+    }
+
+    func testStartOfMonthViaGeneric() {
+        let date = makeDate(year: 2024, month: 8, day: 20)
+        let specific = date.startOfMonth(using: calendar)
+        let generic = date.startOf(.month, using: calendar)
+        XCTAssertEqual(specific, generic)
+    }
+
+    func testEndOfYearViaGeneric() {
+        let date = makeDate(year: 2024, month: 3, day: 10)
+        let specific = date.endOfYear(using: calendar)
+        let generic = date.endOf(.year, using: calendar)
+        XCTAssertEqual(specific, generic)
+    }
+
+    // MARK: - isSameMonth / isSameWeek
+
+    func testIsSameMonth_True() {
+        let date1 = makeDate(year: 2024, month: 5, day: 1)
+        let date2 = makeDate(year: 2024, month: 5, day: 31)
+        XCTAssertTrue(date1.isSameMonth(as: date2, using: calendar))
+    }
+
+    func testIsSameMonth_False_DifferentMonth() {
+        let date1 = makeDate(year: 2024, month: 5, day: 31)
+        let date2 = makeDate(year: 2024, month: 6, day: 1)
+        XCTAssertFalse(date1.isSameMonth(as: date2, using: calendar))
+    }
+
+    func testIsSameMonth_False_DifferentYear() {
+        let date1 = makeDate(year: 2023, month: 5, day: 15)
+        let date2 = makeDate(year: 2024, month: 5, day: 15)
+        XCTAssertFalse(date1.isSameMonth(as: date2, using: calendar))
+    }
+
+    func testIsSameWeek_True() {
+        // July 14 (Sun) and July 20 (Sat) are same week with Sunday start
+        let date1 = makeDate(year: 2024, month: 7, day: 14)
+        let date2 = makeDate(year: 2024, month: 7, day: 20)
+        XCTAssertTrue(date1.isSameWeek(as: date2, using: calendar))
+    }
+
+    func testIsSameWeek_False() {
+        let date1 = makeDate(year: 2024, month: 7, day: 13) // Saturday
+        let date2 = makeDate(year: 2024, month: 7, day: 14) // Sunday (new week)
+        XCTAssertFalse(date1.isSameWeek(as: date2, using: calendar))
+    }
+
+    // MARK: - formatted
+
+    func testFormattedYearMonth() {
+        let date = makeDate(year: 2024, month: 3, day: 15)
+        let result = date.formatted(as: "yyyy-MM", locale: Locale(identifier: "en_US"))
+        XCTAssertEqual(result, "2024-03")
+    }
+
+    func testFormattedDayOnly() {
+        let date = makeDate(year: 2024, month: 12, day: 5)
+        let result = date.formatted(as: "d")
+        XCTAssertEqual(result, "5")
+    }
+
+    func testFormattedWithLocale() {
+        let date = makeDate(year: 2024, month: 1, day: 15)
+        let result = date.formatted(as: "MMMM", locale: Locale(identifier: "en_US"))
+        XCTAssertEqual(result, "January")
+    }
+
+    // MARK: - weekDayName / weekDayShortName / dayName
+
+    func testWeekDayNameAndShortName() {
+        // 2024-01-01 is a Monday
+        let date = makeDate(year: 2024, month: 1, day: 1)
+        // These use the static DateFormatters which may use current locale,
+        // so we just verify they return non-empty strings
+        XCTAssertFalse(date.weekDayName.isEmpty)
+        XCTAssertFalse(date.weekDayShortName.isEmpty)
+    }
+
+    func testDayName() {
+        let date = makeDate(year: 2024, month: 7, day: 25)
+        let result = date.dayName
+        XCTAssertEqual(result, "25")
+    }
+}
+
+// MARK: - Calendar Extension Tests
+
+final class CalendarExtensionTests: XCTestCase {
+    private var calendar: Calendar!
+
+    override func setUp() {
+        super.setUp()
+        calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+    }
+
+    private func makeDate(year: Int, month: Int, day: Int) -> Date {
+        calendar.date(from: DateComponents(year: year, month: month, day: day))!
+    }
+
+    func testGregorianCalendar() {
+        let cal = Calendar.gregorian
+        XCTAssertEqual(cal.identifier, .gregorian)
+    }
+
+    func testEnumerateDates_DayIncrement() {
+        let start = makeDate(year: 2024, month: 1, day: 1)
+        let end = makeDate(year: 2024, month: 1, day: 5)
+        let increment = DateComponents(day: 1)
+        let dates = calendar.enumerateDates(from: start, to: end, increment: increment)
+        XCTAssertEqual(dates.count, 5)
+        for (index, date) in dates.enumerated() {
+            XCTAssertEqual(calendar.component(.day, from: date), index + 1)
+        }
+    }
+
+    func testEnumerateDates_MonthIncrement() {
+        let start = makeDate(year: 2024, month: 1, day: 1)
+        let end = makeDate(year: 2024, month: 6, day: 1)
+        let increment = DateComponents(month: 1)
+        let dates = calendar.enumerateDates(from: start, to: end, increment: increment)
+        XCTAssertEqual(dates.count, 6) // Jan through Jun
+        for (index, date) in dates.enumerated() {
+            XCTAssertEqual(calendar.component(.month, from: date), index + 1)
+        }
+    }
+
+    func testEnumerateDates_WeekIncrement() {
+        let start = makeDate(year: 2024, month: 1, day: 1)
+        let end = makeDate(year: 2024, month: 1, day: 29)
+        let increment = DateComponents(day: 7)
+        let dates = calendar.enumerateDates(from: start, to: end, increment: increment)
+        // Jan 1, 8, 15, 22, 29
+        XCTAssertEqual(dates.count, 5)
+    }
+
+    func testEnumerateDates_SingleDate() {
+        let date = makeDate(year: 2024, month: 5, day: 10)
+        let increment = DateComponents(day: 1)
+        let dates = calendar.enumerateDates(from: date, to: date, increment: increment)
+        XCTAssertEqual(dates.count, 1)
+        XCTAssertEqual(dates.first, date)
+    }
+
+    func testEnumerateDates_StartAfterEnd_ReturnsEmpty() {
+        let start = makeDate(year: 2024, month: 5, day: 10)
+        let end = makeDate(year: 2024, month: 5, day: 5)
+        let increment = DateComponents(day: 1)
+        let dates = calendar.enumerateDates(from: start, to: end, increment: increment)
+        XCTAssertTrue(dates.isEmpty)
+    }
+
+    func testEnumerateDates_EndInclusivity() {
+        let start = makeDate(year: 2024, month: 3, day: 1)
+        let end = makeDate(year: 2024, month: 3, day: 3)
+        let increment = DateComponents(day: 1)
+        let dates = calendar.enumerateDates(from: start, to: end, increment: increment)
+        XCTAssertEqual(dates.count, 3)
+        XCTAssertEqual(dates.last, end)
+    }
+
+    func testEnumerateDates_YearIncrement() {
+        let start = makeDate(year: 2020, month: 1, day: 1)
+        let end = makeDate(year: 2024, month: 1, day: 1)
+        let increment = DateComponents(year: 1)
+        let dates = calendar.enumerateDates(from: start, to: end, increment: increment)
+        XCTAssertEqual(dates.count, 5) // 2020..2024
     }
 }

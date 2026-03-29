@@ -6,39 +6,32 @@
 //
 
 import Foundation
-import SwiftDate
 import SwiftUI
 
 extension CalendarView {
-    /// Generates an array of dates based on the given parameters.
+    /// Generates an array of dates for the calendar grid.
     ///
     /// - Parameters:
     ///   - date: The base date.
     ///   - withComponent: The calendar component to generate dates for. Default is `.month`.
     ///   - dateComponents: The date components to increment by.
-    /// - Returns: An array of dates.
+    /// - Returns: An array of dates covering the full calendar grid.
     func generateDates(
         date: Date,
         withComponent: Calendar.Component = .month,
         dateComponents: DateComponents
-    ) -> [Date] {
-        SwiftDate.defaultRegion = Region(calendar: calendarOptions.calendar)
-        let dateStart = date.dateAtStartOf(withComponent)
-        let dateEnd = date.dateAtEndOf(withComponent)
-        let dateStartRegion = DateInRegion(
-            dateStart.dateAt(.startOfWeek),
-            region: .currentIn(calendar: calendarOptions.calendar)
-        )
-        let dateEndRegion = DateInRegion(
-            dateEnd.dateAt(.endOfWeek),
-            region: .currentIn(calendar: calendarOptions.calendar)
-        )
-        let dates = DateInRegion.enumerateDates(
-            from: dateStartRegion,
-            to: dateEndRegion,
+    ) -> [CalendarDay] {
+        let calendar = calendarOptions.calendar
+        let componentStart = date.startOf(withComponent, using: calendar)
+        let componentEnd = date.endOf(withComponent, using: calendar)
+        let gridStart = componentStart.startOfWeek(using: calendar)
+        let gridEnd = componentEnd.endOfWeek(using: calendar)
+        let dates = calendar.enumerateDates(
+            from: gridStart,
+            to: gridEnd,
             increment: dateComponents
-        ).map { $0.date }
-        return dates
+        )
+        return dates.map { CalendarDay(date: $0, monthContext: date) }
     }
 }
 
@@ -46,17 +39,18 @@ extension CalendarView {
 extension CalendarView {
     /// Computes the year data for the calendar.
     var yearData: YearData {
-        DateInRegion.enumerateDates(
-            from: date.startOfYear(calendarOptions.calendar),
-            to: date.endOfYear(calendarOptions.calendar),
+        let calendar = calendarOptions.calendar
+        let yearStart = date.startOfYear(using: calendar)
+        let yearEnd = date.endOfYear(using: calendar)
+        let months = calendar.enumerateDates(
+            from: yearStart,
+            to: yearEnd,
             increment: DateComponents(month: 1)
         )
-        .map {
-            $0.date
-        }
-        .reduce(into: [:]) { month, date in
-            month[date] = generateDates(
-                date: date.startOfMonth(calendarOptions.calendar).date,
+        return months.reduce(into: [:]) { result, monthDate in
+            let monthStart = monthDate.startOfMonth(using: calendar)
+            result[monthDate] = generateDates(
+                date: monthStart,
                 dateComponents: CalendarViewMode.month.dateComponent
             )
         }
@@ -71,21 +65,33 @@ extension CalendarView {
                 count: 1
             )
         case .year(let mode):
-        switch mode {
-        case .compact:
-            return Array(
-                repeating: GridItem(.flexible(), spacing: calendarOptions.spaceBetweenColumns, alignment: .top),
-                count: calendarOptions.compactMonthCount
-            )
-        case .full:
+            switch mode {
+            case .compact:
                 return Array(
-                    repeating: GridItem(.flexible(), spacing: calendarOptions.spaceBetweenColumns, alignment: .top),
+                    repeating: GridItem(
+                        .flexible(),
+                        spacing: calendarOptions.spaceBetweenColumns,
+                        alignment: .top
+                    ),
+                    count: calendarOptions.compactMonthCount
+                )
+            case .full:
+                return Array(
+                    repeating: GridItem(
+                        .flexible(),
+                        spacing: calendarOptions.spaceBetweenColumns,
+                        alignment: .top
+                    ),
                     count: CalendarDefine.kWeekDays
                 )
-        }
+            }
         default:
             return Array(
-                repeating: GridItem(.flexible(), spacing: calendarOptions.spaceBetweenColumns, alignment: .top),
+                repeating: GridItem(
+                    .flexible(),
+                    spacing: calendarOptions.spaceBetweenColumns,
+                    alignment: .top
+                ),
                 count: CalendarDefine.kWeekDays
             )
         }
@@ -113,10 +119,11 @@ extension CalendarView {
     var headerDates: [Date] {
         switch calendarOptions.viewMode {
         case .month, .week:
-            return Array(monthData.prefix(CalendarDefine.kWeekDays))
+            return Array(monthData.prefix(CalendarDefine.kWeekDays).map(\.date))
         case .year:
+            let yearStart = date.startOfYear(using: calendarOptions.calendar)
             return Array(
-                yearData[date.dateAtStartOf(.year), default: []].prefix(CalendarDefine.kWeekDays)
+                yearData[yearStart, default: []].prefix(CalendarDefine.kWeekDays).map(\.date)
             )
         case .single:
             return [date]
@@ -126,12 +133,12 @@ extension CalendarView {
     var fontTitle: Font {
         switch calendarOptions.viewMode {
         case .month,
-        .single,
-        .year(.full):
-            return .footnote.bold()
+            .single,
+            .year(.full):
+            return calendarOptions.theme.titleFont
         case .year(.compact):
             return .system(size: 10, weight: .semibold)
-        default: return .footnote.bold()
+        default: return calendarOptions.theme.titleFont
         }
     }
 }
