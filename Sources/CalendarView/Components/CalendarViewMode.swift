@@ -7,7 +7,6 @@
 
 import Foundation
 import SwiftUI
-import SwiftDate
 
 /// Represents the different modes of the calendar view.
 public enum CalendarViewMode: CaseIterable, Hashable {
@@ -60,9 +59,6 @@ public enum CalendarViewMode: CaseIterable, Hashable {
         }
     }
 
-    /// Determines if scrolling is disabled for the mode.
-    var isDisableScroll: Bool { !enableScroll }
-
     /// The visibility of the scroll indicator for the mode.
     var enableScrollIndicator: ScrollIndicatorVisibility {
         switch self {
@@ -70,20 +66,6 @@ public enum CalendarViewMode: CaseIterable, Hashable {
             return .never
         case .year:
             return .visible
-        }
-    }
-
-    /// The type of date related to the mode.
-    var dateRelatedType: DateRelatedType {
-        switch self {
-        case .month:
-            return .nextMonth
-        case .week:
-            return .nextWeek
-        case .year:
-            return .nextYear
-        case .single:
-            return .nextWeekday(.sunday)
         }
     }
 }

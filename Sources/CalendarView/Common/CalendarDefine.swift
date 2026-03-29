@@ -9,5 +9,9 @@ import Foundation
 
 public struct CalendarDefine {
     static let kWeekDays = 7
-    static let kDistaneSwipeBack = 100.0
+    static let kSwipeDistance = 100.0
+
+    /// Deprecated: Use `kSwipeDistance` instead.
+    @available(*, deprecated, renamed: "kSwipeDistance")
+    static let kDistaneSwipeBack = kSwipeDistance
 }

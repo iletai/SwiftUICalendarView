@@ -11,100 +11,123 @@ import SwiftUI
 @MainActor
 extension CalendarView: RootBuilder {
     /// Enables or disables the header in the calendar view.
-    /// - Parameter isEnable: A boolean value indicating whether to enable or disable the header.
-    /// - Returns: An instance of `Self` with the updated configuration.
     public func enableHeader(_ isEnable: Bool) -> Self {
         mutating(\.calendarOptions.isShowHeader, value: isEnable)
     }
 
-    /// Enables or disables the display of dates outside the current month in the calendar view.
-    /// - Parameter isShow: A boolean value indicating whether to show or hide dates outside the current month.
-    /// - Returns: An instance of `Self` with the updated configuration.
+    /// Enables or disables the display of dates outside the current month.
     public func enableDateOut(_ isShow: Bool) -> Self {
         mutating(\.calendarOptions.isShowDateOut, value: isShow)
     }
 
     /// Sets the background style for the calendar view.
-    /// - Parameter status: The background style for the calendar view.
-    /// - Returns: An instance of `Self` with the updated configuration.
-    public func background(_ status: CalendarBackground) -> Self {
+    public func backgroundCalendar(_ status: CalendarBackground) -> Self {
         mutating(\.calendarOptions.backgroundStatus, value: status)
     }
 
+    /// Deprecated: Use `backgroundCalendar(_:)` instead.
+    @available(*, deprecated, renamed: "backgroundCalendar")
+    public func background(_ status: CalendarBackground) -> Self {
+        backgroundCalendar(status)
+    }
+
     /// Sets the spacing between rows in the calendar view.
-    /// - Parameter spacing: The spacing between rows.
-    /// - Returns: An instance of `Self` with the updated configuration.
     public func rowsSpacing(_ spacing: CGFloat) -> Self {
         mutating(\.calendarOptions.spacingBetweenDay, value: spacing)
     }
 
     /// Sets the spacing between columns in the calendar view.
-    /// - Parameter spacing: The spacing between columns.
-    /// - Returns: An instance of `Self` with the updated configuration.
     public func columnSpacing(_ spacing: CGFloat) -> Self {
         mutating(\.calendarOptions.spaceBetweenColumns, value: spacing)
     }
 
     /// Sets the first day of the week in the calendar view.
-    /// - Parameter first: The index of the first day of the week (1 for Sunday, 2 for Monday, etc.).
-    /// - Returns: An instance of `Self` with the updated configuration.
     public func firstWeekDay(_ first: CalendarWeekday) -> Self {
         mutating(\.calendarOptions.calendar.firstWeekday, value: first.rawValue)
     }
 
     /// Sets the locale for the calendar view.
-    /// - Parameter locale: The locale to be used for the calendar view.
-    /// - Returns: An instance of `Self` with the updated configuration.
-    public func calendarLocate(locale: Locale) -> Self {
+    public func calendarLocale(_ locale: Locale) -> Self {
         mutating(\.calendarOptions.calendar.locale, value: locale)
     }
 
+    /// Deprecated: Use `calendarLocale(_:)` instead.
+    @available(*, deprecated, renamed: "calendarLocale")
+    public func calendarLocate(locale: Locale) -> Self {
+        calendarLocale(locale)
+    }
+
     /// Sets the view mode for the calendar view.
-    /// - Parameter mode: The view mode for the calendar view.
-    /// - Returns: An instance of `Self` with the updated configuration.
     public func setViewMode(_ mode: CalendarViewMode) -> Self {
         mutating(\.calendarOptions.viewMode, value: mode)
     }
 
     /// Sets the callback for when dragging ends in the calendar view.
-    /// - Parameter callback: A closure that takes a `Direction` parameter and has no return value.
-    /// - Returns: An instance of `Self` with the updated configuration.
     public func onDraggingEnded(_ callback: OnEndDragAction?) -> Self {
         mutating(\.onDraggingEnded, value: callback)
     }
 
     /// Enables the pinned view in the calendar view.
-    /// - Parameter view: The pinned view to be enabled.
-    /// - Returns: An instance of `Self` with the updated configuration.
-    public func enablePinedView(_ view: PinnedScrollableViews) -> Self {
-        mutating(\.pinedHeaderView, value: [view])
+    public func enablePinnedView(_ view: PinnedScrollableViews) -> Self {
+        mutating(\.pinnedHeaderView, value: [view])
     }
 
-    /// Sets a callback closure to be executed when a date is selected in the calendar view.
-    /// - Parameter callback: The closure to be executed when a date is selected.
-    /// - Returns: The modified `CalendarView+RootBuilder` instance.
+    /// Deprecated: Use `enablePinnedView(_:)` instead.
+    @available(*, deprecated, renamed: "enablePinnedView")
+    public func enablePinedView(_ view: PinnedScrollableViews) -> Self {
+        enablePinnedView(view)
+    }
+
+    /// Sets a callback closure to be executed when a date is selected.
+    /// When a date binding is present, the binding is updated alongside the callback.
     public func onSelectDate(_ callback: @escaping OnSelectedDate) -> Self {
-        mutating(\.onSelected, value: callback)
+        if let binding = dateBinding {
+            return mutating(\.onSelected, value: { date in
+                binding.wrappedValue = date
+                callback(date)
+            })
+        }
+        return mutating(\.onSelected, value: callback)
     }
 
     /// Enables or disables the divider in the calendar view.
-    /// - Parameter isEnable: A boolean value indicating whether the divider should be enabled or disabled.
-    /// - Returns: The modified `CalendarView+RootBuilder` instance.
     public func enableDivider(_ isEnable: Bool) -> Self {
         mutating(\.calendarOptions.isShowDivider, value: isEnable)
     }
 
-    /// Enables or disables the highlight effect on the current day in the calendar view.
-    /// - Parameter isEnable: A boolean value indicating whether the highlight effect should be enabled or disabled.
-    /// - Returns: The modified `CalendarView+RootBuilder` instance.
+    /// Enables or disables the highlight effect on the current day.
+    public func enableHighlightToday(_ isEnable: Bool) -> Self {
+        mutating(\.calendarOptions.isHighlightToday, value: isEnable)
+    }
+
+    /// Deprecated: Use `enableHighlightToday(_:)` instead.
+    @available(*, deprecated, renamed: "enableHighlightToday")
     public func enableHighlightToDay(_ isEnable: Bool) -> Self {
-        mutating(\.calendarOptions.isShowHightLightToDay, value: isEnable)
+        enableHighlightToday(isEnable)
     }
 
     /// Sets the initial date to be displayed in the calendar view.
-    /// - Parameter date: The initial date to be displayed.
-    /// - Returns: The modified `CalendarView+RootBuilder` instance.
     func setDate(_ date: Date) -> Self {
         mutating(\.date, value: date)
+    }
+
+    /// Sets the selected date range for highlighting.
+    public func selectedRange(_ range: ClosedRange<Date>?) -> Self {
+        mutating(\.calendarOptions.selectedDateRange, value: range)
+    }
+
+    /// Sets the callback for when a date range is selected.
+    public func onRangeSelected(_ callback: @escaping (ClosedRange<Date>) -> Void) -> Self {
+        mutating(\.calendarOptions.onRangeSelected, value: callback)
+    }
+
+    /// Sets the dates that have events for indicator display.
+    public func eventDates(_ dates: Set<Date>) -> Self {
+        mutating(\.calendarOptions.eventDates, value: dates)
+    }
+
+    /// Sets a rule to determine which dates should be disabled in the calendar.
+    public func disabledDates(_ rule: @escaping (Date) -> Bool) -> Self {
+        mutating(\.calendarOptions.disabledDateRule, value: rule)
     }
 }

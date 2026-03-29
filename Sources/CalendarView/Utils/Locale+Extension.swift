@@ -6,10 +6,9 @@
 //
 
 import Foundation
-import SwiftDate
 
 extension Locale {
     static var vietnam: Locale {
-        Locales.vietnamese.toLocale()
+        Locale(identifier: "vi")
     }
 }

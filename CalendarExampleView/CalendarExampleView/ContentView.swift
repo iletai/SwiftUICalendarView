@@ -5,9 +5,8 @@
 //  Created by iletai on 24/11/2023.
 //
 
-import SwiftUI
 import CalendarView
-import SwiftDate
+import SwiftUI
 
 struct ContentView: View {
     @State var isShowHeader = false
@@ -18,13 +17,13 @@ struct ContentView: View {
     @State private var selectedDate = Date()
     @State private var colorDay = Color.white
     @State var listSelectedDate = [Date]()
-    @State var isHightLightToDay = true
+    @State var isHighlightToday = true
 
     var fontDate: Font {
         switch viewMode {
         case .month,
-        .week,
-        .single:
+            .week,
+            .single:
             return .footnote
         case .year(let yearDisplayMode):
             switch yearDisplayMode {
@@ -39,8 +38,8 @@ struct ContentView: View {
     var heightCellCalendar: CGFloat {
         switch viewMode {
         case .month,
-        .week,
-        .single:
+            .week,
+            .single:
             return 30.0
         case .year(let yearDisplayMode):
             switch yearDisplayMode {
@@ -57,8 +56,8 @@ struct ContentView: View {
             ScrollView {
                 VStack {
                     CalendarView(
-                        date: selectedDate
-                        , dateView: { date in
+                        date: selectedDate,
+                        dateView: { date in
                             VStack {
                                 Text(date.dayName)
                                     .font(fontDate)
@@ -69,7 +68,8 @@ struct ContentView: View {
                             .frameInfinity()
                             .frame(height: heightCellCalendar)
                             .background(listSelectedDate.contains(date) ? .cyan : .clear)
-                        }, headerView: { date in
+                        },
+                        headerView: { date in
                             HStack {
                                 ForEach(date, id: \.self) {
                                     Text($0.weekDayShortName.uppercased())
@@ -80,12 +80,14 @@ struct ContentView: View {
                                         .frame(maxWidth: .infinity)
                                 }
                             }
-                        }, dateOutView: { date in
+                        },
+                        dateOutView: { date in
                             VStack {
                                 Text(date.dayName)
                                     .font(fontDate)
                                     .foregroundColor(
-                                        Calendar.current.isDateInWeekend(date) ? .red.opacity(0.4) : .gray
+                                        Calendar.current.isDateInWeekend(date)
+                                            ? .red.opacity(0.4) : .gray
                                     )
                             }
                             .frameInfinity()
@@ -96,29 +98,33 @@ struct ContentView: View {
                     .enableHeader(isShowHeader)
                     .enableDateOut(isShowDateOut)
                     .firstWeekDay(firstWeekDate)
-                    .calendarLocate(locale: Locales.vietnamese.toLocale())
+                    .calendarLocale(Locale(identifier: "vi"))
                     .setViewMode(viewMode)
                     .rowsSpacing(8)
                     .columnSpacing(8)
-                    .background(.visible(12, .gray.opacity(0.1)))
+                    .backgroundCalendar(.visible(12, .gray.opacity(0.1)))
                     .onDraggingEnded { direction, viewMode in
                         if direction == .forward {
                             withAnimation(.easeInOut) {
-                                selectedDate = selectedDate.dateAt(
-                                    viewMode == .month ? .nextMonth : .nextWeek
-                                ).date
+                                selectedDate = Calendar.gregorian.date(
+                                    byAdding: viewMode == .month ? .month : .weekOfYear,
+                                    value: 1,
+                                    to: selectedDate
+                                )!
                             }
                         } else {
                             withAnimation(.easeInOut) {
-                                selectedDate = selectedDate.dateAt(
-                                    viewMode == .month ? .prevMonth : .prevWeek
-                                ).date
+                                selectedDate = Calendar.gregorian.date(
+                                    byAdding: viewMode == .month ? .month : .weekOfYear,
+                                    value: -1,
+                                    to: selectedDate
+                                )!
                             }
                         }
                     }
                     .onSelectDate(onSelectedDate)
                     .enableDivider(isShowDivider)
-                    .enableHighlightToDay(isHightLightToDay)
+                    .enableHighlightToday(isHighlightToday)
                     .marginDefault()
                     .allowsTightening(true)
                     Spacer()
@@ -168,13 +174,17 @@ struct ContentView: View {
                     Text("WeekDate")
                 }
                 Button {
-                    let nextMonth = Calendar.gregorian.date(byAdding: .month, value: 1, to: selectedDate)
+                    let nextMonth = Calendar.gregorian.date(
+                        byAdding: .month,
+                        value: 1,
+                        to: selectedDate
+                    )
                     selectedDate = nextMonth!
                 } label: {
                     Text("Next")
                 }
                 Button {
-                    isHightLightToDay.toggle()
+                    isHighlightToday.toggle()
                 } label: {
                     Text("ToDay")
                 }
@@ -197,7 +207,7 @@ struct ContentView: View {
     ContentView()
 }
 
-extension CalendarWeekday: CaseIterable {
+extension CalendarWeekday: @retroactive CaseIterable {
     static public var allCases: [CalendarWeekday] {
         [.friday, .monday, .saturday, .thursday, .wednesday, .sunday, .tuesday]
     }

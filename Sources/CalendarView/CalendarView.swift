@@ -6,52 +6,18 @@
 //
 
 import Foundation
-import SwiftDate
 import SwiftUI
 
 /**
  A SwiftUI view that represents a calendar.
 
- Use the `CalendarView` struct to display a calendar with customizable date views, header views, and date out views.
+ Use the `CalendarView` struct to display a calendar with customizable date views,
+ header views, and date out views.
 
  - Parameters:
- - DateView: The type of view to use for displaying individual dates.
- - HeaderView: The type of view to use for displaying the header containing the month and year.
- - DateOutView: The type of view to use for displaying dates outside the current month.
-
- - Note: The `CalendarView` struct is a generic type that takes three type parameters: `DateView`, `HeaderView`,
- and `DateOutView`.
- - These type parameters determine the types of views used for displaying dates, 
- headers, and dates outside the current month, respectively.
-
- - Note: The `CalendarView` struct conforms to the `View` protocol, which means it can be used as a view in SwiftUI.
-
- - Note: The `CalendarView` struct is annotated with the `@MainActor` attribute, 
- which ensures that the view is always accessed from the main actor's context.
-
- - Note: The `CalendarView` struct has several associated type aliases: `OnSelectedDate`, 
- `OnEndDragAction`, `YearData`, `MonthDateData`, and `WeekDataData`
- . These aliases are used to define the types of closures and data structures used by the `CalendarView`.
-
- - Note: The `CalendarView` struct has several properties, including 
- `date`, `calendarOptions`, `dateView`, `headerView`, `dateOutView`, `pinedHeaderView`, `onSelected`,
- `isGestureFinished`, and `onDraggingEnded`.
- These properties control the behavior and appearance of the calendar view.
-
- - Note: The `CalendarView` struct has a `body`
- property that returns a `View` representing the content of the calendar view.
-
- - Note: The `CalendarView` struct uses a `ScrollView` and a `LazyVGrid` to display the calendar's content. 
- The `ScrollView` provides scrolling behavior, while the `LazyVGrid` arranges the date views in a grid layout.
-
- - Note: The `CalendarView` struct uses a `DragGesture` to detect swipe gestures on the calendar view. 
- When a swipe gesture is detected,
- the `onDraggingEnded` closure is called with the direction of the swipe and the current view mode of the calendar.
-
- - Note: The `CalendarView` struct provides several modifiers, 
- such as `marginDefault()`, `background(_:)`, `simultaneousGesture(_:)`,
- `scrollIndicators(_:)`, `scrollDisabled(_:)`, and `frameInfinity()`,
- that can be used to customize the appearance and behavior of the calendar view.
+   - DateView: The type of view to use for displaying individual dates.
+   - HeaderView: The type of view to use for displaying the header.
+   - DateOutView: The type of view to use for displaying dates outside the current month.
  */
 @MainActor
 public struct CalendarView<
@@ -95,7 +61,7 @@ public struct CalendarView<
     let dateOutView: (Date) -> DateOutView
 
     /// The pinned header view.
-    var pinedHeaderView = PinnedScrollableViews()
+    var pinnedHeaderView = PinnedScrollableViews()
 
     /// The closure that is called when a date is selected.
     var onSelected: OnSelectedDate = { _ in }
@@ -106,10 +72,13 @@ public struct CalendarView<
     /// The closure that is called when dragging ends.
     var onDraggingEnded: OnEndDragAction?
 
+    /// An optional binding to the selected date.
+    var dateBinding: Binding<Date>?
+
     /// The swipe gesture for navigating between dates.
     private var swipeGesture: some Gesture {
         DragGesture(
-            minimumDistance: CalendarDefine.kDistaneSwipeBack,
+            minimumDistance: CalendarDefine.kSwipeDistance,
             coordinateSpace: .global
         )
         .updating($isGestureFinished) { _, state, _ in
@@ -130,10 +99,10 @@ public struct CalendarView<
      Initializes a new calendar view.
 
      - Parameters:
-     - date: The selected date.
-     - dateView: The view builder for the date view.
-     - headerView: The view builder for the header view.
-     - dateOutView: The view builder for the date out view.
+       - date: The selected date.
+       - dateView: The view builder for the date view.
+       - headerView: The view builder for the header view.
+       - dateOutView: The view builder for the date out view.
      */
     public init(
         date: Date,
@@ -148,12 +117,67 @@ public struct CalendarView<
         self.calendarOptions = .defaultOption
     }
 
+    /**
+     Initializes a new calendar view with a date selection callback.
+
+     - Parameters:
+       - date: The selected date.
+       - dateView: The view builder for the date view.
+       - headerView: The view builder for the header view.
+       - dateOutView: The view builder for the date out view.
+       - onSelectedDate: A closure called when a date is selected.
+     */
+    public init(
+        date: Date,
+        @ViewBuilder dateView: @escaping (Date) -> DateView,
+        @ViewBuilder headerView: @escaping ([Date]) -> HeaderView,
+        @ViewBuilder dateOutView: @escaping (Date) -> DateOutView,
+        onSelectedDate: @escaping OnSelectedDate
+    ) {
+        self.init(
+            date: date,
+            dateView: dateView,
+            headerView: headerView,
+            dateOutView: dateOutView
+        )
+        self.onSelected = onSelectedDate
+    }
+
+    /**
+     Initializes a new calendar view with a binding to the selected date.
+
+     When a date is tapped, the binding is automatically updated.
+
+     - Parameters:
+       - selectedDate: A binding to the selected date.
+       - dateView: The view builder for the date view.
+       - headerView: The view builder for the header view.
+       - dateOutView: The view builder for the date out view.
+     */
+    public init(
+        selectedDate: Binding<Date>,
+        @ViewBuilder dateView: @escaping (Date) -> DateView,
+        @ViewBuilder headerView: @escaping ([Date]) -> HeaderView,
+        @ViewBuilder dateOutView: @escaping (Date) -> DateOutView
+    ) {
+        self.init(
+            date: selectedDate.wrappedValue,
+            dateView: dateView,
+            headerView: headerView,
+            dateOutView: dateOutView
+        )
+        self.dateBinding = selectedDate
+        self.onSelected = { date in
+            selectedDate.wrappedValue = date
+        }
+    }
+
     // MARK: - Main Body View
     public var body: some View {
         LazyVGrid(
             columns: columnGridLayout,
             spacing: calendarOptions.spacingBetweenDay,
-            pinnedViews: pinedHeaderView
+            pinnedViews: pinnedHeaderView
         ) {
             bodyContentView
         }
@@ -165,23 +189,7 @@ public struct CalendarView<
 }
 
 // MARK: - ViewBuilder Private API
-/**
- A SwiftUI view representing a calendar view.
-
- This view displays a calendar with different view modes such as month, year, week, and single day.
- The calendar view can be customized with various options 
- such as showing headers, dividers, highlighting today's date, and more.
-
- - Author: Tai Le
- - Version: 1.4.8
- */
 extension CalendarView {
-    /**
-     Returns the body content view based on the current view mode.
-
-     The body content view is determined by the `calendarOptions.viewMode` property.
-     - Returns: A SwiftUI `View` representing the body content.
-     */
     @ViewBuilder
     private var bodyContentView: some View {
         switch calendarOptions.viewMode {
@@ -206,14 +214,9 @@ extension CalendarView {
         }
     }
 
-    /**
-     Returns the year content view.
-
-     The year content view displays the calendar organized by months.
-     - Returns: A SwiftUI `View` representing the year content.
-     */
     @ViewBuilder
     fileprivate func yearContentView() -> some View {
+        let calendar = calendarOptions.calendar
         ForEach(yearData.keys.sorted(), id: \.self) { month in
             Section(
                 header:
@@ -230,9 +233,21 @@ extension CalendarView {
                     yearData[month, default: []],
                     id: \.self
                 ) { date in
-                    if date.compare(.isSameMonth(month)) {
+                    if date.isSameMonth(as: month, using: calendar) {
                         dateView(date)
-                            .hightLightToDayView(date.isToday && calendarOptions.isShowHightLightToDay)
+                            .highlightIfInRange(date, range: calendarOptions.selectedDateRange)
+                            .eventIndicator(for: date, events: calendarOptions.eventDates)
+                            .highlightTodayView(
+                                calendar.isDateInToday(date)
+                                && calendarOptions.isHighlightToday
+                            )
+                            .calendarDateAccessibility(
+                                date: date,
+                                isSelected: false,
+                                calendar: calendar
+                            )
+                            .opacity(calendarOptions.disabledDateRule?(date) == true ? 0.3 : 1.0)
+                            .allowsHitTesting(calendarOptions.disabledDateRule?(date) != true)
                     } else {
                         dateOutView(date)
                             .allowVisibleWith(calendarOptions.isShowDateOut)
@@ -244,6 +259,7 @@ extension CalendarView {
 
     @ViewBuilder
     fileprivate func yearContentCompactView() -> some View {
+        let calendar = calendarOptions.calendar
         ForEach(yearData.keys.sorted(), id: \.self) { month in
             LazyVStack(alignment: .leading, spacing: .zero) {
                 monthTitle(for: month)
@@ -252,8 +268,8 @@ extension CalendarView {
                     .padding(.bottom, 2)
                 LazyVGrid(
                     columns: Array(
-                    repeating: GridItem(.flexible(), spacing: 0, alignment: .top),
-                    count: CalendarDefine.kWeekDays
+                        repeating: GridItem(.flexible(), spacing: 0, alignment: .top),
+                        count: CalendarDefine.kWeekDays
                     ),
                     alignment: .leading,
                     spacing: .zero
@@ -262,9 +278,21 @@ extension CalendarView {
                         yearData[month, default: []],
                         id: \.self
                     ) { date in
-                        if date.compare(.isSameMonth(month)) {
+                        if date.isSameMonth(as: month, using: calendar) {
                             dateView(date)
-                                .hightLightToDayView(date.isToday && calendarOptions.isShowHightLightToDay)
+                                .highlightIfInRange(date, range: calendarOptions.selectedDateRange)
+                                .eventIndicator(for: date, events: calendarOptions.eventDates)
+                                .highlightTodayView(
+                                    calendar.isDateInToday(date)
+                                    && calendarOptions.isHighlightToday
+                                )
+                                .calendarDateAccessibility(
+                                    date: date,
+                                    isSelected: false,
+                                    calendar: calendar
+                                )
+                                .opacity(calendarOptions.disabledDateRule?(date) == true ? 0.3 : 1.0)
+                                .allowsHitTesting(calendarOptions.disabledDateRule?(date) != true)
                         } else {
                             dateOutView(date)
                                 .allowVisibleWith(calendarOptions.isShowDateOut)
@@ -275,20 +303,13 @@ extension CalendarView {
         }
     }
 
-    /**
-     Returns the month title view for a given month.
-
-     The month title view displays the name of the month and the year.
-     - Parameter month: The month for which to display the title.
-     - Returns: A SwiftUI `View` representing the month title.
-     */
     @ViewBuilder
     fileprivate func monthTitle(for month: Date) -> some View {
         HStack {
             Spacer()
             Text(
-                month.toFormat(
-                    "MMM",
+                month.formatted(
+                    as: "MMM",
                     locale: calendarOptions.calendar.locale
                 )
                 .uppercased()
@@ -296,34 +317,44 @@ extension CalendarView {
             Spacer()
         }
         .allowVisibleWith(calendarOptions.isShowHeader)
+        .accessibilityAddTraits(.isHeader)
     }
 
-    /**
-     Returns the background calendar view.
-
-     The background calendar view displays the background color and corner radius of the calendar.
-     - Returns: A SwiftUI `View` representing the background calendar.
-     */
     @ViewBuilder
     fileprivate var backgroundCalendar: some View {
-        if case let .visible(conner, backgroundColor) = calendarOptions.backgroundStatus {
-            backgroundColor.withRounderConner(conner)
+        switch calendarOptions.backgroundStatus {
+        case .visible(let cornerRadius, let backgroundColor):
+            backgroundColor.withRoundedCorner(cornerRadius)
+        case .image(let imageName):
+            Image(imageName)
+                .resizable()
+                .scaledToFill()
+                .clipped()
+        case .hidden:
+            EmptyView()
         }
     }
 
-    /**
-     Returns the calendar week view.
-
-     The calendar week view displays the calendar organized by weeks.
-     - Returns: A SwiftUI `View` representing the calendar week view.
-     */
     @ViewBuilder
     fileprivate func calendarWeekView() -> some View {
+        let calendar = calendarOptions.calendar
         Section(header: weekDayAndMonthView) {
             ForEach(weekData, id: \.self) { date in
-                if date.compare(.isSameWeek(self.date)) {
+                if date.isSameWeek(as: self.date, using: calendar) {
                     dateView(date)
-                        .hightLightToDayView(date.isToday && calendarOptions.isShowHightLightToDay)
+                        .highlightIfInRange(date, range: calendarOptions.selectedDateRange)
+                        .eventIndicator(for: date, events: calendarOptions.eventDates)
+                        .highlightTodayView(
+                            calendar.isDateInToday(date)
+                            && calendarOptions.isHighlightToday
+                        )
+                        .calendarDateAccessibility(
+                            date: date,
+                            isSelected: false,
+                            calendar: calendar
+                        )
+                        .opacity(calendarOptions.disabledDateRule?(date) == true ? 0.3 : 1.0)
+                        .allowsHitTesting(calendarOptions.disabledDateRule?(date) != true)
                 } else {
                     dateOutView(date)
                         .allowVisibleWith(calendarOptions.isShowDateOut)
@@ -332,19 +363,26 @@ extension CalendarView {
         }
     }
 
-    /**
-     Returns the month content view.
-
-     The month content view displays the calendar organized by months.
-     - Returns: A SwiftUI `View` representing the month content.
-     */
     @ViewBuilder
     fileprivate func monthContentView() -> some View {
+        let calendar = calendarOptions.calendar
         Section(header: weekDayAndMonthView) {
             ForEach(monthData, id: \.self) { date in
-                if date.compare(.isSameMonth(self.date)) {
+                if date.isSameMonth(as: self.date, using: calendar) {
                     dateView(date)
-                        .hightLightToDayView(date.isToday && calendarOptions.isShowHightLightToDay)
+                        .highlightIfInRange(date, range: calendarOptions.selectedDateRange)
+                        .eventIndicator(for: date, events: calendarOptions.eventDates)
+                        .highlightTodayView(
+                            calendar.isDateInToday(date)
+                            && calendarOptions.isHighlightToday
+                        )
+                        .calendarDateAccessibility(
+                            date: date,
+                            isSelected: false,
+                            calendar: calendar
+                        )
+                        .opacity(calendarOptions.disabledDateRule?(date) == true ? 0.3 : 1.0)
+                        .allowsHitTesting(calendarOptions.disabledDateRule?(date) != true)
                 } else {
                     dateOutView(date)
                         .allowVisibleWith(calendarOptions.isShowDateOut)
@@ -353,12 +391,6 @@ extension CalendarView {
         }
     }
 
-    /**
-     Returns the week day and month view.
-
-     The week day and month view displays the month title, divider, and header view.
-     - Returns: A SwiftUI `View` representing the week day and month view.
-     */
     @ViewBuilder
     private var weekDayAndMonthView: some View {
         VStack {
@@ -370,20 +402,27 @@ extension CalendarView {
         }
     }
 
-    /**
-     Returns the single day content view.
-
-     The single day content view displays the header view and the date view for a single day.
-     - Returns: A SwiftUI `View` representing the single day content.
-     */
     @ViewBuilder
     private func singleDayContentView() -> some View {
+        let calendar = calendarOptions.calendar
         VStack {
             headerView(headerDates)
             Divider()
                 .allowVisibleWith(calendarOptions.isShowDivider)
             dateView(date)
-                .hightLightToDayView(date.isToday && calendarOptions.isShowHightLightToDay)
+                .highlightIfInRange(date, range: calendarOptions.selectedDateRange)
+                .eventIndicator(for: date, events: calendarOptions.eventDates)
+                .highlightTodayView(
+                    calendar.isDateInToday(date)
+                    && calendarOptions.isHighlightToday
+                )
+                .calendarDateAccessibility(
+                    date: date,
+                    isSelected: false,
+                    calendar: calendar
+                )
+                .opacity(calendarOptions.disabledDateRule?(date) == true ? 0.3 : 1.0)
+                .allowsHitTesting(calendarOptions.disabledDateRule?(date) != true)
         }
         .maxWidthAble()
         .maxHeightAble()
