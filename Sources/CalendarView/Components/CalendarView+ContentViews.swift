@@ -56,6 +56,30 @@ extension CalendarView {
             )
             .onTapGesture { onSelected(date) }
     }
+
+    /// Lightweight date view for compact year grid cells.
+    /// Skips fixedSize, eventIndicator, and selection highlights
+    /// that don't render well at compact scale.
+    @ViewBuilder
+    func compactDateView(_ date: Date) -> some View {
+        let cal = calendarOptions.calendar
+        dateView(date)
+            .highlightTodayView(
+                cal.isDateInToday(date)
+                    && calendarOptions.isHighlightToday,
+                calendarOptions.theme.todayColor
+            )
+            .calendarDateAccessibility(
+                date: date,
+                isSelected: false,
+                calendar: cal
+            )
+            .opacity(
+                calendarOptions.disabledDateRule?(date) == true
+                    ? 0.3 : 1.0
+            )
+            .onTapGesture { onSelected(date) }
+    }
 }
 
 // MARK: - Body Content View
@@ -144,7 +168,7 @@ extension CalendarView {
                         if date.isSameMonth(
                             as: month, using: calendar
                         ) {
-                            styledDateView(date)
+                            compactDateView(date)
                         } else {
                             dateOutView(date)
                                 .allowVisibleWith(
