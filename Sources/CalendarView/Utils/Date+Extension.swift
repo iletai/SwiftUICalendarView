@@ -9,39 +9,19 @@ import Foundation
 
 /// Extension for `Date` providing additional utility methods.
 extension Date {
-    // MARK: - Cached DateFormatters
-
-    private static let weekDayFullFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "EEEE"
-        return formatter
-    }()
-
-    private static let weekDayShortFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "EE"
-        return formatter
-    }()
-
-    private static let dayFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "d"
-        return formatter
-    }()
-
-    /// Returns the name of the week day for the date.
+    /// Returns the name of the week day for the date (thread-safe).
     public var weekDayName: String {
-        Self.weekDayFullFormatter.string(from: self)
+        self.formatted(.dateTime.weekday(.wide))
     }
 
-    /// Returns the short name of the week day for the date.
+    /// Returns the short name of the week day for the date (thread-safe).
     public var weekDayShortName: String {
-        Self.weekDayShortFormatter.string(from: self)
+        self.formatted(.dateTime.weekday(.abbreviated))
     }
 
-    /// Returns the day name for the date.
+    /// Returns the day number for the date (thread-safe).
     public var dayName: String {
-        Self.dayFormatter.string(from: self)
+        self.formatted(.dateTime.day())
     }
 
     /// Returns the start of the year for the date in the specified calendar.

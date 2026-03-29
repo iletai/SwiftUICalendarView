@@ -9,197 +9,235 @@ import CalendarView
 import SwiftUI
 
 struct ContentView: View {
-    @State var isShowHeader = false
-    @State var isShowDateOut = false
-    @State var firstWeekDate = CalendarWeekday.monday
-    @State var isShowDivider = false
-    @State var viewMode = CalendarViewMode.year(.full)
+    // MARK: - State
     @State private var selectedDate = Date()
-    @State private var colorDay = Color.white
-    @State var listSelectedDate = [Date]()
-    @State var isHighlightToday = true
+    @State private var viewMode = CalendarViewMode.month
+    @State private var selectionMode = CalendarSelectionMode.single
+    @State private var selectedDates = Set<Date>()
+    @State private var selectedRange: ClosedRange<Date>?
 
-    var fontDate: Font {
-        switch viewMode {
-        case .month,
-            .week,
-            .single:
-            return .footnote
-        case .year(let yearDisplayMode):
-            switch yearDisplayMode {
-            case .compact:
-                return .system(size: 8, weight: .regular)
-            case .full:
-                return .footnote.weight(.semibold)
-            }
-        }
+    @State private var isShowHeader = true
+    @State private var isShowDateOut = true
+    @State private var isShowDivider = false
+    @State private var isHighlightToday = true
+    @State private var useDarkTheme = false
+    @State private var disableWeekends = false
+
+    // MARK: - Computed Properties
+    private var currentTheme: CalendarTheme {
+        useDarkTheme ? .dark : .default
     }
 
-    var heightCellCalendar: CGFloat {
-        switch viewMode {
-        case .month,
-            .week,
-            .single:
-            return 30.0
-        case .year(let yearDisplayMode):
-            switch yearDisplayMode {
-            case .compact:
-                return 20.0
-            case .full:
-                return 30.0
+    private var sampleEventDates: Set<Date> {
+        let cal = Calendar.current
+        let today = Date()
+        var dates = Set<Date>()
+        for offset in [2, 5, 8, 14, 21] {
+            if let d = cal.date(byAdding: .day, value: offset, to: today) {
+                dates.insert(cal.startOfDay(for: d))
             }
         }
+        return dates
     }
 
+    private var minDate: Date {
+        Calendar.current.date(byAdding: .month, value: -3, to: Date()) ?? Date()
+    }
+
+    private var maxDate: Date {
+        Calendar.current.date(byAdding: .month, value: 3, to: Date()) ?? Date()
+    }
+
+    // MARK: - Body
     var body: some View {
-        VStack {
-            ScrollView {
-                VStack {
-                    CalendarView(
-                        date: selectedDate,
-                        dateView: { date in
-                            VStack {
-                                Text(date.dayName)
-                                    .font(fontDate)
-                                    .foregroundColor(
-                                        Calendar.current.isDateInWeekend(date) ? .red : .black
-                                    )
-                            }
-                            .frameInfinity()
-                            .frame(height: heightCellCalendar)
-                            .background(listSelectedDate.contains(date) ? .cyan : .clear)
-                        },
-                        headerView: { date in
-                            HStack {
-                                ForEach(date, id: \.self) {
-                                    Text($0.weekDayShortName.uppercased())
-                                        .font(fontDate)
-                                        .foregroundColor(
-                                            Calendar.current.isDateInWeekend($0) ? .red : .black
-                                        )
-                                        .frame(maxWidth: .infinity)
+        NavigationStack {
+            VStack(spacing: 0) {
+                ScrollView {
+                    VStack {
+                        CalendarView(
+                            date: selectedDate,
+                            dateView: { date in
+                                VStack(spacing: 2) {
+                                    Text(date.dayName)
+                                        .font(currentTheme.dayFont)
+                                        .foregroundColor(dayColor(for: date))
                                 }
+                                .frameInfinity()
+                                .frame(height: 30)
+                                .background(dayBackground(for: date))
+                                .clipShape(RoundedRectangle(cornerRadius: 6))
+                            },
+                            headerView: { dates in
+                                HStack {
+                                    ForEach(dates, id: \.self) { day in
+                                        Text(day.weekDayShortName.uppercased())
+                                            .font(currentTheme.headerFont)
+                                            .foregroundColor(
+                                                Calendar.current.isDateInWeekend(day)
+                                                    ? currentTheme.weekendColor : .primary
+                                            )
+                                            .frame(maxWidth: .infinity)
+                                    }
+                                }
+                            },
+                            dateOutView: { date in
+                                VStack(spacing: 2) {
+                                    Text(date.dayName)
+                                        .font(currentTheme.dayFont)
+                                        .foregroundColor(currentTheme.dateOutColor)
+                                }
+                                .frameInfinity()
+                                .frame(height: 30)
                             }
-                        },
-                        dateOutView: { date in
-                            VStack {
-                                Text(date.dayName)
-                                    .font(fontDate)
-                                    .foregroundColor(
-                                        Calendar.current.isDateInWeekend(date)
-                                            ? .red.opacity(0.4) : .gray
-                                    )
-                            }
-                            .frameInfinity()
-                            .frame(height: heightCellCalendar)
-                            .background(listSelectedDate.contains(date) ? .cyan : .clear)
+                        )
+                        .enableHeader(isShowHeader)
+                        .enableDateOut(isShowDateOut)
+                        .enableDivider(isShowDivider)
+                        .enableHighlightToday(isHighlightToday)
+                        .firstWeekDay(.monday)
+                        .setViewMode(viewMode)
+                        .rowsSpacing(6)
+                        .columnSpacing(4)
+                        .contentPadding(12)
+                        .backgroundCalendar(.visible(12, .gray.opacity(0.1)))
+                        .calendarTheme(currentTheme)
+                        // Wave 2: Selection mode
+                        .selectionMode(selectionMode)
+                        .selectedDates(selectedDates)
+                        .onSelectionChanged { dates in
+                            selectedDates = Set(dates)
                         }
-                    )
-                    .enableHeader(isShowHeader)
-                    .enableDateOut(isShowDateOut)
-                    .firstWeekDay(firstWeekDate)
-                    .calendarLocale(Locale(identifier: "vi"))
-                    .setViewMode(viewMode)
-                    .rowsSpacing(8)
-                    .columnSpacing(8)
-                    .backgroundCalendar(.visible(12, .gray.opacity(0.1)))
-                    .onDraggingEnded { direction, viewMode in
-                        if direction == .forward {
+                        // Wave 2: Date range selection
+                        .selectedRange(selectedRange)
+                        .onRangeSelected { range in
+                            selectedRange = range
+                        }
+                        // Wave 2: Event markers
+                        .eventDates(sampleEventDates)
+                        // Wave 2: Date range limits (±3 months)
+                        .dateRange(minimum: minDate, maximum: maxDate)
+                        // Wave 2: Disabled dates (weekends)
+                        .disabledDates { date in
+                            disableWeekends && Calendar.current.isDateInWeekend(date)
+                        }
+                        // Wave 2: Today button
+                        .showTodayButton(true)
+                        .onTodayTapped {
+                            withAnimation { selectedDate = Date() }
+                        }
+                        // Wave 2: Month/Year picker
+                        .enableMonthYearPicker(true)
+                        .onMonthYearChanged { date in
+                            withAnimation { selectedDate = date }
+                        }
+                        // Wave 2: Scroll to today on appear
+                        .scrollToDate(Date())
+                        .onDraggingEnded { direction, mode in
+                            let component: Calendar.Component = mode == .month ? .month : .weekOfYear
+                            let value = direction == .forward ? 1 : -1
                             withAnimation(.easeInOut) {
                                 selectedDate = Calendar.gregorian.date(
-                                    byAdding: viewMode == .month ? .month : .weekOfYear,
-                                    value: 1,
-                                    to: selectedDate
-                                )!
-                            }
-                        } else {
-                            withAnimation(.easeInOut) {
-                                selectedDate = Calendar.gregorian.date(
-                                    byAdding: viewMode == .month ? .month : .weekOfYear,
-                                    value: -1,
-                                    to: selectedDate
-                                )!
+                                    byAdding: component, value: value, to: selectedDate
+                                ) ?? selectedDate
                             }
                         }
+                        .onSelectDate { date in
+                            selectedDate = date
+                        }
+                        .marginDefault()
+                        .allowsTightening(true)
                     }
-                    .onSelectDate(onSelectedDate)
-                    .enableDivider(isShowDivider)
-                    .enableHighlightToday(isHighlightToday)
-                    .marginDefault()
-                    .allowsTightening(true)
-                    Spacer()
-
+                    .frame(maxWidth: .infinity)
                 }
-                .frame(maxWidth: .infinity)
+
+                controlPanel
             }
-            VStack {
-                listButtonDemo
-                    .padding()
+            .navigationTitle("Calendar Demo")
+            .navigationBarTitleDisplayMode(.inline)
+            .background(useDarkTheme ? Color.black : Color(.systemGroupedBackground))
+            .preferredColorScheme(useDarkTheme ? .dark : .light)
+        }
+    }
+
+    // MARK: - Day Styling Helpers
+    private func dayColor(for date: Date) -> Color {
+        if Calendar.current.isDateInWeekend(date) {
+            return currentTheme.weekendColor
+        }
+        return .primary
+    }
+
+    private func dayBackground(for date: Date) -> Color {
+        let cal = Calendar.current
+        let normalized = cal.startOfDay(for: date)
+        if selectedDates.contains(normalized) {
+            return currentTheme.selectedColor
+        }
+        if cal.isDateInToday(date) && isHighlightToday {
+            return currentTheme.todayColor.opacity(0.25)
+        }
+        return .clear
+    }
+
+    // MARK: - Control Panel
+    private var controlPanel: some View {
+        VStack(spacing: 8) {
+            // Selection mode picker
+            HStack {
+                Text("Selection")
+                    .font(.caption.bold())
+                Picker("Selection", selection: $selectionMode) {
+                    Text("Single").tag(CalendarSelectionMode.single)
+                    Text("Multi").tag(CalendarSelectionMode.multiple)
+                    Text("Range").tag(CalendarSelectionMode.range)
+                }
+                .pickerStyle(.segmented)
+            }
+            .padding(.horizontal)
+
+            // View mode picker
+            HStack {
+                Text("View")
+                    .font(.caption.bold())
                 Picker("Mode", selection: $viewMode) {
                     ForEach(CalendarViewMode.allCases, id: \.self) { option in
                         Text(String(describing: option).uppercased())
                     }
                 }
                 .pickerStyle(.segmented)
-                .frame(width: 300)
-                .padding()
             }
-        }
-    }
+            .padding(.horizontal)
 
-    var listButtonDemo: some View {
-        Grid(horizontalSpacing: 8.0, verticalSpacing: 8.0) {
-            GridRow {
-                Button {
-                    isShowHeader.toggle()
-                } label: {
-                    Text("Header")
+            // Feature toggles
+            Grid(horizontalSpacing: 6, verticalSpacing: 6) {
+                GridRow {
+                    Toggle("Header", isOn: $isShowHeader)
+                        .toggleStyle(.button)
+                        .font(.caption)
+                    Toggle("DateOut", isOn: $isShowDateOut)
+                        .toggleStyle(.button)
+                        .font(.caption)
+                    Toggle("Divider", isOn: $isShowDivider)
+                        .toggleStyle(.button)
+                        .font(.caption)
                 }
-                Button {
-                    isShowDivider.toggle()
-                } label: {
-                    Text("Divider")
-                }
-
-                Button {
-                    isShowDateOut.toggle()
-                } label: {
-                    Text("DateOut")
-                }
-            }
-            GridRow {
-                Button {
-                    firstWeekDate = CalendarWeekday.allCases.randomElement()!
-                } label: {
-                    Text("WeekDate")
-                }
-                Button {
-                    let nextMonth = Calendar.gregorian.date(
-                        byAdding: .month,
-                        value: 1,
-                        to: selectedDate
-                    )
-                    selectedDate = nextMonth!
-                } label: {
-                    Text("Next")
-                }
-                Button {
-                    isHighlightToday.toggle()
-                } label: {
-                    Text("ToDay")
+                GridRow {
+                    Toggle("Today", isOn: $isHighlightToday)
+                        .toggleStyle(.button)
+                        .font(.caption)
+                    Toggle("🌙 Dark", isOn: $useDarkTheme)
+                        .toggleStyle(.button)
+                        .font(.caption)
+                    Toggle("No Wknd", isOn: $disableWeekends)
+                        .toggleStyle(.button)
+                        .font(.caption)
                 }
             }
+            .padding(.horizontal)
+            .padding(.bottom, 8)
         }
-        .buttonStyle(.bordered)
-        .maxWidthAble()
-    }
-
-    func onSelectedDate(_ date: Date) {
-        if listSelectedDate.contains(date) {
-            listSelectedDate.removeAll { $0 == date }
-        } else {
-            listSelectedDate.append(date)
-        }
+        .padding(.top, 8)
+        .background(.ultraThinMaterial)
     }
 }
 

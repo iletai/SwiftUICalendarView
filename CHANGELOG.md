@@ -35,6 +35,18 @@ Old APIs are deprecated with `@available(*, deprecated, renamed:)` — existing 
 | `kDistaneSwipeBack` | `kSwipeDistance` |
 | `background(_:)` (CalendarBackground) | `backgroundCalendar(_:)` |
 
+### Wave 2 Features
+
+- **Multi-date selection** — New `CalendarSelectionMode` enum (`.single`, `.multiple`, `.range`) with `.selectionMode(_:)`, `.selectedDates(_:)`, and `.onSelectionChanged(_:)` modifiers.
+- **Min/max date bounds** — `.dateRange(minimum:maximum:)` modifier to restrict navigation and disable out-of-range dates.
+- **CalendarTheme system** — New `CalendarTheme` struct with `.calendarTheme(_:)` modifier. Includes built-in `.default` and `.dark` themes with customizable colors and fonts.
+- **CalendarDay identifiable wrapper** — `CalendarDay` struct provides stable `Identifiable` conformance for `ForEach` usage, eliminating duplicate-ID warnings.
+- **fixedSize performance optimization** — Year-view months now use `fixedSize()` to avoid unnecessary layout passes.
+- **Configurable content padding** — `.contentPadding(_:)` modifier to control internal calendar padding.
+- **Scroll-to-date on appear** — `.scrollToDate(_:)` modifier to auto-scroll to a specific date when the calendar appears (year mode).
+- **Today button overlay** — `.showTodayButton(_:)` and `.onTodayTapped(_:)` modifiers for a floating "Today" button.
+- **Month/Year picker** — `.enableMonthYearPicker(_:)` and `.onMonthYearChanged(_:)` modifiers for quick month/year navigation via the month title.
+
 ### Performance Improvements
 
 - **Cached DateFormatters** — `weekDayName`, `weekDayShortName`, `dayName` now use static cached formatters instead of creating new ones per call.

@@ -77,33 +77,55 @@ extension View {
 }
 
 extension View {
-    /// Adds calendar date accessibility to a view.
+    /// Adds calendar date accessibility to a view (thread-safe, localized).
     func calendarDateAccessibility(
         date: Date,
         isSelected: Bool,
         calendar: Calendar
     ) -> some View {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .full
-        formatter.calendar = calendar
+        let label = date.formatted(
+            .dateTime
+                .year()
+                .month(.wide)
+                .day()
+                .weekday(.wide)
+                .locale(calendar.locale ?? .current)
+        )
         return self
-            .accessibilityLabel(formatter.string(from: date))
+            .accessibilityLabel(label)
             .accessibilityAddTraits(.isButton)
             .accessibilityAddTraits(isSelected ? .isSelected : [])
-            .accessibilityHint("Double tap to select this date")
+            .accessibilityHint(
+                NSLocalizedString(
+                    "Double tap to select this date",
+                    value: "Double tap to select this date",
+                    comment: "Accessibility hint for calendar date"
+                )
+            )
     }
 }
 
 extension View {
-    /// Highlights view if the date falls within the selected range.
+    /// Highlights view if the date falls within the selected range (day-granularity).
     @ViewBuilder
     func highlightIfInRange(
         _ date: Date,
         range: ClosedRange<Date>?,
+        calendar: Calendar = .current,
         color: Color = .blue.opacity(0.2)
     ) -> some View {
-        if let range, range.contains(date) {
-            self.background(color)
+        if let range {
+            let isOnOrAfterStart = calendar.compare(
+                date, to: range.lowerBound, toGranularity: .day
+            ) != .orderedAscending
+            let isOnOrBeforeEnd = calendar.compare(
+                date, to: range.upperBound, toGranularity: .day
+            ) != .orderedDescending
+            if isOnOrAfterStart && isOnOrBeforeEnd {
+                self.background(color)
+            } else {
+                self
+            }
         } else {
             self
         }
@@ -160,10 +182,10 @@ extension View {
     func eventIndicator(
         for date: Date,
         events: Set<Date>?,
-        color: Color = .blue
+        color: Color = .blue,
+        calendar: Calendar = .current
     ) -> some View {
         if let events {
-            let calendar = Calendar.current
             let hasEvent = events.contains { calendar.isDate($0, inSameDayAs: date) }
             if hasEvent {
                 VStack(spacing: 2) {

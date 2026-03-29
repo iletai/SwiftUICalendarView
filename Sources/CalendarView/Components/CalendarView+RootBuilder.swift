@@ -46,9 +46,12 @@ extension CalendarView: RootBuilder {
         mutating(\.calendarOptions.calendar.firstWeekday, value: first.rawValue)
     }
 
-    /// Sets the locale for the calendar view.
+    /// Sets the locale for the calendar view (syncs both calendar and option).
     public func calendarLocale(_ locale: Locale) -> Self {
-        mutating(\.calendarOptions.calendar.locale, value: locale)
+        var copy = self
+        copy.calendarOptions.calendar.locale = locale
+        copy.calendarOptions.locale = locale
+        return copy
     }
 
     /// Deprecated: Use `calendarLocale(_:)` instead.

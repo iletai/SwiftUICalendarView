@@ -18,8 +18,8 @@ public struct CalendarDay: Identifiable, Hashable {
         let calendar = Calendar.current
         let components = calendar.dateComponents([.year, .month, .day], from: date)
         let contextKey = monthContext.map {
-            let c = calendar.dateComponents([.year, .month], from: $0)
-            return "\(c.year ?? 0)-\(c.month ?? 0)"
+            let ctx = calendar.dateComponents([.year, .month], from: $0)
+            return "\(ctx.year ?? 0)-\(ctx.month ?? 0)"
         } ?? "none"
         self.id = "\(components.year ?? 0)-\(components.month ?? 0)-\(components.day ?? 0)-\(contextKey)"
     }
