@@ -130,4 +130,62 @@ extension CalendarView: RootBuilder {
     public func disabledDates(_ rule: @escaping (Date) -> Bool) -> Self {
         mutating(\.calendarOptions.disabledDateRule, value: rule)
     }
+
+    /// Sets the date to scroll to when the calendar appears (year mode).
+    public func scrollToDate(_ date: Date) -> Self {
+        mutating(\.calendarOptions.scrollToDateOnAppear, value: date)
+    }
+
+    /// Enables or disables the floating "Today" button overlay.
+    public func showTodayButton(_ show: Bool) -> Self {
+        mutating(\.calendarOptions.showTodayButton, value: show)
+    }
+
+    /// Sets the callback for the "Today" button.
+    public func onTodayTapped(_ callback: @escaping () -> Void) -> Self {
+        mutating(\.calendarOptions.onTodayTapped, value: callback)
+    }
+
+    /// Enables or disables the month/year picker on the month title.
+    public func enableMonthYearPicker(_ enable: Bool) -> Self {
+        mutating(\.calendarOptions.enableMonthYearPicker, value: enable)
+    }
+
+    /// Sets the callback for when the month/year picker selection changes.
+    public func onMonthYearChanged(_ callback: @escaping (Date) -> Void) -> Self {
+        mutating(\.calendarOptions.onMonthYearChanged, value: callback)
+    }
+
+    /// Sets the content padding for the calendar view.
+    public func contentPadding(_ padding: CGFloat) -> Self {
+        mutating(\.calendarOptions.contentPadding, value: padding)
+    }
+
+    /// Sets the selection mode for the calendar view.
+    public func selectionMode(_ mode: CalendarSelectionMode) -> Self {
+        mutating(\.calendarOptions.selectionMode, value: mode)
+    }
+
+    /// Sets the currently selected dates.
+    public func selectedDates(_ dates: Set<Date>) -> Self {
+        mutating(\.calendarOptions.selectedDates, value: dates)
+    }
+
+    /// Sets the callback for when the selection changes.
+    public func onSelectionChanged(_ callback: @escaping ([Date]) -> Void) -> Self {
+        mutating(\.calendarOptions.onSelectionChanged, value: callback)
+    }
+
+    /// Sets the minimum and/or maximum allowed dates.
+    public func dateRange(minimum: Date? = nil, maximum: Date? = nil) -> Self {
+        var copy = self
+        copy.calendarOptions.minimumDate = minimum
+        copy.calendarOptions.maximumDate = maximum
+        return copy
+    }
+
+    /// Sets the theme for the calendar view.
+    public func calendarTheme(_ theme: CalendarTheme) -> Self {
+        mutating(\.calendarOptions.theme, value: theme)
+    }
 }

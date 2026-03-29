@@ -24,9 +24,9 @@ extension View {
         maxWidthAble().maxHeightAble()
     }
 
-    /// Sets the padding of the view to a default value of 16 on all sides.
-    public func marginDefault() -> some View {
-        padding(.all, 16)
+    /// Sets the padding of the view with configurable edges and length.
+    public func marginDefault(_ edges: Edge.Set = .all, _ length: CGFloat = 16) -> some View {
+        padding(edges, length)
     }
 
     /// Clips the view to the specified corner radius.
@@ -104,6 +104,50 @@ extension View {
     ) -> some View {
         if let range, range.contains(date) {
             self.background(color)
+        } else {
+            self
+        }
+    }
+}
+
+extension View {
+    /// Highlights the view if the date is in the selected dates set.
+    @ViewBuilder
+    func highlightIfSelected(
+        _ date: Date,
+        selectedDates: Set<Date>,
+        calendar: Calendar,
+        color: Color = .blue.opacity(0.3)
+    ) -> some View {
+        let isSelected = selectedDates.contains { calendar.isDate($0, inSameDayAs: date) }
+        if isSelected {
+            self.background(color.clipShape(RoundedRectangle(cornerRadius: 4)))
+        } else {
+            self
+        }
+    }
+}
+
+extension View {
+    /// Dims and disables interaction if the date is outside the min/max bounds.
+    @ViewBuilder
+    func applyDateBounds(
+        _ date: Date,
+        minimum: Date?,
+        maximum: Date?,
+        calendar: Calendar
+    ) -> some View {
+        let isOutOfBounds = {
+            if let min = minimum, calendar.compare(date, to: min, toGranularity: .day) == .orderedAscending {
+                return true
+            }
+            if let max = maximum, calendar.compare(date, to: max, toGranularity: .day) == .orderedDescending {
+                return true
+            }
+            return false
+        }()
+        if isOutOfBounds {
+            self.opacity(0.3).allowsHitTesting(false)
         } else {
             self
         }

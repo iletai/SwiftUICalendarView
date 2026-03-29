@@ -33,13 +33,13 @@ public struct CalendarView<
     public typealias OnEndDragAction = (Direction, CalendarViewMode) -> Void
 
     /// A type alias for a dictionary that stores the dates for each year.
-    typealias YearData = [Date: [Date]]
+    typealias YearData = [Date: [CalendarDay]]
 
     /// A type alias for an array of dates for a specific month.
-    typealias MonthDateData = [Date]
+    typealias MonthDateData = [CalendarDay]
 
     /// A type alias for an array of dates for a specific week.
-    typealias WeekDataData = [Date]
+    typealias WeekDataData = [CalendarDay]
 
     // MARK: - Properties
 
@@ -174,17 +174,44 @@ public struct CalendarView<
 
     // MARK: - Main Body View
     public var body: some View {
-        LazyVGrid(
-            columns: columnGridLayout,
-            spacing: calendarOptions.spacingBetweenDay,
-            pinnedViews: pinnedHeaderView
-        ) {
-            bodyContentView
+        ScrollViewReader { proxy in
+            LazyVGrid(
+                columns: columnGridLayout,
+                spacing: calendarOptions.spacingBetweenDay,
+                pinnedViews: pinnedHeaderView
+            ) {
+                bodyContentView
+            }
+            .onAppear {
+                if let scrollDate = calendarOptions.scrollToDateOnAppear {
+                    withAnimation {
+                        proxy.scrollTo(
+                            scrollDate.startOfMonth(using: calendarOptions.calendar),
+                            anchor: .top
+                        )
+                    }
+                }
+            }
         }
         .highPriorityGesture(swipeGesture)
-        .marginDefault()
+        .padding(.all, calendarOptions.contentPadding)
         .background(backgroundCalendar)
         .animation(calendarOptions.swapAnimation, value: calendarOptions.viewMode)
+        .overlay(alignment: .bottomTrailing) {
+            if calendarOptions.showTodayButton {
+                Button {
+                    calendarOptions.onTodayTapped?()
+                } label: {
+                    Text("Today")
+                        .font(.caption.bold())
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(.ultraThinMaterial)
+                        .clipShape(Capsule())
+                }
+                .padding(8)
+            }
+        }
     }
 }
 
@@ -228,19 +255,24 @@ extension CalendarView {
                         headerView(headerDates)
                     }
                     .maxWidthAble()
+                    .id(month)
             ) {
                 ForEach(
-                    yearData[month, default: []],
-                    id: \.self
-                ) { date in
+                    yearData[month, default: []]
+                ) { calendarDay in
+                    let date = calendarDay.date
                     if date.isSameMonth(as: month, using: calendar) {
                         dateView(date)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .highlightIfSelected(date, selectedDates: calendarOptions.selectedDates, calendar: calendarOptions.calendar)
+                            .applyDateBounds(date, minimum: calendarOptions.minimumDate, maximum: calendarOptions.maximumDate, calendar: calendarOptions.calendar)
                             .highlightIfInRange(date, range: calendarOptions.selectedDateRange)
                             .eventIndicator(for: date, events: calendarOptions.eventDates)
                             .highlightTodayView(
                                 calendar.isDateInToday(date)
-                                && calendarOptions.isHighlightToday
-                            )
+                                && calendarOptions.isHighlightToday,
+                                calendarOptions.theme.todayColor
+                                )
                             .calendarDateAccessibility(
                                 date: date,
                                 isSelected: false,
@@ -275,17 +307,21 @@ extension CalendarView {
                     spacing: .zero
                 ) {
                     ForEach(
-                        yearData[month, default: []],
-                        id: \.self
-                    ) { date in
+                        yearData[month, default: []]
+                    ) { calendarDay in
+                        let date = calendarDay.date
                         if date.isSameMonth(as: month, using: calendar) {
                             dateView(date)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .highlightIfSelected(date, selectedDates: calendarOptions.selectedDates, calendar: calendarOptions.calendar)
+                                .applyDateBounds(date, minimum: calendarOptions.minimumDate, maximum: calendarOptions.maximumDate, calendar: calendarOptions.calendar)
                                 .highlightIfInRange(date, range: calendarOptions.selectedDateRange)
                                 .eventIndicator(for: date, events: calendarOptions.eventDates)
                                 .highlightTodayView(
                                     calendar.isDateInToday(date)
-                                    && calendarOptions.isHighlightToday
-                                )
+                                    && calendarOptions.isHighlightToday,
+                                    calendarOptions.theme.todayColor
+                                    )
                                 .calendarDateAccessibility(
                                     date: date,
                                     isSelected: false,
@@ -307,13 +343,34 @@ extension CalendarView {
     fileprivate func monthTitle(for month: Date) -> some View {
         HStack {
             Spacer()
-            Text(
-                month.formatted(
-                    as: "MMM",
-                    locale: calendarOptions.calendar.locale
+            if calendarOptions.enableMonthYearPicker {
+                Button {
+                    calendarOptions.onMonthYearChanged?(month)
+                } label: {
+                    HStack(spacing: 4) {
+                        Text(
+                            month.formatted(
+                                as: "MMM yyyy",
+                                locale: calendarOptions.calendar.locale
+                            )
+                            .uppercased()
+                        )
+                        .font(fontTitle)
+                        Image(systemName: "chevron.down")
+                            .font(.caption2)
+                    }
+                }
+                .buttonStyle(.plain)
+            } else {
+                Text(
+                    month.formatted(
+                        as: "MMM",
+                        locale: calendarOptions.calendar.locale
+                    )
+                    .uppercased()
                 )
-                .uppercased()
-            ).font(fontTitle)
+                .font(fontTitle)
+            }
             Spacer()
         }
         .allowVisibleWith(calendarOptions.isShowHeader)
@@ -339,15 +396,20 @@ extension CalendarView {
     fileprivate func calendarWeekView() -> some View {
         let calendar = calendarOptions.calendar
         Section(header: weekDayAndMonthView) {
-            ForEach(weekData, id: \.self) { date in
+            ForEach(weekData) { calendarDay in
+                let date = calendarDay.date
                 if date.isSameWeek(as: self.date, using: calendar) {
                     dateView(date)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .highlightIfSelected(date, selectedDates: calendarOptions.selectedDates, calendar: calendarOptions.calendar)
+                        .applyDateBounds(date, minimum: calendarOptions.minimumDate, maximum: calendarOptions.maximumDate, calendar: calendarOptions.calendar)
                         .highlightIfInRange(date, range: calendarOptions.selectedDateRange)
                         .eventIndicator(for: date, events: calendarOptions.eventDates)
                         .highlightTodayView(
                             calendar.isDateInToday(date)
-                            && calendarOptions.isHighlightToday
-                        )
+                            && calendarOptions.isHighlightToday,
+                            calendarOptions.theme.todayColor
+                            )
                         .calendarDateAccessibility(
                             date: date,
                             isSelected: false,
@@ -367,15 +429,20 @@ extension CalendarView {
     fileprivate func monthContentView() -> some View {
         let calendar = calendarOptions.calendar
         Section(header: weekDayAndMonthView) {
-            ForEach(monthData, id: \.self) { date in
+            ForEach(monthData) { calendarDay in
+                let date = calendarDay.date
                 if date.isSameMonth(as: self.date, using: calendar) {
                     dateView(date)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .highlightIfSelected(date, selectedDates: calendarOptions.selectedDates, calendar: calendarOptions.calendar)
+                        .applyDateBounds(date, minimum: calendarOptions.minimumDate, maximum: calendarOptions.maximumDate, calendar: calendarOptions.calendar)
                         .highlightIfInRange(date, range: calendarOptions.selectedDateRange)
                         .eventIndicator(for: date, events: calendarOptions.eventDates)
                         .highlightTodayView(
                             calendar.isDateInToday(date)
-                            && calendarOptions.isHighlightToday
-                        )
+                            && calendarOptions.isHighlightToday,
+                            calendarOptions.theme.todayColor
+                            )
                         .calendarDateAccessibility(
                             date: date,
                             isSelected: false,
@@ -410,12 +477,16 @@ extension CalendarView {
             Divider()
                 .allowVisibleWith(calendarOptions.isShowDivider)
             dateView(date)
+                .fixedSize(horizontal: false, vertical: true)
+                .highlightIfSelected(date, selectedDates: calendarOptions.selectedDates, calendar: calendarOptions.calendar)
+                .applyDateBounds(date, minimum: calendarOptions.minimumDate, maximum: calendarOptions.maximumDate, calendar: calendarOptions.calendar)
                 .highlightIfInRange(date, range: calendarOptions.selectedDateRange)
                 .eventIndicator(for: date, events: calendarOptions.eventDates)
                 .highlightTodayView(
                     calendar.isDateInToday(date)
-                    && calendarOptions.isHighlightToday
-                )
+                    && calendarOptions.isHighlightToday,
+                    calendarOptions.theme.todayColor
+                    )
                 .calendarDateAccessibility(
                     date: date,
                     isSelected: false,

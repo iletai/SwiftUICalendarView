@@ -20,17 +20,18 @@ extension CalendarView {
         date: Date,
         withComponent: Calendar.Component = .month,
         dateComponents: DateComponents
-    ) -> [Date] {
+    ) -> [CalendarDay] {
         let calendar = calendarOptions.calendar
         let componentStart = date.startOf(withComponent, using: calendar)
         let componentEnd = date.endOf(withComponent, using: calendar)
         let gridStart = componentStart.startOfWeek(using: calendar)
         let gridEnd = componentEnd.endOfWeek(using: calendar)
-        return calendar.enumerateDates(
+        let dates = calendar.enumerateDates(
             from: gridStart,
             to: gridEnd,
             increment: dateComponents
         )
+        return dates.map { CalendarDay(date: $0, monthContext: date) }
     }
 }
 
@@ -118,11 +119,11 @@ extension CalendarView {
     var headerDates: [Date] {
         switch calendarOptions.viewMode {
         case .month, .week:
-            return Array(monthData.prefix(CalendarDefine.kWeekDays))
+            return Array(monthData.prefix(CalendarDefine.kWeekDays).map(\.date))
         case .year:
             let yearStart = date.startOfYear(using: calendarOptions.calendar)
             return Array(
-                yearData[yearStart, default: []].prefix(CalendarDefine.kWeekDays)
+                yearData[yearStart, default: []].prefix(CalendarDefine.kWeekDays).map(\.date)
             )
         case .single:
             return [date]
@@ -134,10 +135,10 @@ extension CalendarView {
         case .month,
             .single,
             .year(.full):
-            return .footnote.bold()
+            return calendarOptions.theme.titleFont
         case .year(.compact):
             return .system(size: 10, weight: .semibold)
-        default: return .footnote.bold()
+        default: return calendarOptions.theme.titleFont
         }
     }
 }
