@@ -1,197 +1,289 @@
 <p align="center">
 <img src="https://github.com/iletai/SwiftUICalendarView/assets/26614687/cc7b3b91-73ff-4195-9377-4ece5fd299fe" height="128">
-<h1 align="center">Calendar For SwiftUI</h1>
+<h1 align="center">SwiftUICalendarView 3.0</h1>
 </p>
 
 <p align="center">
-<a aria-label="Follow Me on Instagram" href="https://www.instagram.com/tai.lqt" target="_blank">
-    <img alt="" src="https://github.com/iletai/SwiftUICalendarView/assets/26614687/176e7212-8803-459a-8940-d209c7177643" height="28">
-</a>
+<strong>The #1 Zero-Dependency, High-Performance Declarative Calendar for SwiftUI.</strong>
 </p>
-
-> [!NOTE]
-> SwiftUI is a component for creating a calendar view with SwiftUI Framework.
-> Build a Calendar By Pure SwiftUI using native Calendar and Date APIs. SwiftUICalendarView is a Swift Package for building and displaying a simple calendar interface in SwiftUI. This library provides an easy way to integrate a calendar into your app.
 
 <p align="center">
-<img width="300" alt="github-banner" src="screenshot.gif" class="center">
+<img src="https://img.shields.io/badge/Swift-5.9%20%7C%206.0-orange.svg" alt="Swift 5.9+">
+<img src="https://img.shields.io/badge/Platforms-iOS%2016+%20%7C%20macOS%2013+%20%7C%20visionOS%201+%20%7C%20watchOS%2010+-blue.svg" alt="Platforms">
+<img src="https://img.shields.io/badge/Dependencies-0-success.svg" alt="Zero Dependencies">
+<a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT"></a>
+<a href="https://github.com/iletai/SwiftUICalendarView/actions"><img src="https://github.com/iletai/SwiftUICalendarView/actions/workflows/build_master.yml/badge.svg?branch=master" alt="Build Status"></a>
 </p>
 
-## SwiftUICalendarView
+---
 
-![Swift](https://img.shields.io/badge/Swift-5.9-orange.svg)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Build Project](https://github.com/iletai/SwiftUICalendarView/actions/workflows/build_master.yml/badge.svg?branch=master)](https://github.com/iletai/SwiftUICalendarView/actions/workflows/build_master.yml)
+<p align="center">
+<img width="320" alt="SwiftUICalendarView Showcase" src="screenshot.gif" class="center">
+</p>
+
+## Why SwiftUICalendarView 3.0?
+
+SwiftUICalendarView 3.0 is completely rebuilt from the ground up for modern SwiftUI. Engineered with `FastCalendarEngine` for 120fps ProMotion fluidity, zero third-party dependencies, full non-Gregorian calendar support, and standard SwiftUI declarative ViewModifiers.
+
+- **Zero Dependencies**: Pure SwiftUI & Foundation. No external runtime overhead.
+- **1-Line Ergonomic Initializers**: Single date, booking date ranges, multi-date selections, and display-only agendas.
+- **Continuous Range Highlight**: Native smooth connected bounding curves for hotel & flight booking ranges.
+- **`FastCalendarEngine` O(1) Math**: Date comparisons and lookups powered by integer key hash math (`YYYYMMDD`), bypassing expensive `DateComponents` allocations per frame.
+- **Fixed 42-Cell Matrix**: Deterministic 6×7 grid prevents height jumping and layout jitter across month switches.
+- **Deep Localization & Calendar Systems**: Works natively with Gregorian, Buddhist (BE), Japanese (Reiwa), Islamic (Hijri), Hebrew, and Persian calendars.
+- **Full VoiceOver Accessibility**: Accessible traits, dynamic date descriptions, and event count announcements out of the box.
+
+---
 
 ## Requirements
 
-> [!IMPORTANT]
-> | **Platforms** | **Minimum Swift Version** |
-> |:----------|:----------|
-> | iOS 17+ | 5.9 |
+| Platform | Minimum Version | Swift |
+| :--- | :--- | :--- |
+| **iOS** | 16.0+ | 5.9+ |
+| **macOS** | 13.0+ | 5.9+ |
+| **visionOS** | 1.0+ | 5.9+ |
+| **watchOS** | 10.0+ | 5.9+ |
+| **tvOS** | 16.0+ | 5.9+ |
+
+---
 
 ## Installation
 
-### Swift Package Manager
+### Swift Package Manager (SPM)
 
-To integrate SwiftUICalendarView into your project, add the GitHub URL to the dependencies section in your Package.swift file:
+In Xcode, select **File > Add Package Dependencies...** and enter:
+
+```
+https://github.com/iletai/SwiftUICalendarView.git
+```
+
+Or add it to your `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/iletai/SwiftUICalendarView.git", from: "v2.0.0"),
+    .package(url: "https://github.com/iletai/SwiftUICalendarView.git", from: "3.0.0")
 ],
 targets: [
-    .target(name: "YourTarget", dependencies: ["CalendarView"]),
+    .target(name: "YourTarget", dependencies: ["CalendarView"])
 ]
 ```
 
 ### CocoaPods
 
-CocoaPods is a dependency manager for Swift and Objective-C Cocoa projects that helps to scale them elegantly.
+Add to your `Podfile`:
 
-[Installation steps](https://cocoapods.org/pods/SwiftUICalendarView):
-
-- Install CocoaPods 1.10.0 (or later)
-- Add CocoaPods dependency into your `Podfile`
-
-```shell
-target 'MyApp' do
-pod 'SwiftUICalendarView'
-end
+```ruby
+pod 'SwiftUICalendarView', '~> 3.0'
 ```
 
-## Feature Support
+---
 
-- Calendar Mode: Week, Month, Year (Full & Compact), Single
-- First WeekDay
-- Show Date Out
-- Pin Header Calendar
-- Allow Custom Owner Calendar Date View
-- Highlight Today
-- Drag Direction & Mode Callbacks
-- Calendar Locale
-- Background Customization
-- Row & Column Spacing
-- Divider Support
+## Quick Start
 
-## Usable Example Calendar View
-
-> [!WARNING]
-> To avoid interfering with the Observable reload mechanism in SwiftUI,
-> let the application control reloads using `@State`, `@StateObject`, or `Observer` directly.
+### 1. Single Date Picker
 
 ```swift
 import SwiftUI
 import CalendarView
 
-struct ContentView: View {
-    @State var isShowHeader = false
-    @State var isShowDateOut = false
-    @State var firstWeekDate = 1
-    @State var viewMode = CalendarViewMode.year
+struct SinglePickerDemo: View {
     @State private var selectedDate = Date()
-    @State var listSelectedDate = [Date]()
 
     var body: some View {
-        VStack {
-            CalendarView(
-                date: selectedDate
-                , dateView: { date in
-                    VStack {
-                        Text(date.dayName)
-                            .font(.footnote)
-                            .fontWeight(.semibold)
-                            .foregroundColor(
-                                Calendar.current.isDateInWeekend(date) ? .red : .black
-                            )
-                    }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 30)
-                    .background(listSelectedDate.contains(date) ? .cyan : .clear)
-                }, headerView: { date in
-                    VStack {
-                        Text(date.weekDayShortName)
-                            .font(.footnote)
-                            .fontWeight(.bold)
-                            .foregroundColor(
-                                Calendar.current.isDateInWeekend(date) ? .red : .black
-                            )
-                    }
-                }, dateOutView: { date in
-                    Text(DateFormatter.day.string(from: date))
-                        .font(.footnote)
-                        .foregroundColor(.gray)
-                },
-                onSelectedDate: onSelectedDate
-            )
+        CalendarView(selection: $selectedDate)
+    }
+}
 ```
 
-## Customizing the Interface
-
-You can customize the calendar's interface using properties like accentColor, selectedDateColor, and disabledDateColor:
+### 2. Booking Range Picker (Continuous Highlight)
 
 ```swift
-            .enableHeader(isShowHeader)
-            .enableDateOut(isShowDateOut)
-            .firstWeekDay(firstWeekDate)
-            .calendarLocale(Locale(identifier: "vi"))
-            .enablePinnedView(.sectionHeaders)
-            .setViewMode(viewMode)
-            .rowsSpacing(0)
-            .columnSpacing(0)
-            .backgroundCalendar(.visible(20, .gray.opacity(0.3)))
-            .onDraggingEnded { direction, mode in
-                if direction == .forward {
-                    selectedDate = Calendar.current.date(
-                        byAdding: mode == .week ? .weekOfYear : .month,
-                        value: 1,
-                        to: selectedDate
-                    ) ?? selectedDate
-                }
+struct BookingRangeDemo: View {
+    @State private var dateRange: ClosedRange<Date>? = nil
+
+    var body: some View {
+        CalendarView(selection: $dateRange)
+    }
+}
+```
+
+### 3. Multi-Date Selection
+
+```swift
+struct MultiSelectionDemo: View {
+    @State private var selectedDates = Set<Date>()
+
+    var body: some View {
+        CalendarView(selection: $selectedDates)
+    }
+}
+```
+
+### 4. Display-Only Agenda / Read-Only Calendar
+
+```swift
+struct AgendaCalendarDemo: View {
+    @State private var displayDate = Date()
+
+    var body: some View {
+        CalendarView(displayDate: $displayDate)
+    }
+}
+```
+
+---
+
+## Declarative ViewModifiers
+
+Configure calendars cleanly using SwiftUI's environment and modifier system:
+
+```swift
+CalendarView(selection: $selectedDate)
+    // 1. Set Calendar View Mode (.month, .week, .year)
+    .calendarViewMode(.month)
+
+    // 2. Multi-color Event Indicators
+    .calendarEvents([
+        Date(): [
+            CalendarEvent(date: Date(), color: .blue, title: "Team Sync"),
+            CalendarEvent(date: Date(), color: .red, title: "Release 3.0")
+        ]
+    ])
+
+    // 3. Disable Specific Dates / Weekends / Past Dates
+    .calendarDisabledDates { date in
+        Calendar.current.isDateInWeekend(date)
+    }
+
+    // 4. Override First Day of the Week
+    .calendarFirstWeekday(.monday)
+
+    // 5. Locale & Language Customization
+    .calendarLocale(Locale(identifier: "vi_VN"))
+
+    // 6. Enable / Disable Selection Haptics (iOS)
+    .calendarHapticsEnabled(true)
+```
+
+---
+
+## Custom Slot Builders
+
+Customize the day cell, month header, or weekday header while retaining full engine performance and selection state:
+
+### Custom Day Cell Builder
+
+```swift
+CalendarView(selection: $selectedDate)
+    .calendarDayCell { state in
+        VStack(spacing: 2) {
+            Text("\(state.dayNumber)")
+                .font(.system(size: 15, weight: state.isSelected ? .bold : .regular))
+                .foregroundColor(state.isSelected ? .white : (state.isCurrentMonth ? .primary : .secondary))
+
+            if !state.events.isEmpty {
+                Circle()
+                    .fill(Color.orange)
+                    .frame(width: 4, height: 4)
             }
+        }
+        .frame(height: 38)
+        .frame(maxWidth: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(state.isSelected ? Color.blue : Color.clear)
+        )
+    }
 ```
 
-## Migration Guide
-
-### Migrating from v1.x to v2.0
-
-#### SwiftDate Dependency Removed
-
-The `SwiftDate` dependency has been removed. Use native `Calendar` and `Date` APIs instead:
+### Custom Month Header & Weekday Header
 
 ```swift
-// Before (SwiftDate)
-import SwiftDate
-selectedDate = selectedDate.nextWeekday(.friday)
-
-// After (native)
-let nextFriday = Calendar.current.nextDate(
-    after: selectedDate,
-    matching: DateComponents(weekday: 6),
-    matchingPolicy: .nextTime
-)
-selectedDate = nextFriday ?? selectedDate
+CalendarView(selection: $selectedDate)
+    .calendarHeader { matrix, onPrevious, onNext in
+        HStack {
+            Text(matrix.monthTitle)
+                .font(.headline)
+            Spacer()
+            Button(action: onPrevious) { Image(systemName: "arrow.left") }
+            Button(action: onNext) { Image(systemName: "arrow.right") }
+        }
+        .padding(.horizontal)
+    }
+    .calendarWeekdayHeader { calendar in
+        HStack {
+            ForEach(calendar.shortStandaloneWeekdaySymbols, id: \.self) { symbol in
+                Text(symbol.prefix(1))
+                    .font(.caption2.bold())
+                    .frame(maxWidth: .infinity)
+            }
+        }
+    }
 ```
 
-#### Renamed APIs
+---
 
-The following APIs have been renamed. Deprecated aliases are provided for backward compatibility:
+## Architecture & Performance
 
-| Old Name | New Name |
-|:---------|:---------|
-| `calendarLocate(locale:)` | `calendarLocale(_:)` |
-| `enablePinedView(_:)` | `enablePinnedView(_:)` |
-| `hightLightToDayView(_:_:)` | `highlightTodayView(_:_:)` |
-| `withRounderConner(_:)` | `withRoundedCorner(_:)` |
-| `enableHighlightToDay(_:)` | `enableHighlightToday(_:)` |
+### 1. `FastCalendarEngine` & O(1) Integer Key Math
+Traditional calendar rendering computes `DateComponents` repeatedly inside cell rendering loops, causing thermal throttling and dropped frames during rapid swipe navigation.
 
-## Example
+`FastCalendarEngine` normalizes all calendar dates into packed integer keys (`YYYYMMDD`, e.g., `20260924`). Selection checks, range bounding, and event lookups run at **O(1)** integer speed in `Set<Int>` and `[Int: [CalendarEvent]]`, allowing fluid 120Hz ProMotion scrolling over 120+ consecutive months.
 
-> [!NOTE]
-> For example using this repository, please help to see more at: <https://github.com/iletai/SwiftUICalendarView/tree/master/CalendarExampleView>
+### 2. Fixed 42-Cell Matrix (6 × 7 Grid)
+Every month produces exactly 42 cells (previous month trailing days + current month + next month leading days). View hierarchies retain stable dimensions, eliminating UI jumps and layout calculations when flipping between 28-day, 30-day, and 31-day months.
 
-If you find a bug or have a way to improve the library, create an Issue or propose a Pull Request. We welcome contributions from the community.
+### 3. Continuous `RangeSelectionShape`
+Continuous date range highlighting calculates geometric positions (`.singleDay`, `.rangeStart`, `.rangeMiddle`, `.rangeEnd`, `.rowStart`, `.rowEnd`) across multi-row matrix layouts to draw unified curved ribbons for booking check-in/out UX.
+
+### 4. Comprehensive Non-Gregorian & Multi-Locale Support
+Native integration with Apple's `Calendar` and `Locale` APIs allows zero-code localization:
+- **Buddhist Calendar**: Correct Era 2567 BE representation.
+- **Japanese Calendar**: Native Reiwa era formatting.
+- **Islamic (Hijri) & Hebrew Calendars**: Native day indices and weekday alignment.
+- **Daylight Saving Time (DST)**: Robust transitions for US Spring Forward (23h) and EU Fall Back (25h).
+
+---
+
+## Migration Guide: v2.x to v3.0
+
+SwiftUICalendarView 3.0 introduces a modern declarative API with cleaner ergonomics:
+
+| v2.x (Legacy API) | v3.0 (Modern API) |
+| :--- | :--- |
+| `CalendarView(date: selectedDate, dateView: ...)` | `CalendarView(selection: $selectedDate)` |
+| `selectionMode(.range)` + `onRangeSelected` | `CalendarView(selection: $range)` |
+| `selectionMode(.multiple)` + `onSelectionChanged` | `CalendarView(selection: $selectedDates)` |
+| `.calendarLocate(locale:)` | `.calendarLocale(locale)` |
+| `.disabledDates { ... }` | `.calendarDisabledDates { date in ... }` |
+| `.eventDates(set)` | `.calendarEvents([Date: [CalendarEvent]])` |
+| `.firstWeekDay(.monday)` | `.calendarFirstWeekday(.monday)` |
+| `.enableHighlightToday(true)` | Built-in by default (`state.isToday`) |
+| Custom cell via initializer parameters | `.calendarDayCell { state in ... }` modifier |
+
+---
+
+## Example App
+
+Check out the included Xcode sample project at `CalendarExampleView/CalendarExampleView.xcodeproj` demonstrating:
+1. **Single Date Picker** with Today jump and weekday configuration.
+2. **Booking Range Picker** with live night counts and disable past dates.
+3. **Event Calendar** with multi-color status badges and interactive agenda list.
+4. **Custom Slot Builder** with alternate locale switcher (Vietnamese, Japanese, French, English) and alternate calendars (Buddhist, Japanese, Islamic).
+
+---
+
+## Contributing
+
+Contributions, bug reports, and feature requests are welcome!
+1. Fork the project repository.
+2. Create your feature branch (`git checkout -b feature/amazing-feature`).
+3. Ensure all tests pass (`swift test`).
+4. Commit your changes (`git commit -m 'feat: add amazing feature'`).
+5. Push to the branch and open a Pull Request.
+
+---
 
 ## License
 
-SwiftUICalendarView is released under the MIT License. See details in LICENSE.
+SwiftUICalendarView is released under the **MIT License**. See [LICENSE](LICENSE) for details.

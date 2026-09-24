@@ -9,267 +9,474 @@ import CalendarView
 import SwiftUI
 
 struct ContentView: View {
-    // MARK: - State
-    @State private var selectedDate = Date()
-    @State private var viewMode = CalendarViewMode.month
-    @State private var selectionMode = CalendarSelectionMode.single
-    @State private var selectedDates = Set<Date>()
-    @State private var selectedRange: ClosedRange<Date>?
+    var body: some View {
+        TabView {
+            SingleDatePickerDemo()
+                .tabItem {
+                    Label("Single", systemImage: "calendar")
+                }
 
-    @State private var isShowHeader = true
-    @State private var isShowDateOut = true
-    @State private var isShowDivider = false
-    @State private var isHighlightToday = true
-    @State private var useDarkTheme = false
-    @State private var disableWeekends = false
+            BookingRangePickerDemo()
+                .tabItem {
+                    Label("Booking", systemImage: "arrow.left.and.right.square")
+                }
 
-    // MARK: - Computed Properties
-    private var isCompact: Bool {
-        viewMode == .year(.compact)
-    }
+            EventCalendarDemo()
+                .tabItem {
+                    Label("Events", systemImage: "circle.grid.2x2")
+                }
 
-    private var currentTheme: CalendarTheme {
-        useDarkTheme ? .dark : .default
-    }
-
-    private var sampleEventDates: Set<Date> {
-        let cal = Calendar.current
-        let today = Date()
-        var dates = Set<Date>()
-        for offset in [2, 5, 8, 14, 21] {
-            if let day = cal.date(byAdding: .day, value: offset, to: today) {
-                dates.insert(cal.startOfDay(for: day))
-            }
+            CustomSlotAndLocaleDemo()
+                .tabItem {
+                    Label("Custom & Locale", systemImage: "slider.horizontal.3")
+                }
         }
-        return dates
     }
+}
 
-    private var minDate: Date {
-        Calendar.current.date(byAdding: .month, value: -3, to: Date()) ?? Date()
-    }
+// MARK: - 1. Single Date Picker Demo
+struct SingleDatePickerDemo: View {
+    @State private var selectedDate = Date()
+    @State private var displayDate = Date()
+    @State private var firstWeekday: Locale.Weekday = .sunday
+    @State private var hapticsEnabled = true
 
-    private var maxDate: Date {
-        Calendar.current.date(byAdding: .month, value: 3, to: Date()) ?? Date()
-    }
-
-    // MARK: - Body
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                ScrollView {
-                    VStack {
-                        CalendarView(
-                            date: selectedDate,
-                            dateView: { date in
-                                Text(date.dayName)
-                                    .font(
-                                        isCompact
-                                            ? .system(size: 9)
-                                            : currentTheme.dayFont
-                                    )
-                                    .foregroundColor(dayColor(for: date))
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Selected Date Header Card
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Selected Date")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .textCase(.uppercase)
+                        Text(selectedDate.formatted(date: .complete, time: .omitted))
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+                    .background(Color(.secondarySystemBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                    // Calendar View
+                    CalendarView(selection: $selectedDate, displayDate: $displayDate)
+                        .calendarFirstWeekday(firstWeekday)
+                        .calendarHapticsEnabled(hapticsEnabled)
+                        .padding(.vertical, 8)
+                        .background(Color(.systemBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
+
+                    // Actions & Controls
+                    VStack(spacing: 16) {
+                        HStack(spacing: 12) {
+                            Button {
+                                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                    let today = Date()
+                                    displayDate = today
+                                    selectedDate = today
+                                }
+                            } label: {
+                                Label("Today", systemImage: "calendar.badge.clock")
+                                    .font(.subheadline.bold())
                                     .frame(maxWidth: .infinity)
-                                    .frame(height: isCompact ? 14 : 30)
-                                    .background(
-                                        isCompact
-                                            ? .clear
-                                            : dayBackground(for: date)
-                                    )
-                                    .clipShape(
-                                        RoundedRectangle(
-                                            cornerRadius: isCompact ? 0 : 6
-                                        )
-                                    )
-                            },
-                            headerView: { dates in
-                                HStack {
-                                    ForEach(dates, id: \.self) { day in
-                                        Text(
-                                            day.weekDayShortName
-                                                .uppercased()
-                                        )
-                                        .font(currentTheme.headerFont)
-                                        .foregroundColor(
-                                            Calendar.current
-                                                .isDateInWeekend(day)
-                                                ? currentTheme.weekendColor
-                                                : .primary
-                                        )
-                                        .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 10)
+                            }
+                            .buttonStyle(.borderedProminent)
+
+                            Button {
+                                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                    if let nextMonth = Calendar.current.date(byAdding: .month, value: 1, to: displayDate) {
+                                        displayDate = nextMonth
                                     }
                                 }
-                            },
-                            dateOutView: { date in
-                                Text(date.dayName)
-                                    .font(
-                                        isCompact
-                                            ? .system(size: 9)
-                                            : currentTheme.dayFont
-                                    )
-                                    .foregroundColor(
-                                        currentTheme.dateOutColor
-                                    )
+                            } label: {
+                                Label("Next Month", systemImage: "chevron.right")
+                                    .font(.subheadline.bold())
                                     .frame(maxWidth: .infinity)
-                                    .frame(height: isCompact ? 14 : 30)
+                                    .padding(.vertical, 10)
                             }
-                        )
-                        .enableHeader(isShowHeader)
-                        .enableDateOut(isShowDateOut)
-                        .enableDivider(isShowDivider)
-                        .enableHighlightToday(isHighlightToday)
-                        .firstWeekDay(.monday)
-                        .setViewMode(viewMode)
-                        .rowsSpacing(6)
-                        .columnSpacing(4)
-                        .contentPadding(12)
-                        .backgroundCalendar(.visible(12, .gray.opacity(0.1)))
-                        .calendarTheme(currentTheme)
-                        // Wave 2: Selection mode
-                        .selectionMode(selectionMode)
-                        .selectedDates(selectedDates)
-                        .onSelectionChanged { dates in
-                            selectedDates = Set(dates)
+                            .buttonStyle(.bordered)
                         }
-                        // Wave 2: Date range selection
-                        .selectedRange(selectedRange)
-                        .onRangeSelected { range in
-                            selectedRange = range
-                        }
-                        // Wave 2: Event markers
-                        .eventDates(sampleEventDates)
-                        // Wave 2: Date range limits (±3 months)
-                        .dateRange(minimum: minDate, maximum: maxDate)
-                        // Wave 2: Disabled dates (weekends)
-                        .disabledDates { date in
-                            disableWeekends && Calendar.current.isDateInWeekend(date)
-                        }
-                        // Wave 2: Today button
-                        .showTodayButton(true)
-                        .onTodayTapped {
-                            withAnimation { selectedDate = Date() }
-                        }
-                        // Wave 2: Month/Year picker
-                        .enableMonthYearPicker(true)
-                        .onMonthYearChanged { date in
-                            withAnimation { selectedDate = date }
-                        }
-                        // Wave 2: Scroll to today on appear
-                        .scrollToDate(Date())
-                        .onDraggingEnded { direction, mode in
-                            let component: Calendar.Component = mode == .month ? .month : .weekOfYear
-                            let value = direction == .forward ? 1 : -1
-                            withAnimation(.easeInOut) {
-                                selectedDate = Calendar.gregorian.date(
-                                    byAdding: component, value: value, to: selectedDate
-                                ) ?? selectedDate
+
+                        Divider()
+
+                        HStack {
+                            Text("First Weekday")
+                                .font(.subheadline)
+                            Spacer()
+                            Picker("First Weekday", selection: $firstWeekday) {
+                                Text("Sun").tag(Locale.Weekday.sunday)
+                                Text("Mon").tag(Locale.Weekday.monday)
+                                Text("Sat").tag(Locale.Weekday.saturday)
                             }
+                            .pickerStyle(.segmented)
+                            .frame(width: 180)
                         }
-                        .onSelectDate { date in
-                            selectedDate = date
-                        }
-                        .marginDefault()
-                        .allowsTightening(true)
+
+                        Toggle("Haptic Feedback", isOn: $hapticsEnabled)
+                            .font(.subheadline)
                     }
-                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color(.secondarySystemBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
-
-                controlPanel
+                .padding()
             }
-            .navigationTitle("Calendar Demo")
-            .navigationBarTitleDisplayMode(.inline)
-            .background(useDarkTheme ? Color.black : Color(.systemGroupedBackground))
-            .preferredColorScheme(useDarkTheme ? .dark : .light)
+            .navigationTitle("Single Picker")
         }
     }
+}
 
-    // MARK: - Day Styling Helpers
-    private func dayColor(for date: Date) -> Color {
-        if Calendar.current.isDateInWeekend(date) {
-            return currentTheme.weekendColor
-        }
-        return .primary
-    }
-
-    private func dayBackground(for date: Date) -> Color {
+// MARK: - 2. Booking Range Picker Demo
+struct BookingRangePickerDemo: View {
+    @State private var dateRange: ClosedRange<Date>? = {
         let cal = Calendar.current
-        let normalized = cal.startOfDay(for: date)
-        if selectedDates.contains(normalized) {
-            return currentTheme.selectedColor
-        }
-        if cal.isDateInToday(date) && isHighlightToday {
-            return currentTheme.todayColor.opacity(0.25)
-        }
-        return .clear
+        let today = Date()
+        guard let start = cal.date(byAdding: .day, value: 3, to: today),
+              let end = cal.date(byAdding: .day, value: 7, to: today) else { return nil }
+        return start...end
+    }()
+    @State private var disablePastDates = true
+
+    private var numberOfNights: Int {
+        guard let range = dateRange else { return 0 }
+        let comps = Calendar.current.dateComponents([.day], from: range.lowerBound, to: range.upperBound)
+        return comps.day ?? 0
     }
 
-    // MARK: - Control Panel
-    private var controlPanel: some View {
-        VStack(spacing: 8) {
-            // Selection mode picker
-            HStack {
-                Text("Selection")
-                    .font(.caption.bold())
-                Picker("Selection", selection: $selectionMode) {
-                    Text("Single").tag(CalendarSelectionMode.single)
-                    Text("Multi").tag(CalendarSelectionMode.multiple)
-                    Text("Range").tag(CalendarSelectionMode.range)
-                }
-                .pickerStyle(.segmented)
-            }
-            .padding(.horizontal)
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Booking Summary Card
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Label("Check-In", systemImage: "arrow.down.circle.fill")
+                                .font(.caption.bold())
+                                .foregroundColor(.blue)
+                            Text(dateRange?.lowerBound.formatted(date: .abbreviated, time: .omitted) ?? "Select date")
+                                .font(.callout.bold())
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
 
-            // View mode picker
-            HStack {
-                Text("View")
-                    .font(.caption.bold())
-                Picker("Mode", selection: $viewMode) {
-                    ForEach(CalendarViewMode.allCases, id: \.self) { option in
-                        Text(String(describing: option).uppercased())
+                        Image(systemName: "arrow.right")
+                            .foregroundColor(.secondary)
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Label("Check-Out", systemImage: "arrow.up.circle.fill")
+                                .font(.caption.bold())
+                                .foregroundColor(.indigo)
+                            Text(dateRange?.upperBound.formatted(date: .abbreviated, time: .omitted) ?? "Select date")
+                                .font(.callout.bold())
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                }
-                .pickerStyle(.segmented)
-            }
-            .padding(.horizontal)
+                    .padding()
+                    .background(Color(.secondarySystemBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
 
-            // Feature toggles
-            Grid(horizontalSpacing: 6, verticalSpacing: 6) {
-                GridRow {
-                    Toggle("Header", isOn: $isShowHeader)
-                        .toggleStyle(.button)
-                        .font(.caption)
-                    Toggle("DateOut", isOn: $isShowDateOut)
-                        .toggleStyle(.button)
-                        .font(.caption)
-                    Toggle("Divider", isOn: $isShowDivider)
-                        .toggleStyle(.button)
-                        .font(.caption)
+                    // Nights Badge
+                    if numberOfNights > 0 {
+                        HStack {
+                            Image(systemName: "moon.stars.fill")
+                                .foregroundColor(.indigo)
+                            Text("\(numberOfNights) \(numberOfNights == 1 ? "night" : "nights") selected")
+                                .font(.subheadline.bold())
+                                .foregroundColor(.indigo)
+                        }
+                        .padding(.vertical, 6)
+                        .padding(.horizontal, 14)
+                        .background(Color.indigo.opacity(0.12))
+                        .clipShape(Capsule())
+                    }
+
+                    // Calendar with continuous range shape
+                    CalendarView(selection: $dateRange)
+                        .calendarDisabledDates { date in
+                            if disablePastDates {
+                                let startOfToday = Calendar.current.startOfDay(for: Date())
+                                return date < startOfToday
+                            }
+                            return false
+                        }
+                        .padding(.vertical, 8)
+                        .background(Color(.systemBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
+
+                    // Range Quick Presets & Controls
+                    VStack(spacing: 12) {
+                        HStack(spacing: 8) {
+                            Button("Next 3 Days") {
+                                setPresetRange(days: 3)
+                            }
+                            .buttonStyle(.bordered)
+                            .font(.caption.bold())
+
+                            Button("Next 7 Days") {
+                                setPresetRange(days: 7)
+                            }
+                            .buttonStyle(.bordered)
+                            .font(.caption.bold())
+
+                            Button("Clear") {
+                                withAnimation { dateRange = nil }
+                            }
+                            .buttonStyle(.bordered)
+                            .foregroundColor(.red)
+                            .font(.caption.bold())
+                        }
+
+                        Toggle("Disable Past Dates", isOn: $disablePastDates)
+                            .font(.subheadline)
+                    }
+                    .padding()
+                    .background(Color(.secondarySystemBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
-                GridRow {
-                    Toggle("Today", isOn: $isHighlightToday)
-                        .toggleStyle(.button)
-                        .font(.caption)
-                    Toggle("🌙 Dark", isOn: $useDarkTheme)
-                        .toggleStyle(.button)
-                        .font(.caption)
-                    Toggle("No Wknd", isOn: $disableWeekends)
-                        .toggleStyle(.button)
-                        .font(.caption)
-                }
+                .padding()
             }
-            .padding(.horizontal)
-            .padding(.bottom, 8)
+            .navigationTitle("Booking Range")
         }
-        .padding(.top, 8)
-        .background(.ultraThinMaterial)
+    }
+
+    private func setPresetRange(days: Int) {
+        let cal = Calendar.current
+        let start = cal.startOfDay(for: Date())
+        if let end = cal.date(byAdding: .day, value: days, to: start) {
+            withAnimation {
+                dateRange = start...end
+            }
+        }
+    }
+}
+
+// MARK: - 3. Event Calendar Demo
+struct EventCalendarDemo: View {
+    @State private var displayDate = Date()
+    @State private var selectedDate = Date()
+
+    private var sampleEvents: [Date: [CalendarEvent]] {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+
+        func makeDate(offset: Int) -> Date {
+            cal.date(byAdding: .day, value: offset, to: today) ?? today
+        }
+
+        return [
+            makeDate(offset: 0): [
+                CalendarEvent(date: makeDate(offset: 0), color: .blue, title: "Team Standup 09:30"),
+                CalendarEvent(date: makeDate(offset: 0), color: .green, title: "Design Sprint Review")
+            ],
+            makeDate(offset: 2): [
+                CalendarEvent(date: makeDate(offset: 2), color: .orange, title: "Product Launch QA"),
+                CalendarEvent(date: makeDate(offset: 2), color: .purple, title: "All-Hands Meeting"),
+                CalendarEvent(date: makeDate(offset: 2), color: .red, title: "Deadline: v3.0 Release")
+            ],
+            makeDate(offset: 5): [
+                CalendarEvent(date: makeDate(offset: 5), color: .green, title: "Quarterly Planning")
+            ],
+            makeDate(offset: -3): [
+                CalendarEvent(date: makeDate(offset: -3), color: .gray, title: "Architecture Refactoring")
+            ]
+        ]
+    }
+
+    private var currentEvents: [CalendarEvent] {
+        let cal = Calendar.current
+        let startOfSelected = cal.startOfDay(for: selectedDate)
+        return sampleEvents.first(where: { cal.isDate($0.key, inSameDayAs: startOfSelected) })?.value ?? []
+    }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Calendar with multi-color dots
+                    CalendarView(selection: $selectedDate, displayDate: $displayDate)
+                        .calendarEvents(sampleEvents)
+                        .padding(.vertical, 8)
+                        .background(Color(.systemBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
+
+                    // Agenda List for Selected Date
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Text("Agenda for \(selectedDate.formatted(date: .abbreviated, time: .omitted))")
+                                .font(.headline)
+                            Spacer()
+                            Text("\(currentEvents.count) items")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+
+                        if currentEvents.isEmpty {
+                            HStack {
+                                Spacer()
+                                Text("No events scheduled for this day")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                    .padding(.vertical, 16)
+                                Spacer()
+                            }
+                        } else {
+                            VStack(spacing: 8) {
+                                ForEach(currentEvents) { event in
+                                    HStack(spacing: 12) {
+                                        Circle()
+                                            .fill(event.color)
+                                            .frame(width: 10, height: 10)
+
+                                        Text(event.title ?? "Event")
+                                            .font(.subheadline.bold())
+
+                                        Spacer()
+                                    }
+                                    .padding()
+                                    .background(Color(.tertiarySystemBackground))
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                                }
+                            }
+                        }
+                    }
+                    .padding()
+                    .background(Color(.secondarySystemBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+                .padding()
+            }
+            .navigationTitle("Event Calendar")
+        }
+    }
+}
+
+// MARK: - 4. Custom Slot Builder & Alternate Locale Demo
+struct CustomSlotAndLocaleDemo: View {
+    @State private var selectedDate = Date()
+    @State private var selectedLocaleIdentifier = "vi_VN"
+    @State private var selectedCalendarIdentifier = "gregorian"
+
+    private var currentLocale: Locale {
+        Locale(identifier: selectedLocaleIdentifier)
+    }
+
+    private var currentCalendar: Calendar {
+        switch selectedCalendarIdentifier {
+        case "buddhist":
+            var cal = Calendar(identifier: .buddhist)
+            cal.locale = currentLocale
+            return cal
+        case "japanese":
+            var cal = Calendar(identifier: .japanese)
+            cal.locale = currentLocale
+            return cal
+        case "islamic":
+            var cal = Calendar(identifier: .islamicCivil)
+            cal.locale = currentLocale
+            return cal
+        default:
+            var cal = Calendar(identifier: .gregorian)
+            cal.locale = currentLocale
+            return cal
+        }
+    }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Custom Slot Builder Calendar
+                    CalendarView(selection: $selectedDate)
+                        .calendarDayCell { state in
+                            // Custom Day Cell Slot Builder
+                            VStack(spacing: 2) {
+                                Text("\(state.dayNumber)")
+                                    .font(.system(size: 15, weight: state.isSelected ? .bold : .regular))
+                                    .foregroundColor(cellTextColor(for: state))
+
+                                if state.isToday {
+                                    Circle()
+                                        .fill(Color.orange)
+                                        .frame(width: 4, height: 4)
+                                }
+                            }
+                            .frame(height: 38)
+                            .frame(maxWidth: .infinity)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(state.isSelected ? Color.purple : Color.clear)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(state.isToday && !state.isSelected ? Color.orange : Color.clear, lineWidth: 1.5)
+                            )
+                            .opacity(state.isCurrentMonth ? 1.0 : 0.3)
+                        }
+                        .calendarLocale(currentLocale)
+                        .environment(\.calendar, currentCalendar)
+                        .padding(.vertical, 8)
+                        .background(Color(.systemBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
+
+                    // Configuration Options
+                    VStack(spacing: 16) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Locale")
+                                .font(.caption.bold())
+                                .foregroundColor(.secondary)
+                            Picker("Locale", selection: $selectedLocaleIdentifier) {
+                                Text("Tiếng Việt (vi_VN)").tag("vi_VN")
+                                Text("English (en_US)").tag("en_US")
+                                Text("Japanese (ja_JP)").tag("ja_JP")
+                                Text("French (fr_FR)").tag("fr_FR")
+                            }
+                            .pickerStyle(.menu)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                        Divider()
+
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Calendar System")
+                                .font(.caption.bold())
+                                .foregroundColor(.secondary)
+                            Picker("Calendar", selection: $selectedCalendarIdentifier) {
+                                Text("Gregorian").tag("gregorian")
+                                Text("Buddhist (BE)").tag("buddhist")
+                                Text("Japanese (Reiwa)").tag("japanese")
+                                Text("Islamic (Hijri)").tag("islamic")
+                            }
+                            .pickerStyle(.menu)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .padding()
+                    .background(Color(.secondarySystemBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+                .padding()
+            }
+            .navigationTitle("Slot & Locale")
+        }
+    }
+
+    private func cellTextColor(for state: CalendarDayState) -> Color {
+        if state.isSelected {
+            return .white
+        }
+        if state.isDisabled {
+            return .secondary.opacity(0.4)
+        }
+        return state.isCurrentMonth ? .primary : .secondary
     }
 }
 
 #Preview {
     ContentView()
-}
-
-extension CalendarWeekday: @retroactive CaseIterable {
-    static public var allCases: [CalendarWeekday] {
-        [.friday, .monday, .saturday, .thursday, .wednesday, .sunday, .tuesday]
-    }
 }
