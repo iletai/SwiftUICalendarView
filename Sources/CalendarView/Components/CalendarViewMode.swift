@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 /// Represents the different modes of the calendar view.
-public enum CalendarViewMode: CaseIterable, Hashable {
+public enum CalendarViewMode: CaseIterable, Hashable, Sendable {
     public static var allCases: [CalendarViewMode] {
         [
             CalendarViewMode.year(.full),
@@ -72,7 +72,7 @@ public enum CalendarViewMode: CaseIterable, Hashable {
 
 extension CalendarViewMode: Equatable {}
 
-public enum YearDisplayMode {
+public enum YearDisplayMode: Sendable, Hashable, Equatable {
     case compact
     case full
 }
