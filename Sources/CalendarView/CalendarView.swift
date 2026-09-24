@@ -7,210 +7,328 @@
 
 import Foundation
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
-/**
- A SwiftUI view that represents a calendar.
+/// A high-performance, declarative calendar view for SwiftUI with native ergonomics.
+public struct CalendarView<DayContent: View, HeaderContent: View, WeekdayContent: View>: View {
+    @Environment(\.calendar) private var envCalendar
+    @Environment(\.locale) private var envLocale
+    @Environment(\.calendarViewMode) private var viewMode
+    @Environment(\.calendarDisabledRule) private var disabledRule
+    @Environment(\.calendarEvents) private var eventsMap
+    @Environment(\.calendarHapticsEnabled) private var hapticsEnabled
+    @Environment(\.calendarFirstWeekdayOverride) private var firstWeekdayOverride
 
- Use the `CalendarView` struct to display a calendar with customizable date views,
- header views, and date out views.
+    private var externalDisplayDate: Binding<Date>?
+    @State private var internalDisplayDate: Date
 
- - Parameters:
-   - DateView: The type of view to use for displaying individual dates.
-   - HeaderView: The type of view to use for displaying the header.
-   - DateOutView: The type of view to use for displaying dates outside the current month.
- */
-@MainActor
-public struct CalendarView<
-    DateView: View,
-    HeaderView: View,
-    DateOutView: View
->: View {
-    // MARK: - Type Aliases
-    /// A closure type that is called when a date is selected.
-    public typealias OnSelectedDate = (Date) -> Void
+    private let selectedKeySet: Set<Int>
+    private let rangeBounds: (startKey: Int?, endKey: Int?)
+    private let selectedKeySetProvider: ((Calendar) -> Set<Int>)?
+    private let rangeBoundsProvider: ((Calendar) -> (startKey: Int?, endKey: Int?))?
+    private let onDateTapped: (Date) -> Void
 
-    /// A closure type that is called when dragging ends.
-    public typealias OnEndDragAction = (Direction, CalendarViewMode) -> Void
+    private let dayContent: (CalendarDayState) -> DayContent
+    private let headerContent: (FastMonthMatrix, @escaping () -> Void, @escaping () -> Void) -> HeaderContent
+    private let weekdayContent: (Calendar) -> WeekdayContent
 
-    /// A type alias for a dictionary that stores the dates for each year.
-    typealias YearData = [Date: [CalendarDay]]
-
-    /// A type alias for an array of dates for a specific month.
-    typealias MonthDateData = [CalendarDay]
-
-    /// A type alias for an array of dates for a specific week.
-    typealias WeekDataData = [CalendarDay]
-
-    // MARK: - Properties
-
-    /// The selected date.
-    var date = Date()
-
-    /// The options for the calendar view.
-    var calendarOptions: CalendarViewOption
-
-    // MARK: - View Builder
-
-    /// The view builder for the date view.
-    let dateView: (Date) -> DateView
-
-    /// The view builder for the header view.
-    let headerView: ([Date]) -> HeaderView
-
-    /// The view builder for the date out view.
-    let dateOutView: (Date) -> DateOutView
-
-    /// The pinned header view.
-    var pinnedHeaderView = PinnedScrollableViews()
-
-    /// The closure that is called when a date is selected.
-    var onSelected: OnSelectedDate = { _ in }
-
-    /// The gesture state for tracking the dragging state.
-    @GestureState var isGestureFinished = true
-
-    /// The closure that is called when dragging ends.
-    var onDraggingEnded: OnEndDragAction?
-
-    /// An optional binding to the selected date.
-    var dateBinding: Binding<Date>?
-
-    /// The swipe gesture for navigating between dates.
-    private var swipeGesture: some Gesture {
-        DragGesture(
-            minimumDistance: CalendarDefine.kSwipeDistance,
-            coordinateSpace: .global
-        )
-        .updating($isGestureFinished) { _, state, _ in
-            state = false
+    private var currentDisplayDate: Binding<Date> {
+        if let external = externalDisplayDate {
+            return external
         }
-        .onEnded { endedGesture in
-            if (endedGesture.location.x - endedGesture.startLocation.x) > 0 {
-                onDraggingEnded?(.backward, calendarOptions.viewMode)
-            } else {
-                onDraggingEnded?(.forward, calendarOptions.viewMode)
-            }
-        }
+        return $internalDisplayDate
     }
 
-    // MARK: - Initializer
-
-    /**
-     Initializes a new calendar view.
-
-     - Parameters:
-       - date: The selected date.
-       - dateView: The view builder for the date view.
-       - headerView: The view builder for the header view.
-       - dateOutView: The view builder for the date out view.
-     */
+    // MARK: - Initializer (Custom ViewBuilder)
     public init(
-        date: Date,
-        @ViewBuilder dateView: @escaping (Date) -> DateView,
-        @ViewBuilder headerView: @escaping ([Date]) -> HeaderView,
-        @ViewBuilder dateOutView: @escaping (Date) -> DateOutView
+        displayDate: Binding<Date>,
+        selectedKeySet: Set<Int> = [],
+        rangeBounds: (startKey: Int?, endKey: Int?) = (nil, nil),
+        onDateTapped: @escaping (Date) -> Void = { _ in },
+        @ViewBuilder dayCell: @escaping (CalendarDayState) -> DayContent,
+        @ViewBuilder header: @escaping (FastMonthMatrix, @escaping () -> Void, @escaping () -> Void) -> HeaderContent,
+        @ViewBuilder weekday: @escaping (Calendar) -> WeekdayContent
     ) {
-        self.dateView = dateView
-        self.headerView = headerView
-        self.dateOutView = dateOutView
-        self.date = date
-        self.calendarOptions = .defaultOption
+        self.externalDisplayDate = displayDate
+        self._internalDisplayDate = State(initialValue: displayDate.wrappedValue)
+        self.selectedKeySet = selectedKeySet
+        self.rangeBounds = rangeBounds
+        self.selectedKeySetProvider = nil
+        self.rangeBoundsProvider = nil
+        self.onDateTapped = onDateTapped
+        self.dayContent = dayCell
+        self.headerContent = header
+        self.weekdayContent = weekday
     }
 
-    /**
-     Initializes a new calendar view with a date selection callback.
-
-     - Parameters:
-       - date: The selected date.
-       - dateView: The view builder for the date view.
-       - headerView: The view builder for the header view.
-       - dateOutView: The view builder for the date out view.
-       - onSelectedDate: A closure called when a date is selected.
-     */
-    public init(
-        date: Date,
-        @ViewBuilder dateView: @escaping (Date) -> DateView,
-        @ViewBuilder headerView: @escaping ([Date]) -> HeaderView,
-        @ViewBuilder dateOutView: @escaping (Date) -> DateOutView,
-        onSelectedDate: @escaping OnSelectedDate
+    private init(
+        displayDate: Binding<Date>?,
+        internalDate: Date,
+        selectedKeySet: Set<Int>,
+        rangeBounds: (startKey: Int?, endKey: Int?),
+        selectedKeySetProvider: ((Calendar) -> Set<Int>)?,
+        rangeBoundsProvider: ((Calendar) -> (startKey: Int?, endKey: Int?))?,
+        onDateTapped: @escaping (Date) -> Void,
+        dayCell: @escaping (CalendarDayState) -> DayContent,
+        header: @escaping (FastMonthMatrix, @escaping () -> Void, @escaping () -> Void) -> HeaderContent,
+        weekday: @escaping (Calendar) -> WeekdayContent
     ) {
-        self.init(
-            date: date,
-            dateView: dateView,
-            headerView: headerView,
-            dateOutView: dateOutView
-        )
-        self.onSelected = onSelectedDate
+        self.externalDisplayDate = displayDate
+        self._internalDisplayDate = State(initialValue: internalDate)
+        self.selectedKeySet = selectedKeySet
+        self.rangeBounds = rangeBounds
+        self.selectedKeySetProvider = selectedKeySetProvider
+        self.rangeBoundsProvider = rangeBoundsProvider
+        self.onDateTapped = onDateTapped
+        self.dayContent = dayCell
+        self.headerContent = header
+        self.weekdayContent = weekday
     }
 
-    /**
-     Initializes a new calendar view with a binding to the selected date.
-
-     When a date is tapped, the binding is automatically updated.
-
-     - Parameters:
-       - selectedDate: A binding to the selected date.
-       - dateView: The view builder for the date view.
-       - headerView: The view builder for the header view.
-       - dateOutView: The view builder for the date out view.
-     */
-    public init(
-        selectedDate: Binding<Date>,
-        @ViewBuilder dateView: @escaping (Date) -> DateView,
-        @ViewBuilder headerView: @escaping ([Date]) -> HeaderView,
-        @ViewBuilder dateOutView: @escaping (Date) -> DateOutView
-    ) {
-        self.init(
-            date: selectedDate.wrappedValue,
-            dateView: dateView,
-            headerView: headerView,
-            dateOutView: dateOutView
-        )
-        self.dateBinding = selectedDate
-        self.onSelected = { date in
-            selectedDate.wrappedValue = date
-        }
-    }
-
-    // MARK: - Main Body View
+    // MARK: - Body
     public var body: some View {
-        ScrollViewReader { proxy in
-            LazyVGrid(
-                columns: columnGridLayout,
-                spacing: calendarOptions.spacingBetweenDay,
-                pinnedViews: pinnedHeaderView
-            ) {
-                bodyContentView
+        let matrix = FastCalendarEngine.computeMonthMatrix(
+            for: currentDisplayDate.wrappedValue,
+            calendar: effectiveCalendar,
+            todayDate: Date(),
+            selectedKeySet: computedSelectedKeySet,
+            rangeBounds: computedRangeBounds,
+            disabledRule: disabledRule,
+            eventsMap: eventKeysMap
+        )
+
+        VStack(spacing: 12) {
+            headerContent(matrix, { changeMonth(by: -1) }, { changeMonth(by: 1) })
+            weekdayContent(effectiveCalendar)
+
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 4), count: 7), spacing: 6) {
+                ForEach(matrix.days) { day in
+                    dayContent(day)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            guard day.isSelectable else { return }
+                            triggerHaptic()
+                            onDateTapped(day.date)
+                        }
+                }
             }
-            .onAppear {
-                if let scrollDate = calendarOptions.scrollToDateOnAppear {
-                    withAnimation {
-                        proxy.scrollTo(
-                            scrollDate.startOfMonth(using: calendarOptions.calendar),
-                            anchor: .top
-                        )
+            .padding(.horizontal, 8)
+        }
+    }
+
+    // MARK: - Helpers
+    private var effectiveCalendar: Calendar {
+        var cal = envCalendar
+        cal.locale = envLocale
+        if let override = firstWeekdayOverride {
+            switch override {
+            case .sunday: cal.firstWeekday = 1
+            case .monday: cal.firstWeekday = 2
+            case .tuesday: cal.firstWeekday = 3
+            case .wednesday: cal.firstWeekday = 4
+            case .thursday: cal.firstWeekday = 5
+            case .friday: cal.firstWeekday = 6
+            case .saturday: cal.firstWeekday = 7
+            @unknown default: break
+            }
+        }
+        return cal
+    }
+
+    private var computedSelectedKeySet: Set<Int> {
+        if let provider = selectedKeySetProvider {
+            return provider(effectiveCalendar)
+        }
+        return selectedKeySet
+    }
+
+    private var computedRangeBounds: (startKey: Int?, endKey: Int?) {
+        if let provider = rangeBoundsProvider {
+            return provider(effectiveCalendar)
+        }
+        return rangeBounds
+    }
+
+    private var eventKeysMap: [Int: [CalendarEvent]] {
+        var result: [Int: [CalendarEvent]] = [:]
+        for (date, events) in eventsMap {
+            let key = CalendarDateKey.key(for: date, using: effectiveCalendar)
+            result[key, default: []].append(contentsOf: events)
+        }
+        return result
+    }
+
+    private func changeMonth(by value: Int) {
+        if let newDate = effectiveCalendar.date(byAdding: .month, value: value, to: currentDisplayDate.wrappedValue) {
+            currentDisplayDate.wrappedValue = newDate
+        }
+    }
+
+    private func triggerHaptic() {
+        #if os(iOS)
+        if hapticsEnabled {
+            let generator = UIImpactFeedbackGenerator(style: .light)
+            generator.impactOccurred()
+        }
+        #endif
+    }
+}
+
+// MARK: - Slot Customization Modifiers
+public extension CalendarView {
+    func calendarDayCell<NewDayContent: View>(
+        @ViewBuilder _ content: @escaping (CalendarDayState) -> NewDayContent
+    ) -> CalendarView<NewDayContent, HeaderContent, WeekdayContent> {
+        CalendarView<NewDayContent, HeaderContent, WeekdayContent>(
+            displayDate: externalDisplayDate,
+            internalDate: _internalDisplayDate.wrappedValue,
+            selectedKeySet: selectedKeySet,
+            rangeBounds: rangeBounds,
+            selectedKeySetProvider: selectedKeySetProvider,
+            rangeBoundsProvider: rangeBoundsProvider,
+            onDateTapped: onDateTapped,
+            dayCell: content,
+            header: headerContent,
+            weekday: weekdayContent
+        )
+    }
+
+    func calendarHeader<NewHeaderContent: View>(
+        @ViewBuilder _ content: @escaping (FastMonthMatrix, @escaping () -> Void, @escaping () -> Void) -> NewHeaderContent
+    ) -> CalendarView<DayContent, NewHeaderContent, WeekdayContent> {
+        CalendarView<DayContent, NewHeaderContent, WeekdayContent>(
+            displayDate: externalDisplayDate,
+            internalDate: _internalDisplayDate.wrappedValue,
+            selectedKeySet: selectedKeySet,
+            rangeBounds: rangeBounds,
+            selectedKeySetProvider: selectedKeySetProvider,
+            rangeBoundsProvider: rangeBoundsProvider,
+            onDateTapped: onDateTapped,
+            dayCell: dayContent,
+            header: content,
+            weekday: weekdayContent
+        )
+    }
+
+    func calendarWeekdayHeader<NewWeekdayContent: View>(
+        @ViewBuilder _ content: @escaping (Calendar) -> NewWeekdayContent
+    ) -> CalendarView<DayContent, HeaderContent, NewWeekdayContent> {
+        CalendarView<DayContent, HeaderContent, NewWeekdayContent>(
+            displayDate: externalDisplayDate,
+            internalDate: _internalDisplayDate.wrappedValue,
+            selectedKeySet: selectedKeySet,
+            rangeBounds: rangeBounds,
+            selectedKeySetProvider: selectedKeySetProvider,
+            rangeBoundsProvider: rangeBoundsProvider,
+            onDateTapped: onDateTapped,
+            dayCell: dayContent,
+            header: headerContent,
+            weekday: content
+        )
+    }
+}
+
+// MARK: - Ergonomic Out-of-the-Box Initializers
+public extension CalendarView where DayContent == DefaultCalendarDayCell,
+                                    HeaderContent == DefaultCalendarHeader,
+                                    WeekdayContent == DefaultCalendarWeekdayHeader {
+
+    /// 1. Single Date Selection
+    init(selection: Binding<Date>, displayDate: Binding<Date>? = nil) {
+        self.init(
+            displayDate: displayDate,
+            internalDate: displayDate?.wrappedValue ?? selection.wrappedValue,
+            selectedKeySet: [],
+            rangeBounds: (nil, nil),
+            selectedKeySetProvider: { cal in
+                [CalendarDateKey.key(for: selection.wrappedValue, using: cal)]
+            },
+            rangeBoundsProvider: nil,
+            onDateTapped: { date in
+                selection.wrappedValue = date
+            },
+            dayCell: { DefaultCalendarDayCell(state: $0) },
+            header: { matrix, prev, next in
+                DefaultCalendarHeader(title: matrix.monthTitle, onPrevious: prev, onNext: next)
+            },
+            weekday: { DefaultCalendarWeekdayHeader(calendar: $0) }
+        )
+    }
+
+    /// 2. Date Range Selection with smart range expansion
+    init(selection: Binding<ClosedRange<Date>?>, displayDate: Binding<Date>? = nil) {
+        self.init(
+            displayDate: displayDate,
+            internalDate: displayDate?.wrappedValue ?? selection.wrappedValue?.lowerBound ?? Date(),
+            selectedKeySet: [],
+            rangeBounds: (nil, nil),
+            selectedKeySetProvider: nil,
+            rangeBoundsProvider: { cal in
+                let startKey = selection.wrappedValue.map { CalendarDateKey.key(for: $0.lowerBound, using: cal) }
+                let endKey = selection.wrappedValue.map { CalendarDateKey.key(for: $0.upperBound, using: cal) }
+                return (startKey, endKey)
+            },
+            onDateTapped: { tappedDate in
+                if let range = selection.wrappedValue {
+                    if range.lowerBound == range.upperBound && tappedDate >= range.lowerBound {
+                        selection.wrappedValue = range.lowerBound...tappedDate
+                    } else {
+                        selection.wrappedValue = tappedDate...tappedDate
                     }
+                } else {
+                    selection.wrappedValue = tappedDate...tappedDate
                 }
-            }
-        }
-        .highPriorityGesture(swipeGesture)
-        .padding(.all, calendarOptions.contentPadding)
-        .background(backgroundCalendar)
-        .animation(calendarOptions.swapAnimation, value: calendarOptions.viewMode)
-        .overlay(alignment: .bottomTrailing) {
-            if calendarOptions.showTodayButton {
-                Button {
-                    calendarOptions.onTodayTapped?()
-                } label: {
-                    Text("Today")
-                        .font(.caption.bold())
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(.ultraThinMaterial)
-                        .clipShape(Capsule())
+            },
+            dayCell: { DefaultCalendarDayCell(state: $0) },
+            header: { matrix, prev, next in
+                DefaultCalendarHeader(title: matrix.monthTitle, onPrevious: prev, onNext: next)
+            },
+            weekday: { DefaultCalendarWeekdayHeader(calendar: $0) }
+        )
+    }
+
+    /// 3. Multi-Date Selection with toggle semantics
+    init(selection: Binding<Set<Date>>, displayDate: Binding<Date>? = nil) {
+        self.init(
+            displayDate: displayDate,
+            internalDate: displayDate?.wrappedValue ?? selection.wrappedValue.first ?? Date(),
+            selectedKeySet: [],
+            rangeBounds: (nil, nil),
+            selectedKeySetProvider: { cal in
+                Set(selection.wrappedValue.map { CalendarDateKey.key(for: $0, using: cal) })
+            },
+            rangeBoundsProvider: nil,
+            onDateTapped: { tappedDate in
+                let cal = Calendar.current
+                let key = CalendarDateKey.key(for: tappedDate, using: cal)
+                if let existing = selection.wrappedValue.first(where: { CalendarDateKey.key(for: $0, using: cal) == key }) {
+                    selection.wrappedValue.remove(existing)
+                } else {
+                    selection.wrappedValue.insert(tappedDate)
                 }
-                .padding(8)
-            }
-        }
+            },
+            dayCell: { DefaultCalendarDayCell(state: $0) },
+            header: { matrix, prev, next in
+                DefaultCalendarHeader(title: matrix.monthTitle, onPrevious: prev, onNext: next)
+            },
+            weekday: { DefaultCalendarWeekdayHeader(calendar: $0) }
+        )
+    }
+
+    /// 4. Display-Only / Agenda
+    init(displayDate: Binding<Date>) {
+        self.init(
+            displayDate: displayDate,
+            selectedKeySet: [],
+            rangeBounds: (nil, nil),
+            onDateTapped: { _ in },
+            dayCell: { DefaultCalendarDayCell(state: $0) },
+            header: { matrix, prev, next in
+                DefaultCalendarHeader(title: matrix.monthTitle, onPrevious: prev, onNext: next)
+            },
+            weekday: { DefaultCalendarWeekdayHeader(calendar: $0) }
+        )
     }
 }

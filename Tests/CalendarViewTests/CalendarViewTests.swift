@@ -1,4 +1,5 @@
 import XCTest
+import SwiftUI
 @testable import CalendarView
 
 // MARK: - Date Extension Tests
@@ -334,3 +335,260 @@ final class CalendarExtensionTests: XCTestCase {
         XCTAssertEqual(dates.count, 5) // 2020..2024
     }
 }
+
+// MARK: - Modern Declarative CalendarView Tests
+
+final class CalendarViewModernTests: XCTestCase {
+    private var calendar: Calendar!
+
+    override func setUp() {
+        super.setUp()
+        calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+    }
+
+    private func makeDate(year: Int, month: Int, day: Int) -> Date {
+        calendar.date(from: DateComponents(year: year, month: month, day: day))!
+    }
+
+    // MARK: - Selection Initializers Tests
+
+    @MainActor
+    func testSingleDateSelectionInit() {
+        var selected = makeDate(year: 2024, month: 5, day: 15)
+        let binding = Binding(get: { selected }, set: { selected = $0 })
+        let view = CalendarView(selection: binding)
+
+        let renderer = ImageRenderer(content: view)
+        XCTAssertNotNil(renderer.cgImage)
+    }
+
+    @MainActor
+    func testSingleDateSelectionWithExplicitDisplayDate() {
+        var selected = makeDate(year: 2024, month: 5, day: 15)
+        var display = makeDate(year: 2024, month: 6, day: 1)
+        let selBinding = Binding(get: { selected }, set: { selected = $0 })
+        let dispBinding = Binding(get: { display }, set: { display = $0 })
+
+        let view = CalendarView(selection: selBinding, displayDate: dispBinding)
+        let renderer = ImageRenderer(content: view)
+        XCTAssertNotNil(renderer.cgImage)
+    }
+
+    @MainActor
+    func testRangeSelectionInitWithNil() {
+        var range: ClosedRange<Date>? = nil
+        let binding = Binding(get: { range }, set: { range = $0 })
+        let view = CalendarView(selection: binding)
+
+        let renderer = ImageRenderer(content: view)
+        XCTAssertNotNil(renderer.cgImage)
+    }
+
+    @MainActor
+    func testRangeSelectionInitWithRange() {
+        let start = makeDate(year: 2024, month: 5, day: 10)
+        let end = makeDate(year: 2024, month: 5, day: 20)
+        var range: ClosedRange<Date>? = start...end
+        let binding = Binding(get: { range }, set: { range = $0 })
+        let view = CalendarView(selection: binding)
+
+        let renderer = ImageRenderer(content: view)
+        XCTAssertNotNil(renderer.cgImage)
+    }
+
+    func testRangeSelectionSmartExpansion() {
+        let day1 = makeDate(year: 2024, month: 5, day: 10)
+        let day2 = makeDate(year: 2024, month: 5, day: 15)
+        let day3 = makeDate(year: 2024, month: 5, day: 20)
+        let dayEarlier = makeDate(year: 2024, month: 5, day: 5)
+
+        var selectedRange: ClosedRange<Date>? = nil
+        let rangeBinding = Binding<ClosedRange<Date>?>(
+            get: { selectedRange },
+            set: { selectedRange = $0 }
+        )
+
+        let tapAction: (Date) -> Void = { tappedDate in
+            if let range = rangeBinding.wrappedValue {
+                if range.lowerBound == range.upperBound && tappedDate >= range.lowerBound {
+                    rangeBinding.wrappedValue = range.lowerBound...tappedDate
+                } else {
+                    rangeBinding.wrappedValue = tappedDate...tappedDate
+                }
+            } else {
+                rangeBinding.wrappedValue = tappedDate...tappedDate
+            }
+        }
+
+        // Tap 1: First tap selects single day range
+        tapAction(day1)
+        XCTAssertEqual(selectedRange, day1...day1)
+
+        // Tap 2: Second tap on later day expands to full range
+        tapAction(day2)
+        XCTAssertEqual(selectedRange, day1...day2)
+
+        // Tap 3: Third tap resets to new single day range
+        tapAction(day3)
+        XCTAssertEqual(selectedRange, day3...day3)
+
+        // Tap 4: Tap earlier day resets to earlier day range
+        tapAction(dayEarlier)
+        XCTAssertEqual(selectedRange, dayEarlier...dayEarlier)
+    }
+
+    @MainActor
+    func testMultiDateSelectionInit() {
+        let day1 = makeDate(year: 2024, month: 5, day: 10)
+        let day2 = makeDate(year: 2024, month: 5, day: 15)
+        var dates: Set<Date> = [day1, day2]
+        let binding = Binding(get: { dates }, set: { dates = $0 })
+        let view = CalendarView(selection: binding)
+
+        let renderer = ImageRenderer(content: view)
+        XCTAssertNotNil(renderer.cgImage)
+    }
+
+    func testMultiDateSelectionToggleSemantics() {
+        let day1 = makeDate(year: 2024, month: 5, day: 10)
+        let day2 = makeDate(year: 2024, month: 5, day: 15)
+
+        var selectedDates: Set<Date> = []
+        let datesBinding = Binding<Set<Date>>(
+            get: { selectedDates },
+            set: { selectedDates = $0 }
+        )
+
+        let toggleAction: (Date) -> Void = { tappedDate in
+            let cal = Calendar.current
+            let key = CalendarDateKey.key(for: tappedDate, using: cal)
+            if let existing = datesBinding.wrappedValue.first(where: { CalendarDateKey.key(for: $0, using: cal) == key }) {
+                datesBinding.wrappedValue.remove(existing)
+            } else {
+                datesBinding.wrappedValue.insert(tappedDate)
+            }
+        }
+
+        // Add day 1
+        toggleAction(day1)
+        XCTAssertEqual(selectedDates.count, 1)
+        XCTAssertTrue(selectedDates.contains(day1))
+
+        // Add day 2
+        toggleAction(day2)
+        XCTAssertEqual(selectedDates.count, 2)
+        XCTAssertTrue(selectedDates.contains(day2))
+
+        // Toggle day 1 off
+        toggleAction(day1)
+        XCTAssertEqual(selectedDates.count, 1)
+        XCTAssertFalse(selectedDates.contains(day1))
+        XCTAssertTrue(selectedDates.contains(day2))
+    }
+
+    @MainActor
+    func testDisplayOnlyInit() {
+        var display = makeDate(year: 2024, month: 7, day: 1)
+        let binding = Binding(get: { display }, set: { display = $0 })
+        let view = CalendarView(displayDate: binding)
+
+        let renderer = ImageRenderer(content: view)
+        XCTAssertNotNil(renderer.cgImage)
+    }
+
+    // MARK: - Custom ViewBuilder & Slot Modifiers Tests
+
+    @MainActor
+    func testCustomViewBuilderInit() {
+        var display = makeDate(year: 2024, month: 5, day: 1)
+        let binding = Binding(get: { display }, set: { display = $0 })
+
+        let view = CalendarView(
+            displayDate: binding,
+            selectedKeySet: [20240515],
+            rangeBounds: (nil, nil),
+            onDateTapped: { _ in },
+            dayCell: { state in
+                Text("\(state.dayNumber)")
+                    .foregroundColor(state.isSelected ? .white : .black)
+            },
+            header: { matrix, prev, next in
+                HStack {
+                    Button("<", action: prev)
+                    Text(matrix.monthTitle)
+                    Button(">", action: next)
+                }
+            },
+            weekday: { cal in
+                HStack {
+                    ForEach(cal.veryShortWeekdaySymbols, id: \.self) {
+                        Text($0)
+                    }
+                }
+            }
+        )
+
+        let renderer = ImageRenderer(content: view)
+        XCTAssertNotNil(renderer.cgImage)
+    }
+
+    @MainActor
+    func testSlotModifiersIndividualAndChained() {
+        var date = makeDate(year: 2024, month: 5, day: 1)
+        let binding = Binding(get: { date }, set: { date = $0 })
+
+        // Test individual slot modifiers
+        let customCellView = CalendarView(selection: binding)
+            .calendarDayCell { state in
+                Text("D: \(state.dayNumber)")
+            }
+        XCTAssertNotNil(ImageRenderer(content: customCellView).cgImage)
+
+        let customHeaderView = CalendarView(selection: binding)
+            .calendarHeader { matrix, prev, next in
+                Text("Custom: \(matrix.monthTitle)")
+            }
+        XCTAssertNotNil(ImageRenderer(content: customHeaderView).cgImage)
+
+        let customWeekdayView = CalendarView(selection: binding)
+            .calendarWeekdayHeader { _ in
+                Text("Sun-Sat")
+            }
+        XCTAssertNotNil(ImageRenderer(content: customWeekdayView).cgImage)
+
+        // Test chained modifiers
+        let chainedView = CalendarView(selection: binding)
+            .calendarDayCell { state in
+                Text("\(state.dayNumber)")
+            }
+            .calendarHeader { matrix, _, _ in
+                Text(matrix.monthTitle)
+            }
+            .calendarWeekdayHeader { _ in
+                Text("Wk")
+            }
+
+        XCTAssertNotNil(ImageRenderer(content: chainedView).cgImage)
+    }
+
+    @MainActor
+    func testEnvironmentModifiersOnCalendarView() {
+        var date = makeDate(year: 2024, month: 5, day: 1)
+        let binding = Binding(get: { date }, set: { date = $0 })
+        let eventDate = makeDate(year: 2024, month: 5, day: 15)
+        let event = CalendarEvent(id: "ev1", date: eventDate, title: "Birthday")
+
+        let view = CalendarView(selection: binding)
+            .calendarViewMode(.month)
+            .calendarDisabledDates { $0 == eventDate }
+            .calendarEvents([eventDate: [event]])
+            .calendarFirstWeekday(.monday)
+            .calendarHapticsEnabled(false)
+            .calendarLocale(Locale(identifier: "fr_FR"))
+
+        let renderer = ImageRenderer(content: view)
+        XCTAssertNotNil(renderer.cgImage)
+    }
+}
+
