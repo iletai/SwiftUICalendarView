@@ -105,11 +105,11 @@ public struct CalendarView<DayContent: View, HeaderContent: View, WeekdayContent
     private var monthView: some View {
         let matrix = makeMonthMatrix(for: currentDisplayDate.wrappedValue)
 
-        return VStack(spacing: 12) {
+        return VStack(spacing: 8) {
             headerContent(matrix, { navigate(by: -1) }, { navigate(by: 1) })
             weekdayContent(effectiveCalendar)
 
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 4), count: 7), spacing: 6) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 0), count: 7), spacing: 2) {
                 ForEach(matrix.days) { day in
                     dayContent(day)
                         .contentShape(Rectangle())
@@ -120,7 +120,7 @@ public struct CalendarView<DayContent: View, HeaderContent: View, WeekdayContent
                         }
                 }
             }
-            .padding(.horizontal, 8)
+            .padding(.horizontal, 4)
         }
     }
 
@@ -228,7 +228,7 @@ public struct CalendarView<DayContent: View, HeaderContent: View, WeekdayContent
 
             weekdayContent(effectiveCalendar)
 
-            HStack(spacing: 4) {
+            HStack(spacing: 0) {
                 ForEach(days) { day in
                     dayContent(day)
                         .frame(maxWidth: .infinity)
@@ -240,7 +240,7 @@ public struct CalendarView<DayContent: View, HeaderContent: View, WeekdayContent
                         }
                 }
             }
-            .padding(.horizontal, 8)
+            .padding(.horizontal, 4)
         }
     }
 

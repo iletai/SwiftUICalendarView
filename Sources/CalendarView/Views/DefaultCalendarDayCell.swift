@@ -31,34 +31,34 @@ public struct DefaultCalendarDayCell: View {
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ))
-                    .padding(2)
+                    .frame(width: 38, height: 38)
             } else if state.isToday {
                 Circle()
                     .stroke(accentColor, lineWidth: 1.5)
-                    .padding(2)
+                    .frame(width: 38, height: 38)
             }
 
             // Cell Content
             VStack(spacing: 2) {
                 Text("\(state.dayNumber)")
-                    .font(.system(size: 16, weight: state.isSelected || state.isToday ? .semibold : .regular))
+                    .font(.system(size: 17, weight: state.isSelected || state.isToday ? .semibold : .regular))
                     .foregroundColor(textColor)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.75)
 
                 if !state.events.isEmpty {
-                    HStack(spacing: 2) {
+                    HStack(spacing: 3) {
                         ForEach(state.events.prefix(3), id: \.id) { event in
                             Circle()
                                 .fill(event.color)
                                 .frame(width: 4, height: 4)
                         }
                     }
+                } else {
+                    Spacer().frame(height: 4)
                 }
             }
         }
         .frame(maxWidth: .infinity)
-        .frame(height: 40)
+        .frame(height: 44)
         .contentShape(Rectangle())
         .opacity(state.isCurrentMonth ? 1.0 : 0.28)
         .accessibilityElement(children: .ignore)
@@ -84,7 +84,7 @@ public struct DefaultCalendarDayCell: View {
 }
 
 #Preview {
-    HStack(spacing: 8) {
+    HStack(spacing: 0) {
         DefaultCalendarDayCell(state: CalendarDayState(
             dateKey: 20260924, date: Date(), dayNumber: 24,
             isCurrentMonth: true, isToday: true, isSelected: false

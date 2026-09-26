@@ -24,6 +24,8 @@ public struct DefaultCalendarWeekdayHeader: View {
                     .frame(maxWidth: .infinity)
             }
         }
+        .padding(.horizontal, 4)
+        .padding(.bottom, 2)
     }
 }
 
@@ -31,4 +33,3 @@ public struct DefaultCalendarWeekdayHeader: View {
     DefaultCalendarWeekdayHeader()
         .padding()
 }
-
