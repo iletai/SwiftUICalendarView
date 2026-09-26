@@ -1,6 +1,6 @@
 <p align="center">
 <img src="https://github.com/iletai/SwiftUICalendarView/assets/26614687/cc7b3b91-73ff-4195-9377-4ece5fd299fe" height="128">
-<h1 align="center">SwiftUICalendarView 3.0</h1>
+<h1 align="center">SwiftUICalendarView 3.1</h1>
 </p>
 
 <p align="center">
@@ -9,7 +9,7 @@
 
 <p align="center">
 <img src="https://img.shields.io/badge/Swift-5.9%20%7C%206.0-orange.svg" alt="Swift 5.9+">
-<img src="https://img.shields.io/badge/Platforms-iOS%2016+%20%7C%20macOS%2013+%20%7C%20visionOS%201+%20%7C%20watchOS%2010+-blue.svg" alt="Platforms">
+<img src="https://img.shields.io/badge/Platforms-iOS%2017+%20%7C%20macOS%2013+%20%7C%20visionOS%201+%20%7C%20watchOS%2010+-blue.svg" alt="Platforms">
 <img src="https://img.shields.io/badge/Dependencies-0-success.svg" alt="Zero Dependencies">
 <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT"></a>
 <a href="https://github.com/iletai/SwiftUICalendarView/actions"><img src="https://github.com/iletai/SwiftUICalendarView/actions/workflows/build_master.yml/badge.svg?branch=master" alt="Build Status"></a>
@@ -21,11 +21,12 @@
 <img width="320" alt="SwiftUICalendarView Showcase" src="screenshot.gif" class="center">
 </p>
 
-## Why SwiftUICalendarView 3.0?
+## Why SwiftUICalendarView 3.1?
 
-SwiftUICalendarView 3.0 is completely rebuilt from the ground up for modern SwiftUI. Engineered with `FastCalendarEngine` for 120fps ProMotion fluidity, zero third-party dependencies, full non-Gregorian calendar support, and standard SwiftUI declarative ViewModifiers.
+SwiftUICalendarView is engineered from the ground up for modern SwiftUI. Built with `FastCalendarEngine` for 120fps ProMotion fluidity, zero third-party dependencies, multi-mode rendering (Month, Year, Week), non-Gregorian calendar support, and standard declarative ViewModifiers.
 
-- **Zero Dependencies**: Pure SwiftUI & Foundation. No external runtime overhead.
+- **Zero Dependencies**: Pure SwiftUI & Foundation. No external runtime overhead (< 80KB binary footprint).
+- **Multiple View Modes**: Native rendering for `.month`, `.year(.full)`, `.year(.compact)`, `.week`, and `.single` day modes.
 - **1-Line Ergonomic Initializers**: Single date, booking date ranges, multi-date selections, and display-only agendas.
 - **Continuous Range Highlight**: Native smooth connected bounding curves for hotel & flight booking ranges.
 - **`FastCalendarEngine` O(1) Math**: Date comparisons and lookups powered by integer key hash math (`YYYYMMDD`), bypassing expensive `DateComponents` allocations per frame.
@@ -39,11 +40,11 @@ SwiftUICalendarView 3.0 is completely rebuilt from the ground up for modern Swif
 
 | Platform | Minimum Version | Swift |
 | :--- | :--- | :--- |
-| **iOS** | 16.0+ | 5.9+ |
+| **iOS** | 17.0+ | 5.9+ |
 | **macOS** | 13.0+ | 5.9+ |
 | **visionOS** | 1.0+ | 5.9+ |
 | **watchOS** | 10.0+ | 5.9+ |
-| **tvOS** | 16.0+ | 5.9+ |
+| **tvOS** | 17.0+ | 5.9+ |
 
 ---
 
@@ -61,7 +62,7 @@ Or add it to your `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/iletai/SwiftUICalendarView.git", from: "3.0.0")
+    .package(url: "https://github.com/iletai/SwiftUICalendarView.git", from: "3.1.0")
 ],
 targets: [
     .target(name: "YourTarget", dependencies: ["CalendarView"])
@@ -73,7 +74,7 @@ targets: [
 Add to your `Podfile`:
 
 ```ruby
-pod 'SwiftUICalendarView', '~> 3.0'
+pod 'SwiftUICalendarView', '~> 3.1'
 ```
 
 ---
@@ -133,6 +134,31 @@ struct AgendaCalendarDemo: View {
 
 ---
 
+## View Modes
+
+Switch calendar display mode with `.calendarViewMode()`:
+
+```swift
+// Month grid (default)
+CalendarView(selection: $selectedDate)
+    .calendarViewMode(.month)
+
+// Year view (12-month grid with auto-scroll to current month)
+CalendarView(selection: $selectedDate)
+    .calendarViewMode(.year(.full))    // with weekday symbols
+    .calendarViewMode(.year(.compact)) // day numbers only
+
+// Week view (single 7-day row with week navigation)
+CalendarView(selection: $selectedDate)
+    .calendarViewMode(.week)
+
+// Single day view (large day card with event list)
+CalendarView(selection: $selectedDate)
+    .calendarViewMode(.single)
+```
+
+---
+
 ## Declarative ViewModifiers
 
 Configure calendars cleanly using SwiftUI's environment and modifier system:
@@ -146,7 +172,7 @@ CalendarView(selection: $selectedDate)
     .calendarEvents([
         Date(): [
             CalendarEvent(date: Date(), color: .blue, title: "Team Sync"),
-            CalendarEvent(date: Date(), color: .red, title: "Release 3.0")
+            CalendarEvent(date: Date(), color: .red, title: "Release 3.1")
         ]
     ])
 
@@ -234,7 +260,7 @@ Traditional calendar rendering computes `DateComponents` repeatedly inside cell 
 Every month produces exactly 42 cells (previous month trailing days + current month + next month leading days). View hierarchies retain stable dimensions, eliminating UI jumps and layout calculations when flipping between 28-day, 30-day, and 31-day months.
 
 ### 3. Continuous `RangeSelectionShape`
-Continuous date range highlighting calculates geometric positions (`.singleDay`, `.rangeStart`, `.rangeMiddle`, `.rangeEnd`, `.rowStart`, `.rowEnd`) across multi-row matrix layouts to draw unified curved ribbons for booking check-in/out UX.
+Continuous date range highlighting calculates geometric positions (`.singleDay`, `.rangeStart`, `.rangeMiddle`, `.rangeEnd`, `.rowStart`, `.rowEnd`) across multi-row matrix layouts to draw unified curved ribbons with subtle gradient fills for booking check-in/out UX.
 
 ### 4. Comprehensive Non-Gregorian & Multi-Locale Support
 Native integration with Apple's `Calendar` and `Locale` APIs allows zero-code localization:
@@ -245,31 +271,26 @@ Native integration with Apple's `Calendar` and `Locale` APIs allows zero-code lo
 
 ---
 
-## Migration Guide: v2.x to v3.0
-
-SwiftUICalendarView 3.0 introduces a modern declarative API with cleaner ergonomics:
-
-| v2.x (Legacy API) | v3.0 (Modern API) |
-| :--- | :--- |
-| `CalendarView(date: selectedDate, dateView: ...)` | `CalendarView(selection: $selectedDate)` |
-| `selectionMode(.range)` + `onRangeSelected` | `CalendarView(selection: $range)` |
-| `selectionMode(.multiple)` + `onSelectionChanged` | `CalendarView(selection: $selectedDates)` |
-| `.calendarLocate(locale:)` | `.calendarLocale(locale)` |
-| `.disabledDates { ... }` | `.calendarDisabledDates { date in ... }` |
-| `.eventDates(set)` | `.calendarEvents([Date: [CalendarEvent]])` |
-| `.firstWeekDay(.monday)` | `.calendarFirstWeekday(.monday)` |
-| `.enableHighlightToday(true)` | Built-in by default (`state.isToday`) |
-| Custom cell via initializer parameters | `.calendarDayCell { state in ... }` modifier |
-
----
-
 ## Example App
 
-Check out the included Xcode sample project at `CalendarExampleView/CalendarExampleView.xcodeproj` demonstrating:
-1. **Single Date Picker** with Today jump and weekday configuration.
-2. **Booking Range Picker** with live night counts and disable past dates.
-3. **Event Calendar** with multi-color status badges and interactive agenda list.
-4. **Custom Slot Builder** with alternate locale switcher (Vietnamese, Japanese, French, English) and alternate calendars (Buddhist, Japanese, Islamic).
+The example is built as a pure SPM executable target (no Xcode project clutter):
+
+```bash
+# In Xcode: open Package.swift → Select "CalendarExample" scheme → Run
+open Package.swift
+
+# Or run from command line:
+swift run CalendarExample
+```
+
+Included showcase demos:
+1. **Single Date Picker** — Today jump, weekday configuration, haptic toggle (.tint: Blue)
+2. **Booking Range** — Continuous gradient range highlight, disable past dates, night count (.tint: Indigo)
+3. **Event Calendar** — Multi-color event dots, interactive agenda list (.tint: Orange)
+4. **Year View** — Full & compact 12-month grid with auto-scroll to current month (.tint: Teal)
+5. **Week View** — Single-week row with smooth week navigation (.tint: Mint)
+6. **Multi-Date Selection** — Toggle multiple dates on/off with list overview (.tint: Pink)
+7. **Custom Slot & Locale** — Custom day cell builder, locale switcher (VN, EN, JA, FR), and calendar systems (Gregorian, Buddhist, Japanese, Islamic) (.tint: Purple)
 
 ---
 
