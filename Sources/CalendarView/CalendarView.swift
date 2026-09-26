@@ -89,18 +89,24 @@ public struct CalendarView<DayContent: View, HeaderContent: View, WeekdayContent
 
     // MARK: - Body
     public var body: some View {
-        let matrix = FastCalendarEngine.computeMonthMatrix(
-            for: currentDisplayDate.wrappedValue,
-            calendar: effectiveCalendar,
-            todayDate: Date(),
-            selectedKeySet: computedSelectedKeySet,
-            rangeBounds: computedRangeBounds,
-            disabledRule: disabledRule,
-            eventsMap: eventKeysMap
-        )
+        switch viewMode {
+        case .month:
+            monthView
+        case .year(let displayMode):
+            yearView(displayMode: displayMode)
+        case .week:
+            weekView
+        case .single:
+            singleView
+        }
+    }
 
-        VStack(spacing: 12) {
-            headerContent(matrix, { changeMonth(by: -1) }, { changeMonth(by: 1) })
+    // MARK: - Month View
+    private var monthView: some View {
+        let matrix = makeMonthMatrix(for: currentDisplayDate.wrappedValue)
+
+        return VStack(spacing: 12) {
+            headerContent(matrix, { navigate(by: -1) }, { navigate(by: 1) })
             weekdayContent(effectiveCalendar)
 
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 4), count: 7), spacing: 6) {
@@ -115,6 +121,171 @@ public struct CalendarView<DayContent: View, HeaderContent: View, WeekdayContent
                 }
             }
             .padding(.horizontal, 8)
+        }
+    }
+
+    // MARK: - Year View
+    private func yearView(displayMode: YearDisplayMode) -> some View {
+        let cal = effectiveCalendar
+        let year = cal.component(.year, from: currentDisplayDate.wrappedValue)
+        let currentMonthKey = cal.component(.year, from: Date()) * 100 + cal.component(.month, from: Date())
+
+        return ScrollViewReader { proxy in
+            VStack(spacing: 8) {
+                HStack {
+                    Text(String(year))
+                        .font(.title.bold())
+                        .accessibilityAddTraits(.isHeader)
+                    Spacer()
+                    HStack(spacing: 16) {
+                        Button { navigate(by: -1) } label: {
+                            Image(systemName: "chevron.left").font(.body.bold())
+                        }
+                        .accessibilityLabel("Previous Year")
+                        Button { navigate(by: 1) } label: {
+                            Image(systemName: "chevron.right").font(.body.bold())
+                        }
+                        .accessibilityLabel("Next Year")
+                    }
+                    .foregroundColor(.primary)
+                }
+                .padding(.horizontal)
+
+                ScrollView {
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 3), spacing: 20) {
+                        ForEach(1...12, id: \.self) { month in
+                            let monthDate = cal.date(from: DateComponents(year: year, month: month, day: 1)) ?? Date()
+                            let matrix = makeMonthMatrix(for: monthDate)
+
+                            VStack(spacing: 4) {
+                                Text(monthDate.formatted(.dateTime.month(.wide).locale(cal.locale ?? .current)))
+                                    .font(.caption.bold())
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                                if displayMode == .full {
+                                    miniWeekdayHeader
+                                }
+
+                                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 0), count: 7), spacing: 2) {
+                                    ForEach(matrix.days) { day in
+                                        miniDayCell(day: day, compact: displayMode == .compact)
+                                            .contentShape(Rectangle())
+                                            .onTapGesture {
+                                                guard day.isSelectable else { return }
+                                                triggerHaptic()
+                                                onDateTapped(day.date)
+                                            }
+                                    }
+                                }
+                            }
+                            .id(matrix.yearMonthKey)
+                        }
+                    }
+                    .padding(.horizontal, 8)
+                }
+            }
+            .onAppear {
+                withAnimation {
+                    proxy.scrollTo(currentMonthKey, anchor: .center)
+                }
+            }
+        }
+    }
+
+    // MARK: - Week View
+    private var weekView: some View {
+        let days = FastCalendarEngine.computeWeekMatrix(
+            for: currentDisplayDate.wrappedValue,
+            calendar: effectiveCalendar,
+            todayDate: Date(),
+            selectedKeySet: computedSelectedKeySet,
+            rangeBounds: computedRangeBounds,
+            disabledRule: disabledRule,
+            eventsMap: eventKeysMap
+        )
+
+        let weekRange = weekRangeTitle(from: days)
+
+        return VStack(spacing: 12) {
+            HStack {
+                Text(weekRange)
+                    .font(.title3.bold())
+                    .accessibilityAddTraits(.isHeader)
+                Spacer()
+                HStack(spacing: 16) {
+                    Button { navigate(by: -1) } label: {
+                        Image(systemName: "chevron.left").font(.body.bold())
+                    }
+                    .accessibilityLabel("Previous Week")
+                    Button { navigate(by: 1) } label: {
+                        Image(systemName: "chevron.right").font(.body.bold())
+                    }
+                    .accessibilityLabel("Next Week")
+                }
+                .foregroundColor(.primary)
+            }
+            .padding(.horizontal)
+
+            weekdayContent(effectiveCalendar)
+
+            HStack(spacing: 4) {
+                ForEach(days) { day in
+                    dayContent(day)
+                        .frame(maxWidth: .infinity)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            guard day.isSelectable else { return }
+                            triggerHaptic()
+                            onDateTapped(day.date)
+                        }
+                }
+            }
+            .padding(.horizontal, 8)
+        }
+    }
+
+    // MARK: - Single Day View
+    private var singleView: some View {
+        let matrix = makeMonthMatrix(for: currentDisplayDate.wrappedValue)
+        let todayKey = CalendarDateKey.key(for: currentDisplayDate.wrappedValue, using: effectiveCalendar)
+        let dayState = matrix.days.first { $0.dateKey == todayKey }
+
+        return VStack(spacing: 12) {
+            HStack {
+                Text(currentDisplayDate.wrappedValue.formatted(.dateTime.year().month(.wide).day().weekday(.wide).locale(effectiveCalendar.locale ?? .current)))
+                    .font(.title3.bold())
+                Spacer()
+                HStack(spacing: 16) {
+                    Button { navigate(by: -1) } label: {
+                        Image(systemName: "chevron.left").font(.body.bold())
+                    }
+                    .accessibilityLabel("Previous Day")
+                    Button { navigate(by: 1) } label: {
+                        Image(systemName: "chevron.right").font(.body.bold())
+                    }
+                    .accessibilityLabel("Next Day")
+                }
+                .foregroundColor(.primary)
+            }
+            .padding(.horizontal)
+
+            if let state = dayState {
+                dayContent(state)
+                    .frame(width: 80, height: 80)
+
+                if !state.events.isEmpty {
+                    VStack(alignment: .leading, spacing: 4) {
+                        ForEach(state.events) { event in
+                            HStack(spacing: 8) {
+                                Circle().fill(event.color).frame(width: 8, height: 8)
+                                Text(event.title ?? "Event").font(.subheadline)
+                            }
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal)
+                }
+            }
         }
     }
 
@@ -160,10 +331,78 @@ public struct CalendarView<DayContent: View, HeaderContent: View, WeekdayContent
         return result
     }
 
-    private func changeMonth(by value: Int) {
-        if let newDate = effectiveCalendar.date(byAdding: .month, value: value, to: currentDisplayDate.wrappedValue) {
-            currentDisplayDate.wrappedValue = newDate
+    private func navigate(by value: Int) {
+        let component: Calendar.Component
+        switch viewMode {
+        case .month: component = .month
+        case .year: component = .year
+        case .week: component = .weekOfYear
+        case .single: component = .day
         }
+        if let newDate = effectiveCalendar.date(byAdding: component, value: value, to: currentDisplayDate.wrappedValue) {
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                currentDisplayDate.wrappedValue = newDate
+            }
+        }
+    }
+
+    private func makeMonthMatrix(for date: Date) -> FastMonthMatrix {
+        FastCalendarEngine.computeMonthMatrix(
+            for: date,
+            calendar: effectiveCalendar,
+            todayDate: Date(),
+            selectedKeySet: computedSelectedKeySet,
+            rangeBounds: computedRangeBounds,
+            disabledRule: disabledRule,
+            eventsMap: eventKeysMap
+        )
+    }
+
+    @ViewBuilder
+    private var miniWeekdayHeader: some View {
+        let symbols = DefaultCalendarWeekdayHeader(calendar: effectiveCalendar).weekdaySymbols
+        HStack(spacing: 0) {
+            ForEach(0..<min(7, symbols.count), id: \.self) { i in
+                Text(String(symbols[i].prefix(1)))
+                    .font(.system(size: 8))
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func miniDayCell(day: CalendarDayState, compact: Bool) -> some View {
+        Text("\(day.dayNumber)")
+            .font(.system(size: compact ? 8 : 10))
+            .foregroundColor(miniDayCellColor(day: day))
+            .frame(maxWidth: .infinity)
+            .frame(height: compact ? 12 : 16)
+            .background(
+                Group {
+                    if day.isSelected {
+                        Circle().fill(Color.accentColor)
+                    } else if day.isToday {
+                        Circle().stroke(Color.accentColor, lineWidth: 1)
+                    }
+                }
+            )
+            .opacity(day.isCurrentMonth ? 1.0 : 0.2)
+    }
+
+    private func miniDayCellColor(day: CalendarDayState) -> Color {
+        if day.isSelected { return .white }
+        if !day.isCurrentMonth { return .secondary }
+        return .primary
+    }
+
+    private func weekRangeTitle(from days: [CalendarDayState]) -> String {
+        guard let first = days.first, let last = days.last else { return "" }
+        let cal = effectiveCalendar
+        let locale = cal.locale ?? .current
+        let start = first.date.formatted(.dateTime.month(.abbreviated).day().locale(locale))
+        let end = last.date.formatted(.dateTime.month(.abbreviated).day().year().locale(locale))
+        return "\(start) – \(end)"
     }
 
     private func triggerHaptic() {
