@@ -5,8 +5,8 @@ struct BookingRangeDemo: View {
     @State private var dateRange: ClosedRange<Date>? = {
         let cal = Calendar.current
         let today = Date()
-        guard let start = cal.date(byAdding: .day, value: 3, to: today),
-              let end = cal.date(byAdding: .day, value: 7, to: today) else { return nil }
+        guard let start = cal.date(byAdding: .day, value: 2, to: today),
+              let end = cal.date(byAdding: .day, value: 6, to: today) else { return nil }
         return start...end
     }()
     @State private var disablePastDates = true
@@ -17,83 +17,122 @@ struct BookingRangeDemo: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    // Booking summary
-                    HStack(spacing: 12) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Label("Check-In", systemImage: "arrow.down.circle.fill")
-                                .font(.caption.bold()).foregroundColor(.indigo)
-                            Text(dateRange?.lowerBound.formatted(date: .abbreviated, time: .omitted) ?? "Select")
-                                .font(.callout.bold())
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
-                        Image(systemName: "arrow.right").foregroundColor(.secondary)
-
-                        VStack(alignment: .leading, spacing: 4) {
-                            Label("Check-Out", systemImage: "arrow.up.circle.fill")
-                                .font(.caption.bold()).foregroundColor(.indigo)
-                            Text(dateRange?.upperBound.formatted(date: .abbreviated, time: .omitted) ?? "Select")
-                                .font(.callout.bold())
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
+        ScrollView {
+            VStack(spacing: 16) {
+                // Booking Summary Card
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Label("Check-In", systemImage: "arrow.down.circle.fill")
+                            .font(.caption.bold())
+                            .foregroundColor(.indigo)
+                        Text(dateRange?.lowerBound.formatted(date: .abbreviated, time: .omitted) ?? "Select date")
+                            .font(.headline)
                     }
-                    .padding()
-                    .background(.ultraThinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
-                    if numberOfNights > 0 {
-                        HStack {
-                            Image(systemName: "moon.stars.fill").foregroundColor(.indigo)
-                            Text("\(numberOfNights) \(numberOfNights == 1 ? "night" : "nights") selected")
-                                .font(.subheadline.bold()).foregroundColor(.indigo)
-                        }
-                        .padding(.vertical, 6).padding(.horizontal, 14)
-                        .background(Color.indigo.opacity(0.12))
-                        .clipShape(Capsule())
-                        .transition(.scale.combined(with: .opacity))
+                    Image(systemName: "arrow.right")
+                        .font(.title3)
+                        .foregroundColor(.secondary)
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Label("Check-Out", systemImage: "arrow.up.circle.fill")
+                            .font(.caption.bold())
+                            .foregroundColor(.indigo)
+                        Text(dateRange?.upperBound.formatted(date: .abbreviated, time: .omitted) ?? "Select date")
+                            .font(.headline)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding()
+                .background(Color(uiColor: .secondarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+                )
 
+                // Stay Duration Pill
+                if numberOfNights > 0 {
+                    HStack(spacing: 6) {
+                        Image(systemName: "moon.stars.fill")
+                        Text("\(numberOfNights) \(numberOfNights == 1 ? "night" : "nights") duration")
+                            .font(.subheadline.bold())
+                    }
+                    .foregroundColor(.indigo)
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 16)
+                    .background(Color.indigo.opacity(0.12))
+                    .clipShape(Capsule())
+                }
+
+                // Calendar Card
+                VStack(spacing: 12) {
                     CalendarView(selection: $dateRange)
                         .calendarDisabledDates { date in
                             disablePastDates && date < Calendar.current.startOfDay(for: Date())
                         }
-                        .padding(.vertical, 8)
-                        .background(.ultraThinMaterial)
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-                        .shadow(color: .indigo.opacity(0.08), radius: 12, x: 0, y: 4)
-
-                    VStack(spacing: 12) {
-                        HStack(spacing: 8) {
-                            Button("3 Days") { setPreset(3) }.buttonStyle(.bordered).font(.caption.bold())
-                            Button("7 Days") { setPreset(7) }.buttonStyle(.bordered).font(.caption.bold())
-                            Button("Clear") { withAnimation { dateRange = nil } }
-                                .buttonStyle(.bordered).foregroundColor(.red).font(.caption.bold())
-                        }
-                        Toggle("Disable Past Dates", isOn: $disablePastDates).font(.subheadline)
-                    }
-                    .padding()
-                    .background(.ultraThinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .padding(.vertical, 6)
                 }
                 .padding()
+                .background(Color(uiColor: .secondarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+                )
+
+                // Presets & Options Card
+                VStack(spacing: 14) {
+                    HStack(spacing: 10) {
+                        Button("Weekend (2N)") { setPreset(days: 2) }
+                            .buttonStyle(.bordered)
+                            .font(.caption.bold())
+                            .frame(maxWidth: .infinity)
+
+                        Button("1 Week (7N)") { setPreset(days: 7) }
+                            .buttonStyle(.bordered)
+                            .font(.caption.bold())
+                            .frame(maxWidth: .infinity)
+
+                        Button("Clear") { withAnimation { dateRange = nil } }
+                            .buttonStyle(.bordered)
+                            .font(.caption.bold())
+                            .foregroundColor(.red)
+                    }
+
+                    Divider()
+
+                    Toggle("Disable Past Dates", isOn: $disablePastDates)
+                        .font(.subheadline.bold())
+                }
+                .padding()
+                .background(Color(uiColor: .secondarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+                )
             }
-            .navigationTitle("Booking Range")
+            .padding()
         }
+        .background(Color(uiColor: .systemGroupedBackground))
+        .navigationTitle("Booking Range")
+        .navigationBarTitleDisplayMode(.inline)
         .tint(.indigo)
     }
 
-    private func setPreset(_ days: Int) {
+    private func setPreset(days: Int) {
         let start = Calendar.current.startOfDay(for: Date())
         if let end = Calendar.current.date(byAdding: .day, value: days, to: start) {
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) { dateRange = start...end }
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                dateRange = start...end
+            }
         }
     }
 }
 
 #Preview {
-    BookingRangeDemo()
+    NavigationStack {
+        BookingRangeDemo()
+    }
 }
-

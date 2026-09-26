@@ -21,9 +21,10 @@ struct CustomSlotLocaleDemo: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
+        ScrollView {
+            VStack(spacing: 16) {
+                // Custom Slot Calendar Card
+                VStack(spacing: 12) {
                     CalendarView(selection: $selectedDate)
                         .calendarDayCell { state in
                             VStack(spacing: 2) {
@@ -32,14 +33,16 @@ struct CustomSlotLocaleDemo: View {
                                     .foregroundColor(cellColor(state))
 
                                 if state.isToday {
-                                    Circle().fill(Color.orange).frame(width: 4, height: 4)
+                                    Circle()
+                                        .fill(Color.orange)
+                                        .frame(width: 4, height: 4)
                                 }
                             }
                             .frame(height: 38)
                             .frame(maxWidth: .infinity)
                             .background(
                                 RoundedRectangle(cornerRadius: 10)
-                                    .fill(state.isSelected ? Color.purple : Color.clear)
+                                    .fill(state.isSelected ? Color.purple.gradient : AnyShapeStyle(Color.clear))
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 10)
@@ -49,46 +52,57 @@ struct CustomSlotLocaleDemo: View {
                         }
                         .calendarLocale(currentLocale)
                         .environment(\.calendar, currentCalendar)
-                        .padding(.vertical, 8)
-                        .background(.ultraThinMaterial)
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-                        .shadow(color: .purple.opacity(0.08), radius: 12, x: 0, y: 4)
-
-                    VStack(spacing: 16) {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Locale").font(.caption.bold()).foregroundColor(.secondary)
-                            Picker("Locale", selection: $selectedLocaleId) {
-                                Text("Tiếng Việt").tag("vi_VN")
-                                Text("English").tag("en_US")
-                                Text("日本語").tag("ja_JP")
-                                Text("Français").tag("fr_FR")
-                            }
-                            .pickerStyle(.menu)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
-                        Divider()
-
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Calendar System").font(.caption.bold()).foregroundColor(.secondary)
-                            Picker("Calendar", selection: $selectedCalendarId) {
-                                Text("Gregorian").tag("gregorian")
-                                Text("Buddhist (BE)").tag("buddhist")
-                                Text("Japanese (Reiwa)").tag("japanese")
-                                Text("Islamic (Hijri)").tag("islamic")
-                            }
-                            .pickerStyle(.menu)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    .padding()
-                    .background(.ultraThinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .padding(.vertical, 6)
                 }
                 .padding()
+                .background(Color(uiColor: .secondarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+                )
+
+                // Pickers Card
+                VStack(spacing: 14) {
+                    HStack {
+                        Text("Locale").font(.subheadline.bold())
+                        Spacer()
+                        Picker("Locale", selection: $selectedLocaleId) {
+                            Text("Tiếng Việt").tag("vi_VN")
+                            Text("English").tag("en_US")
+                            Text("日本語").tag("ja_JP")
+                            Text("Français").tag("fr_FR")
+                        }
+                        .pickerStyle(.menu)
+                    }
+
+                    Divider()
+
+                    HStack {
+                        Text("Calendar System").font(.subheadline.bold())
+                        Spacer()
+                        Picker("Calendar", selection: $selectedCalendarId) {
+                            Text("Gregorian").tag("gregorian")
+                            Text("Buddhist (BE)").tag("buddhist")
+                            Text("Japanese (Reiwa)").tag("japanese")
+                            Text("Islamic (Hijri)").tag("islamic")
+                        }
+                        .pickerStyle(.menu)
+                    }
+                }
+                .padding()
+                .background(Color(uiColor: .secondarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+                )
             }
-            .navigationTitle("Slot & Locale")
+            .padding()
         }
+        .background(Color(uiColor: .systemGroupedBackground))
+        .navigationTitle("Custom & Locales")
+        .navigationBarTitleDisplayMode(.inline)
         .tint(.purple)
     }
 
@@ -100,6 +114,7 @@ struct CustomSlotLocaleDemo: View {
 }
 
 #Preview {
-    CustomSlotLocaleDemo()
+    NavigationStack {
+        CustomSlotLocaleDemo()
+    }
 }
-

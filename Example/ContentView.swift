@@ -1,36 +1,168 @@
+import CalendarView
 import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        TabView {
-            SingleDateDemo()
-                .tabItem { Label("Single", systemImage: "calendar") }
-                .tint(.blue)
+        NavigationStack {
+            List {
+                // Hero Header Banner
+                Section {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Image(systemName: "calendar.badge.clock")
+                                .font(.title)
+                                .foregroundStyle(.blue.gradient)
+                            Text("SwiftUICalendarView")
+                                .font(.title2.bold())
+                        }
 
-            BookingRangeDemo()
-                .tabItem { Label("Booking", systemImage: "arrow.left.and.right.square") }
-                .tint(.indigo)
+                        Text("Declarative, high-performance calendar component for SwiftUI with 120Hz ProMotion fluidity and zero external dependencies.")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
 
-            EventCalendarDemo()
-                .tabItem { Label("Events", systemImage: "circle.grid.2x2") }
-                .tint(.orange)
+                        HStack(spacing: 8) {
+                            BadgeLabel(title: "v3.1.0", color: .blue)
+                            BadgeLabel(title: "Zero Deps", color: .green)
+                            BadgeLabel(title: "iOS 17+", color: .purple)
+                        }
+                        .padding(.top, 4)
+                    }
+                    .padding(.vertical, 6)
+                }
 
-            YearCalendarDemo()
-                .tabItem { Label("Year", systemImage: "calendar.badge.plus") }
-                .tint(.teal)
+                // Section 1: Core Selection
+                Section("Core Selection") {
+                    NavigationLink {
+                        SingleDateDemo()
+                    } label: {
+                        ShowcaseRow(
+                            icon: "calendar",
+                            iconColor: .blue,
+                            title: "Single Date Picker",
+                            subtitle: "1-line date binding, Today jump, first weekday configuration"
+                        )
+                    }
 
-            WeekCalendarDemo()
-                .tabItem { Label("Week", systemImage: "calendar.day.timeline.left") }
-                .tint(.mint)
+                    NavigationLink {
+                        BookingRangeDemo()
+                    } label: {
+                        ShowcaseRow(
+                            icon: "arrow.left.and.right.square",
+                            iconColor: .indigo,
+                            title: "Booking Date Range",
+                            subtitle: "Airbnb-style continuous curved ribbons, nights counter, disable past dates"
+                        )
+                    }
 
-            MultiDateDemo()
-                .tabItem { Label("Multi", systemImage: "checklist") }
-                .tint(.pink)
+                    NavigationLink {
+                        MultiDateDemo()
+                    } label: {
+                        ShowcaseRow(
+                            icon: "checklist",
+                            iconColor: .pink,
+                            title: "Multi-Date Selection",
+                            subtitle: "Select multiple discrete dates with interactive summary chips"
+                        )
+                    }
+                }
 
-            CustomSlotLocaleDemo()
-                .tabItem { Label("Custom", systemImage: "slider.horizontal.3") }
-                .tint(.purple)
+                // Section 2: View Modes & Layouts
+                Section("View Modes & Layouts") {
+                    NavigationLink {
+                        YearCalendarDemo()
+                    } label: {
+                        ShowcaseRow(
+                            icon: "calendar.badge.plus",
+                            iconColor: .teal,
+                            title: "Year Overview Grid",
+                            subtitle: "12-month scrollable overview with full & compact display modes"
+                        )
+                    }
+
+                    NavigationLink {
+                        WeekCalendarDemo()
+                    } label: {
+                        ShowcaseRow(
+                            icon: "calendar.day.timeline.left",
+                            iconColor: .mint,
+                            title: "7-Day Week Strip",
+                            subtitle: "Single-row compact week view with seamless week navigation"
+                        )
+                    }
+
+                    NavigationLink {
+                        EventCalendarDemo()
+                    } label: {
+                        ShowcaseRow(
+                            icon: "circle.grid.2x2",
+                            iconColor: .orange,
+                            title: "Event Calendar & Agenda",
+                            subtitle: "Multi-color dot indicators with matching interactive agenda list"
+                        )
+                    }
+                }
+
+                // Section 3: Customization & Localization
+                Section("Customization & Localization") {
+                    NavigationLink {
+                        CustomSlotLocaleDemo()
+                    } label: {
+                        ShowcaseRow(
+                            icon: "slider.horizontal.3",
+                            iconColor: .purple,
+                            title: "Custom Slots & Locales",
+                            subtitle: "Custom day cell builders with Buddhist, Japanese & Islamic calendars"
+                        )
+                    }
+                }
+            }
+            .navigationTitle("Calendar Gallery")
         }
+    }
+}
+
+// MARK: - Reusable Row Components
+struct ShowcaseRow: View {
+    let icon: String
+    let iconColor: Color
+    let title: String
+    let subtitle: String
+
+    var body: some View {
+        HStack(spacing: 14) {
+            Image(systemName: icon)
+                .font(.title3)
+                .foregroundColor(.white)
+                .frame(width: 38, height: 38)
+                .background(iconColor.gradient)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.body.bold())
+                    .foregroundColor(.primary)
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .lineLimit(2)
+            }
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+struct BadgeLabel: View {
+    let title: String
+    let color: Color
+
+    var body: some View {
+        Text(title)
+            .font(.caption2.bold())
+            .foregroundColor(color)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .background(color.opacity(0.12))
+            .clipShape(Capsule())
     }
 }
 

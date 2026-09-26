@@ -8,94 +8,110 @@ struct SingleDateDemo: View {
     @State private var hapticsEnabled = true
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    // Selected date card
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Selected Date")
-                            .font(.caption.bold())
-                            .foregroundColor(.secondary)
-                            .textCase(.uppercase)
-                        Text(selectedDate.formatted(date: .complete, time: .omitted))
-                            .font(.headline)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-                    .background(.ultraThinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
+        ScrollView {
+            VStack(spacing: 16) {
+                // Header Card
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Selected Date")
+                        .font(.caption.bold())
+                        .foregroundColor(.blue)
+                        .textCase(.uppercase)
+                    Text(selectedDate.formatted(date: .complete, time: .omitted))
+                        .font(.title3.bold())
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding()
+                .background(Color(uiColor: .secondarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+                )
 
-                    // Calendar
+                // Calendar Container Card
+                VStack(spacing: 12) {
                     CalendarView(selection: $selectedDate, displayDate: $displayDate)
                         .calendarFirstWeekday(firstWeekday)
                         .calendarHapticsEnabled(hapticsEnabled)
-                        .padding(.vertical, 8)
-                        .background(.ultraThinMaterial)
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-                        .shadow(color: .blue.opacity(0.08), radius: 12, x: 0, y: 4)
-
-                    // Controls
-                    VStack(spacing: 16) {
-                        HStack(spacing: 12) {
-                            Button {
-                                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                                    let today = Date()
-                                    displayDate = today
-                                    selectedDate = today
-                                }
-                            } label: {
-                                Label("Today", systemImage: "calendar.badge.clock")
-                                    .font(.subheadline.bold())
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 10)
-                            }
-                            .buttonStyle(.borderedProminent)
-
-                            Button {
-                                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                                    if let next = Calendar.current.date(byAdding: .month, value: 1, to: displayDate) {
-                                        displayDate = next
-                                    }
-                                }
-                            } label: {
-                                Label("Next Month", systemImage: "chevron.right")
-                                    .font(.subheadline.bold())
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 10)
-                            }
-                            .buttonStyle(.bordered)
-                        }
-
-                        Divider()
-
-                        HStack {
-                            Text("First Weekday").font(.subheadline)
-                            Spacer()
-                            Picker("First Weekday", selection: $firstWeekday) {
-                                Text("Sun").tag(Locale.Weekday.sunday)
-                                Text("Mon").tag(Locale.Weekday.monday)
-                                Text("Sat").tag(Locale.Weekday.saturday)
-                            }
-                            .pickerStyle(.segmented)
-                            .frame(width: 180)
-                        }
-
-                        Toggle("Haptic Feedback", isOn: $hapticsEnabled)
-                            .font(.subheadline)
-                    }
-                    .padding()
-                    .background(.ultraThinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .padding(.vertical, 6)
                 }
                 .padding()
+                .background(Color(uiColor: .secondarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+                )
+
+                // Quick Navigation Actions
+                HStack(spacing: 12) {
+                    Button {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                            let today = Date()
+                            displayDate = today
+                            selectedDate = today
+                        }
+                    } label: {
+                        Label("Today", systemImage: "calendar.badge.clock")
+                            .font(.subheadline.bold())
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                    }
+                    .buttonStyle(.borderedProminent)
+
+                    Button {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                            if let next = Calendar.current.date(byAdding: .month, value: 1, to: displayDate) {
+                                displayDate = next
+                            }
+                        }
+                    } label: {
+                        Label("Next Month", systemImage: "chevron.right")
+                            .font(.subheadline.bold())
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                    }
+                    .buttonStyle(.bordered)
+                }
+
+                // Configuration Settings Card
+                VStack(spacing: 14) {
+                    HStack {
+                        Text("First Weekday").font(.subheadline.bold())
+                        Spacer()
+                        Picker("First Weekday", selection: $firstWeekday) {
+                            Text("Sun").tag(Locale.Weekday.sunday)
+                            Text("Mon").tag(Locale.Weekday.monday)
+                            Text("Sat").tag(Locale.Weekday.saturday)
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(width: 180)
+                    }
+
+                    Divider()
+
+                    Toggle("Selection Haptics", isOn: $hapticsEnabled)
+                        .font(.subheadline.bold())
+                }
+                .padding()
+                .background(Color(uiColor: .secondarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+                )
             }
-            .navigationTitle("Single Picker")
+            .padding()
         }
+        .background(Color(uiColor: .systemGroupedBackground))
+        .navigationTitle("Single Picker")
+        .navigationBarTitleDisplayMode(.inline)
         .tint(.blue)
     }
 }
 
 #Preview {
-    SingleDateDemo()
+    NavigationStack {
+        SingleDateDemo()
+    }
 }
-

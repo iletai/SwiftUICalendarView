@@ -7,28 +7,27 @@ struct YearCalendarDemo: View {
     @State private var yearMode: YearDisplayMode = .full
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 12) {
-                Picker("Display", selection: $yearMode) {
-                    Text("Full").tag(YearDisplayMode.full)
-                    Text("Compact").tag(YearDisplayMode.compact)
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal)
-
-                CalendarView(selection: $selectedDate, displayDate: $displayDate)
-                    .calendarViewMode(.year(yearMode))
-                    .padding(.vertical, 8)
-
-                Spacer(minLength: 0)
+        VStack(spacing: 12) {
+            Picker("Display Mode", selection: $yearMode) {
+                Text("Full Mode").tag(YearDisplayMode.full)
+                Text("Compact Mode").tag(YearDisplayMode.compact)
             }
-            .navigationTitle("Year View")
+            .pickerStyle(.segmented)
+            .padding(.horizontal)
+            .padding(.top, 8)
+
+            CalendarView(selection: $selectedDate, displayDate: $displayDate)
+                .calendarViewMode(.year(yearMode))
         }
+        .background(Color(uiColor: .systemGroupedBackground))
+        .navigationTitle("Year Overview")
+        .navigationBarTitleDisplayMode(.inline)
         .tint(.teal)
     }
 }
 
 #Preview {
-    YearCalendarDemo()
+    NavigationStack {
+        YearCalendarDemo()
+    }
 }
-
