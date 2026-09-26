@@ -78,3 +78,8 @@ struct EventCalendarDemo: View {
         .tint(.orange)
     }
 }
+
+#Preview {
+    EventCalendarDemo()
+}
+

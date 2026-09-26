@@ -94,3 +94,8 @@ struct SingleDateDemo: View {
         .tint(.blue)
     }
 }
+
+#Preview {
+    SingleDateDemo()
+}
+

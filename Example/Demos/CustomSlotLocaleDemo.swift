@@ -98,3 +98,8 @@ struct CustomSlotLocaleDemo: View {
         return state.isCurrentMonth ? .primary : .secondary
     }
 }
+
+#Preview {
+    CustomSlotLocaleDemo()
+}
+

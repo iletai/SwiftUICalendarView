@@ -92,3 +92,8 @@ struct BookingRangeDemo: View {
         }
     }
 }
+
+#Preview {
+    BookingRangeDemo()
+}
+

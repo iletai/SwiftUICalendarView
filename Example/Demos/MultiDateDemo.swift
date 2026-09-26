@@ -50,3 +50,8 @@ struct MultiDateDemo: View {
         .tint(.pink)
     }
 }
+
+#Preview {
+    MultiDateDemo()
+}
+

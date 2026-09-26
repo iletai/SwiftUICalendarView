@@ -48,3 +48,8 @@ struct WeekCalendarDemo: View {
         .tint(.mint)
     }
 }
+
+#Preview {
+    WeekCalendarDemo()
+}
+

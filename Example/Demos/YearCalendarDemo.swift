@@ -27,3 +27,8 @@ struct YearCalendarDemo: View {
         .tint(.teal)
     }
 }
+
+#Preview {
+    YearCalendarDemo()
+}
+
