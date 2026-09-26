@@ -7,25 +7,30 @@ struct ContentView: View {
             List {
                 // Hero Header Banner
                 Section {
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack(spacing: 12) {
                             Image(systemName: "calendar.badge.clock")
-                                .font(.title)
+                                .font(.system(size: 32, weight: .bold))
                                 .foregroundStyle(.blue.gradient)
-                            Text("SwiftUICalendarView")
-                                .font(.title2.bold())
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("SwiftUICalendarView")
+                                    .font(.title3.bold())
+                                Text("Zero-Dependency · 120Hz")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
                         }
 
-                        Text("Declarative, high-performance calendar component for SwiftUI with 120Hz ProMotion fluidity and zero external dependencies.")
-                            .font(.subheadline)
+                        Text("Declarative, high-performance SwiftUI calendar component with multi-mode rendering, non-Gregorian engines, and continuous booking highlights.")
+                            .font(.footnote)
                             .foregroundColor(.secondary)
 
                         HStack(spacing: 8) {
                             BadgeLabel(title: "v3.1.0", color: .blue)
-                            BadgeLabel(title: "Zero Deps", color: .green)
+                            BadgeLabel(title: "Pure SwiftUI", color: .green)
                             BadgeLabel(title: "iOS 17+", color: .purple)
                         }
-                        .padding(.top, 4)
                     }
                     .padding(.vertical, 6)
                 }
@@ -116,7 +121,9 @@ struct ContentView: View {
                     }
                 }
             }
+            .listStyle(.insetGrouped)
             .navigationTitle("Calendar Gallery")
+            .navigationBarTitleDisplayMode(.large)
         }
     }
 }

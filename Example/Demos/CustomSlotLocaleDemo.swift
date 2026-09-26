@@ -27,28 +27,7 @@ struct CustomSlotLocaleDemo: View {
                 VStack(spacing: 12) {
                     CalendarView(selection: $selectedDate)
                         .calendarDayCell { state in
-                            VStack(spacing: 2) {
-                                Text("\(state.dayNumber)")
-                                    .font(.system(size: 15, weight: state.isSelected ? .bold : .regular))
-                                    .foregroundColor(cellColor(state))
-
-                                if state.isToday {
-                                    Circle()
-                                        .fill(Color.orange)
-                                        .frame(width: 4, height: 4)
-                                }
-                            }
-                            .frame(height: 38)
-                            .frame(maxWidth: .infinity)
-                            .background(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .fill(state.isSelected ? Color.purple.gradient : AnyShapeStyle(Color.clear))
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(state.isToday && !state.isSelected ? Color.orange : Color.clear, lineWidth: 1.5)
-                            )
-                            .opacity(state.isCurrentMonth ? 1.0 : 0.3)
+                            CustomCalendarDayCell(state: state)
                         }
                         .calendarLocale(currentLocale)
                         .environment(\.calendar, currentCalendar)
@@ -105,11 +84,51 @@ struct CustomSlotLocaleDemo: View {
         .navigationBarTitleDisplayMode(.inline)
         .tint(.purple)
     }
+}
 
-    private func cellColor(_ state: CalendarDayState) -> Color {
+// MARK: - Custom Day Cell View
+private struct CustomCalendarDayCell: View {
+    let state: CalendarDayState
+
+    var body: some View {
+        VStack(spacing: 2) {
+            Text("\(state.dayNumber)")
+                .font(.system(size: 15, weight: state.isSelected ? .bold : .regular))
+                .foregroundColor(cellColor)
+
+            if state.isToday {
+                Circle()
+                    .fill(Color.orange)
+                    .frame(width: 4, height: 4)
+            }
+        }
+        .frame(height: 38)
+        .frame(maxWidth: .infinity)
+        .background(backgroundShape)
+        .overlay(borderOverlay)
+        .opacity(state.isCurrentMonth ? 1.0 : 0.3)
+    }
+
+    private var cellColor: Color {
         if state.isSelected { return .white }
         if state.isDisabled { return .secondary.opacity(0.4) }
         return state.isCurrentMonth ? .primary : .secondary
+    }
+
+    @ViewBuilder
+    private var backgroundShape: some View {
+        if state.isSelected {
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.purple.gradient)
+        }
+    }
+
+    @ViewBuilder
+    private var borderOverlay: some View {
+        if state.isToday && !state.isSelected {
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.orange, lineWidth: 1.5)
+        }
     }
 }
 
