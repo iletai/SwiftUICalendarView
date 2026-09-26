@@ -273,15 +273,14 @@ Native integration with Apple's `Calendar` and `Locale` APIs allows zero-code lo
 
 ## Example App
 
-The example is built as a pure SPM executable target (no Xcode project clutter):
+An interactive iOS showcase app is included under `Example/`:
 
 ```bash
-# In Xcode: open Package.swift → Select "CalendarExample" scheme → Run
-open Package.swift
-
-# Or run from command line:
-swift run CalendarExample
+# Open in Xcode to run on Simulator or preview in Canvas
+open Example/CalendarExample.xcodeproj
 ```
+
+*(You can also regenerate the Xcode project at any time via `cd Example && xcodegen generate`)*
 
 Included showcase demos:
 1. **Single Date Picker** — Today jump, weekday configuration, haptic toggle (.tint: Blue)

@@ -1,0 +1,31 @@
+name: CalendarExample
+options:
+  bundleIdPrefix: com.calendarview
+  deploymentTarget:
+    iOS: "17.0"
+packages:
+  CalendarView:
+    path: ../
+targets:
+  CalendarExample:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: ContentView.swift
+      - path: ExampleApp.swift
+      - path: Demos
+    dependencies:
+      - package: CalendarView
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.calendarview.example
+        GENERATE_INFOPLIST_FILE: YES
+        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: 3.1.0
+        SWIFT_VERSION: "5.9"
+        ENABLE_PREVIEWS: YES
+        DEVELOPMENT_TEAM: ""
+        CODE_SIGNING_REQUIRED: NO
+        CODE_SIGN_IDENTITY: ""
+        ENABLE_DEBUG_DYLIB: YES

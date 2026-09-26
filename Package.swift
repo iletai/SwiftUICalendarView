@@ -18,11 +18,6 @@ let package = Package(
         .target(
             name: "CalendarView"
         ),
-        .target(
-            name: "CalendarExample",
-            dependencies: ["CalendarView"],
-            path: "Example"
-        ),
         .testTarget(
             name: "CalendarViewTests",
             dependencies: ["CalendarView"]
