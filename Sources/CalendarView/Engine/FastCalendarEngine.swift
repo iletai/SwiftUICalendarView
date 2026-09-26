@@ -87,4 +87,70 @@ public enum FastCalendarEngine {
             days: days
         )
     }
+
+    /// Computes 7 day states for the week containing `date`, respecting `calendar.firstWeekday`.
+    public static func computeWeekMatrix(
+        for date: Date,
+        calendar: Calendar,
+        todayDate: Date = Date(),
+        selectedKeySet: Set<Int> = [],
+        rangeBounds: (startKey: Int?, endKey: Int?) = (nil, nil),
+        disabledRule: (@Sendable (Date) -> Bool)? = nil,
+        eventsMap: [Int: [CalendarEvent]] = [:]
+    ) -> [CalendarDayState] {
+        let cal = calendar
+        let weekday = cal.component(.weekday, from: date)
+        let offset = (weekday - cal.firstWeekday + 7) % 7
+        guard let weekStart = cal.date(byAdding: .day, value: -offset, to: date) else { return [] }
+
+        let todayKey = CalendarDateKey.key(for: todayDate, using: cal)
+        let monthOfDate = cal.component(.month, from: date)
+        let yearOfDate = cal.component(.year, from: date)
+
+        var days: [CalendarDayState] = []
+        days.reserveCapacity(7)
+
+        for i in 0..<7 {
+            guard let current = cal.date(byAdding: .day, value: i, to: weekStart) else { continue }
+            let comps = cal.dateComponents([.year, .month, .day], from: current)
+            let y = comps.year ?? 0
+            let m = comps.month ?? 0
+            let d = comps.day ?? 0
+            let key = CalendarDateKey.makeKey(year: y, month: m, day: d)
+
+            let isCurrentMonth = (y == yearOfDate && m == monthOfDate)
+            let isToday = (key == todayKey)
+            let isSelected = selectedKeySet.contains(key)
+            let isDisabled = disabledRule?(current) ?? false
+
+            var pos: RangeSelectionPosition = .none
+            if let start = rangeBounds.startKey, let end = rangeBounds.endKey {
+                if start == end && key == start {
+                    pos = .singleDay
+                } else if key == start {
+                    pos = .rangeStart
+                } else if key == end {
+                    pos = .rangeEnd
+                } else if key > start && key < end {
+                    pos = .rangeMiddle
+                }
+            } else if let start = rangeBounds.startKey, key == start {
+                pos = .singleDay
+            }
+
+            days.append(CalendarDayState(
+                dateKey: key,
+                date: current,
+                dayNumber: d,
+                isCurrentMonth: isCurrentMonth,
+                isToday: isToday,
+                isSelected: isSelected,
+                isSelectable: !isDisabled,
+                isDisabled: isDisabled,
+                rangePosition: pos,
+                events: eventsMap[key] ?? []
+            ))
+        }
+        return days
+    }
 }
