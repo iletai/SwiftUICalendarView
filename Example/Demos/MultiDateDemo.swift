@@ -22,7 +22,8 @@ struct MultiDateDemo: View {
                     selectedScheduleCard
                 }
             }
-            .padding()
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
         }
         .background(Color(uiColor: .systemGroupedBackground))
         .navigationTitle("Multi-Date Selection")
@@ -40,26 +41,32 @@ struct MultiDateDemo: View {
             Spacer()
             if !selectedDates.isEmpty {
                 Button("Clear All") {
-                    withAnimation { selectedDates.removeAll() }
+                    selectedDates.removeAll()
                 }
                 .font(.caption.bold())
                 .foregroundColor(.red)
             }
         }
-        .padding(.vertical, 10)
+        .padding(.vertical, 12)
         .padding(.horizontal, 16)
         .background(Color(uiColor: .secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 16))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+        )
     }
 
     private var calendarCard: some View {
-        VStack(spacing: 12) {
-            CalendarView(selection: $selectedDates, displayDate: $displayDate)
-                .padding(.vertical, 6)
-        }
-        .padding()
-        .background(Color(uiColor: .secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        CalendarView(selection: $selectedDates, displayDate: $displayDate)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 12)
+            .background(Color(uiColor: .secondarySystemGroupedBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+            )
     }
 
     private var selectedScheduleCard: some View {
@@ -72,17 +79,19 @@ struct MultiDateDemo: View {
             FlowLayout(spacing: 8) {
                 ForEach(Array(selectedDates.sorted()), id: \.self) { date in
                     DateChipView(date: date) {
-                        withAnimation {
-                            _ = selectedDates.remove(date)
-                        }
+                        _ = selectedDates.remove(date)
                     }
                 }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
+        .padding(16)
         .background(Color(uiColor: .secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 16))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+        )
     }
 }
 

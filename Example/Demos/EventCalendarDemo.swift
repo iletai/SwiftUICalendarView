@@ -38,19 +38,17 @@ struct EventCalendarDemo: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                // Calendar Card with dots
-                VStack(spacing: 12) {
-                    CalendarView(selection: $selectedDate, displayDate: $displayDate)
-                        .calendarEvents(sampleEvents)
-                        .padding(.vertical, 6)
-                }
-                .padding()
-                .background(Color(uiColor: .secondarySystemGroupedBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.primary.opacity(0.06), lineWidth: 1)
-                )
+                // Calendar Container Card (Evenly distributed)
+                CalendarView(selection: $selectedDate, displayDate: $displayDate)
+                    .calendarEvents(sampleEvents)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 12)
+                    .background(Color(uiColor: .secondarySystemGroupedBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+                    )
 
                 // Timeline Agenda Section
                 VStack(alignment: .leading, spacing: 12) {
@@ -90,13 +88,13 @@ struct EventCalendarDemo: View {
                                 }
                                 Spacer()
                             }
-                            .padding()
+                            .padding(14)
                             .background(Color(uiColor: .tertiarySystemGroupedBackground))
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                         }
                     }
                 }
-                .padding()
+                .padding(16)
                 .background(Color(uiColor: .secondarySystemGroupedBackground))
                 .clipShape(RoundedRectangle(cornerRadius: 16))
                 .overlay(
@@ -104,7 +102,8 @@ struct EventCalendarDemo: View {
                         .stroke(Color.primary.opacity(0.06), lineWidth: 1)
                 )
             }
-            .padding()
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
         }
         .background(Color(uiColor: .systemGroupedBackground))
         .navigationTitle("Event Calendar")

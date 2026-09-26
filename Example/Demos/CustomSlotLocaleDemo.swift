@@ -23,23 +23,21 @@ struct CustomSlotLocaleDemo: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                // Custom Slot Calendar Card
-                VStack(spacing: 12) {
-                    CalendarView(selection: $selectedDate)
-                        .calendarDayCell { state in
-                            CustomCalendarDayCell(state: state)
-                        }
-                        .calendarLocale(currentLocale)
-                        .environment(\.calendar, currentCalendar)
-                        .padding(.vertical, 6)
-                }
-                .padding()
-                .background(Color(uiColor: .secondarySystemGroupedBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.primary.opacity(0.06), lineWidth: 1)
-                )
+                // Custom Slot Calendar Card (Evenly distributed)
+                CalendarView(selection: $selectedDate)
+                    .calendarDayCell { state in
+                        CustomCalendarDayCell(state: state)
+                    }
+                    .calendarLocale(currentLocale)
+                    .environment(\.calendar, currentCalendar)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 12)
+                    .background(Color(uiColor: .secondarySystemGroupedBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+                    )
 
                 // Pickers Card
                 VStack(spacing: 14) {
@@ -69,7 +67,7 @@ struct CustomSlotLocaleDemo: View {
                         .pickerStyle(.menu)
                     }
                 }
-                .padding()
+                .padding(16)
                 .background(Color(uiColor: .secondarySystemGroupedBackground))
                 .clipShape(RoundedRectangle(cornerRadius: 16))
                 .overlay(
@@ -77,7 +75,8 @@ struct CustomSlotLocaleDemo: View {
                         .stroke(Color.primary.opacity(0.06), lineWidth: 1)
                 )
             }
-            .padding()
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
         }
         .background(Color(uiColor: .systemGroupedBackground))
         .navigationTitle("Custom & Locales")
@@ -102,8 +101,9 @@ private struct CustomCalendarDayCell: View {
                     .frame(width: 4, height: 4)
             }
         }
-        .frame(height: 38)
         .frame(maxWidth: .infinity)
+        .frame(height: 44)
+        .contentShape(Rectangle())
         .background(backgroundShape)
         .overlay(borderOverlay)
         .opacity(state.isCurrentMonth ? 1.0 : 0.3)
@@ -120,6 +120,7 @@ private struct CustomCalendarDayCell: View {
         if state.isSelected {
             RoundedRectangle(cornerRadius: 10)
                 .fill(Color.purple.gradient)
+                .frame(width: 38, height: 38)
         }
     }
 
@@ -128,6 +129,7 @@ private struct CustomCalendarDayCell: View {
         if state.isToday && !state.isSelected {
             RoundedRectangle(cornerRadius: 10)
                 .stroke(Color.orange, lineWidth: 1.5)
+                .frame(width: 38, height: 38)
         }
     }
 }

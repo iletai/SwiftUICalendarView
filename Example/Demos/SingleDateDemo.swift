@@ -20,7 +20,7 @@ struct SingleDateDemo: View {
                         .font(.title3.bold())
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding()
+                .padding(16)
                 .background(Color(uiColor: .secondarySystemGroupedBackground))
                 .clipShape(RoundedRectangle(cornerRadius: 16))
                 .overlay(
@@ -28,20 +28,18 @@ struct SingleDateDemo: View {
                         .stroke(Color.primary.opacity(0.06), lineWidth: 1)
                 )
 
-                // Calendar Container Card
-                VStack(spacing: 12) {
-                    CalendarView(selection: $selectedDate, displayDate: $displayDate)
-                        .calendarFirstWeekday(firstWeekday)
-                        .calendarHapticsEnabled(hapticsEnabled)
-                        .padding(.vertical, 6)
-                }
-                .padding()
-                .background(Color(uiColor: .secondarySystemGroupedBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.primary.opacity(0.06), lineWidth: 1)
-                )
+                // Calendar Container Card (Evenly distributed)
+                CalendarView(selection: $selectedDate, displayDate: $displayDate)
+                    .calendarFirstWeekday(firstWeekday)
+                    .calendarHapticsEnabled(hapticsEnabled)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 12)
+                    .background(Color(uiColor: .secondarySystemGroupedBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+                    )
 
                 // Quick Navigation Actions
                 HStack(spacing: 12) {
@@ -93,7 +91,7 @@ struct SingleDateDemo: View {
                     Toggle("Selection Haptics", isOn: $hapticsEnabled)
                         .font(.subheadline.bold())
                 }
-                .padding()
+                .padding(16)
                 .background(Color(uiColor: .secondarySystemGroupedBackground))
                 .clipShape(RoundedRectangle(cornerRadius: 16))
                 .overlay(
@@ -101,7 +99,8 @@ struct SingleDateDemo: View {
                         .stroke(Color.primary.opacity(0.06), lineWidth: 1)
                 )
             }
-            .padding()
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
         }
         .background(Color(uiColor: .systemGroupedBackground))
         .navigationTitle("Single Picker")

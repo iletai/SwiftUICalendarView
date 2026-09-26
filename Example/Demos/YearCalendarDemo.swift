@@ -13,11 +13,12 @@ struct YearCalendarDemo: View {
                 Text("Compact Mode").tag(YearDisplayMode.compact)
             }
             .pickerStyle(.segmented)
-            .padding(.horizontal)
+            .padding(.horizontal, 16)
             .padding(.top, 8)
 
             CalendarView(selection: $selectedDate, displayDate: $displayDate)
                 .calendarViewMode(.year(yearMode))
+                .padding(.bottom, 16)
         }
         .background(Color(uiColor: .systemGroupedBackground))
         .navigationTitle("Year Overview")

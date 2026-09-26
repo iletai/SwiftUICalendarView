@@ -18,7 +18,7 @@ struct WeekCalendarDemo: View {
                         .font(.title3.bold())
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding()
+                .padding(16)
                 .background(Color(uiColor: .secondarySystemGroupedBackground))
                 .clipShape(RoundedRectangle(cornerRadius: 16))
                 .overlay(
@@ -26,19 +26,17 @@ struct WeekCalendarDemo: View {
                         .stroke(Color.primary.opacity(0.06), lineWidth: 1)
                 )
 
-                // Week Strip Card
-                VStack(spacing: 12) {
-                    CalendarView(selection: $selectedDate, displayDate: $displayDate)
-                        .calendarViewMode(.week)
-                        .padding(.vertical, 6)
-                }
-                .padding()
-                .background(Color(uiColor: .secondarySystemGroupedBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.primary.opacity(0.06), lineWidth: 1)
-                )
+                // Week Strip Card (Evenly distributed)
+                CalendarView(selection: $selectedDate, displayDate: $displayDate)
+                    .calendarViewMode(.week)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 12)
+                    .background(Color(uiColor: .secondarySystemGroupedBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+                    )
 
                 // Action
                 Button {
@@ -55,7 +53,8 @@ struct WeekCalendarDemo: View {
                 }
                 .buttonStyle(.borderedProminent)
             }
-            .padding()
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
         }
         .background(Color(uiColor: .systemGroupedBackground))
         .navigationTitle("Week View")

@@ -43,7 +43,7 @@ struct BookingRangeDemo: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .padding()
+                .padding(16)
                 .background(Color(uiColor: .secondarySystemGroupedBackground))
                 .clipShape(RoundedRectangle(cornerRadius: 16))
                 .overlay(
@@ -65,21 +65,19 @@ struct BookingRangeDemo: View {
                     .clipShape(Capsule())
                 }
 
-                // Calendar Card
-                VStack(spacing: 12) {
-                    CalendarView(selection: $dateRange)
-                        .calendarDisabledDates { date in
-                            disablePastDates && date < Calendar.current.startOfDay(for: Date())
-                        }
-                        .padding(.vertical, 6)
-                }
-                .padding()
-                .background(Color(uiColor: .secondarySystemGroupedBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.primary.opacity(0.06), lineWidth: 1)
-                )
+                // Calendar Container Card (Evenly distributed)
+                CalendarView(selection: $dateRange)
+                    .calendarDisabledDates { date in
+                        disablePastDates && date < Calendar.current.startOfDay(for: Date())
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 12)
+                    .background(Color(uiColor: .secondarySystemGroupedBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+                    )
 
                 // Presets & Options Card
                 VStack(spacing: 14) {
@@ -98,6 +96,7 @@ struct BookingRangeDemo: View {
                             .buttonStyle(.bordered)
                             .font(.caption.bold())
                             .foregroundColor(.red)
+                            .frame(maxWidth: .infinity)
                     }
 
                     Divider()
@@ -105,7 +104,7 @@ struct BookingRangeDemo: View {
                     Toggle("Disable Past Dates", isOn: $disablePastDates)
                         .font(.subheadline.bold())
                 }
-                .padding()
+                .padding(16)
                 .background(Color(uiColor: .secondarySystemGroupedBackground))
                 .clipShape(RoundedRectangle(cornerRadius: 16))
                 .overlay(
@@ -113,7 +112,8 @@ struct BookingRangeDemo: View {
                         .stroke(Color.primary.opacity(0.06), lineWidth: 1)
                 )
             }
-            .padding()
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
         }
         .background(Color(uiColor: .systemGroupedBackground))
         .navigationTitle("Booking Range")
