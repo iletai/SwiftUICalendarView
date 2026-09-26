@@ -79,3 +79,23 @@ public struct DefaultCalendarDayCell: View {
         return "\(dateStr)\(eventStr)"
     }
 }
+
+#Preview {
+    HStack(spacing: 8) {
+        DefaultCalendarDayCell(state: CalendarDayState(
+            dateKey: 20260924, date: Date(), dayNumber: 24,
+            isCurrentMonth: true, isToday: true, isSelected: false
+        ))
+        DefaultCalendarDayCell(state: CalendarDayState(
+            dateKey: 20260924, date: Date(), dayNumber: 24,
+            isCurrentMonth: true, isToday: false, isSelected: true
+        ))
+        DefaultCalendarDayCell(state: CalendarDayState(
+            dateKey: 20260924, date: Date(), dayNumber: 24,
+            isCurrentMonth: true, isToday: false, isSelected: false,
+            events: [CalendarEvent(date: Date(), color: .orange)]
+        ))
+    }
+    .padding()
+}
+

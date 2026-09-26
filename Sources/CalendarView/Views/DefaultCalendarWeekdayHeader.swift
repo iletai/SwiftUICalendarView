@@ -26,3 +26,9 @@ public struct DefaultCalendarWeekdayHeader: View {
         }
     }
 }
+
+#Preview {
+    DefaultCalendarWeekdayHeader()
+        .padding()
+}
+

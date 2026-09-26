@@ -571,3 +571,24 @@ public extension CalendarView where DayContent == DefaultCalendarDayCell,
         )
     }
 }
+
+#Preview("Month View") {
+    CalendarView(selection: .constant(Date()))
+        .padding()
+}
+
+#Preview("Week View") {
+    CalendarView(selection: .constant(Date()))
+        .calendarViewMode(.week)
+        .padding()
+}
+
+#Preview("Booking Range") {
+    let today = Date()
+    let start = Calendar.current.date(byAdding: .day, value: 2, to: today)!
+    let end = Calendar.current.date(byAdding: .day, value: 6, to: today)!
+    return CalendarView(selection: .constant(start...end))
+        .padding()
+}
+
+

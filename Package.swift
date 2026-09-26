@@ -18,7 +18,7 @@ let package = Package(
         .target(
             name: "CalendarView"
         ),
-        .executableTarget(
+        .target(
             name: "CalendarExample",
             dependencies: ["CalendarView"],
             path: "Example"

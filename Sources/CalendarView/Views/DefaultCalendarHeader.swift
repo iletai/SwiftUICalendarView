@@ -35,3 +35,9 @@ public struct DefaultCalendarHeader: View {
         .padding(.horizontal)
     }
 }
+
+#Preview {
+    DefaultCalendarHeader(title: "September 2026", onPrevious: {}, onNext: {})
+        .padding()
+}
+
