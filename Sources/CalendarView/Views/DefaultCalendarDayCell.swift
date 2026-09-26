@@ -12,13 +12,13 @@ public struct DefaultCalendarDayCell: View {
 
     public var body: some View {
         ZStack {
-            // Background shape
+            // Background Highlight Shape
             if state.rangePosition != .none {
                 RangeSelectionShape(position: state.rangePosition, cornerRadius: 8)
                     .fill(
                         state.rangePosition == .rangeStart || state.rangePosition == .rangeEnd || state.rangePosition == .singleDay
                         ? AnyShapeStyle(LinearGradient(
-                            colors: [accentColor, accentColor.opacity(0.8)],
+                            colors: [accentColor, accentColor.opacity(0.85)],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         ))
@@ -27,21 +27,24 @@ public struct DefaultCalendarDayCell: View {
             } else if state.isSelected {
                 Circle()
                     .fill(LinearGradient(
-                        colors: [accentColor, accentColor.opacity(0.8)],
+                        colors: [accentColor, accentColor.opacity(0.85)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ))
+                    .padding(2)
             } else if state.isToday {
                 Circle()
                     .stroke(accentColor, lineWidth: 1.5)
-                    .shadow(color: accentColor.opacity(0.3), radius: 4)
+                    .padding(2)
             }
 
-            // Content
+            // Cell Content
             VStack(spacing: 2) {
                 Text("\(state.dayNumber)")
                     .font(.system(size: 16, weight: state.isSelected || state.isToday ? .semibold : .regular))
                     .foregroundColor(textColor)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
 
                 if !state.events.isEmpty {
                     HStack(spacing: 2) {
@@ -54,10 +57,10 @@ public struct DefaultCalendarDayCell: View {
                 }
             }
         }
-        .frame(height: 38)
-        .opacity(state.isCurrentMonth ? 1.0 : 0.3)
-        .scaleEffect(state.isSelected ? 1.0 : 0.97)
-        .animation(.spring(response: 0.25, dampingFraction: 0.7), value: state.isSelected)
+        .frame(maxWidth: .infinity)
+        .frame(height: 40)
+        .contentShape(Rectangle())
+        .opacity(state.isCurrentMonth ? 1.0 : 0.28)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityText)
         .accessibilityAddTraits(state.isSelected ? [.isSelected, .isButton] : [.isButton])
@@ -98,4 +101,3 @@ public struct DefaultCalendarDayCell: View {
     }
     .padding()
 }
-

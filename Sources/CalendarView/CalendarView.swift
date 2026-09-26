@@ -374,10 +374,12 @@ public struct CalendarView<DayContent: View, HeaderContent: View, WeekdayContent
     @ViewBuilder
     private func miniDayCell(day: CalendarDayState, compact: Bool) -> some View {
         Text("\(day.dayNumber)")
-            .font(.system(size: compact ? 8 : 10))
+            .font(.system(size: compact ? 8 : 9, weight: day.isSelected || day.isToday ? .bold : .regular))
             .foregroundColor(miniDayCellColor(day: day))
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
             .frame(maxWidth: .infinity)
-            .frame(height: compact ? 12 : 16)
+            .frame(height: compact ? 12 : 14)
             .background(
                 Group {
                     if day.isSelected {
@@ -387,7 +389,7 @@ public struct CalendarView<DayContent: View, HeaderContent: View, WeekdayContent
                     }
                 }
             )
-            .opacity(day.isCurrentMonth ? 1.0 : 0.2)
+            .opacity(day.isCurrentMonth ? 1.0 : 0.25)
     }
 
     private func miniDayCellColor(day: CalendarDayState) -> Color {

@@ -16,23 +16,30 @@ public struct DefaultCalendarHeader: View {
         HStack {
             Text(title)
                 .font(.title2.bold())
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
                 .accessibilityAddTraits(.isHeader)
             Spacer()
-            HStack(spacing: 16) {
+            HStack(spacing: 4) {
                 Button(action: onPrevious) {
                     Image(systemName: "chevron.left")
                         .font(.body.bold())
+                        .frame(width: 40, height: 40)
+                        .contentShape(Rectangle())
                 }
                 .accessibilityLabel("Previous")
+
                 Button(action: onNext) {
                     Image(systemName: "chevron.right")
                         .font(.body.bold())
+                        .frame(width: 40, height: 40)
+                        .contentShape(Rectangle())
                 }
                 .accessibilityLabel("Next")
             }
             .foregroundColor(.primary)
         }
-        .padding(.horizontal)
+        .padding(.horizontal, 4)
     }
 }
 
