@@ -12,17 +12,32 @@ public struct DefaultCalendarDayCell: View {
 
     public var body: some View {
         ZStack {
+            // Background shape
             if state.rangePosition != .none {
                 RangeSelectionShape(position: state.rangePosition, cornerRadius: 8)
-                    .fill(accentColor.opacity(state.isSelected ? 1.0 : 0.2))
+                    .fill(
+                        state.rangePosition == .rangeStart || state.rangePosition == .rangeEnd || state.rangePosition == .singleDay
+                        ? AnyShapeStyle(LinearGradient(
+                            colors: [accentColor, accentColor.opacity(0.8)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ))
+                        : AnyShapeStyle(accentColor.opacity(0.15))
+                    )
             } else if state.isSelected {
                 Circle()
-                    .fill(accentColor)
+                    .fill(LinearGradient(
+                        colors: [accentColor, accentColor.opacity(0.8)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ))
             } else if state.isToday {
                 Circle()
                     .stroke(accentColor, lineWidth: 1.5)
+                    .shadow(color: accentColor.opacity(0.3), radius: 4)
             }
 
+            // Content
             VStack(spacing: 2) {
                 Text("\(state.dayNumber)")
                     .font(.system(size: 16, weight: state.isSelected || state.isToday ? .semibold : .regular))
@@ -41,6 +56,8 @@ public struct DefaultCalendarDayCell: View {
         }
         .frame(height: 38)
         .opacity(state.isCurrentMonth ? 1.0 : 0.3)
+        .scaleEffect(state.isSelected ? 1.0 : 0.97)
+        .animation(.spring(response: 0.25, dampingFraction: 0.7), value: state.isSelected)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityText)
         .accessibilityAddTraits(state.isSelected ? [.isSelected, .isButton] : [.isButton])
