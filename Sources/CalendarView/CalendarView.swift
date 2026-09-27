@@ -11,7 +11,7 @@ import SwiftUI
 import UIKit
 #endif
 
-/// A high-performance, declarative calendar view for SwiftUI with native ergonomics.
+/// A high-performance, declarative calendar view for SwiftUI with native ergonomics and fluid gestures.
 public struct CalendarView<DayContent: View, HeaderContent: View, WeekdayContent: View>: View {
     @Environment(\.calendar) private var envCalendar
     @Environment(\.locale) private var envLocale
@@ -23,6 +23,7 @@ public struct CalendarView<DayContent: View, HeaderContent: View, WeekdayContent
 
     private var externalDisplayDate: Binding<Date>?
     @State private var internalDisplayDate: Date
+    @State private var horizontalDragOffset: CGFloat = 0
 
     private let selectedKeySet: Set<Int>
     private let rangeBounds: (startKey: Int?, endKey: Int?)
@@ -101,7 +102,7 @@ public struct CalendarView<DayContent: View, HeaderContent: View, WeekdayContent
         }
     }
 
-    // MARK: - Month View
+    // MARK: - Month View with Fluid Swipe Gesture
     private var monthView: some View {
         let matrix = makeMonthMatrix(for: currentDisplayDate.wrappedValue)
 
@@ -121,6 +122,26 @@ public struct CalendarView<DayContent: View, HeaderContent: View, WeekdayContent
                 }
             }
             .padding(.horizontal, 4)
+            .offset(x: horizontalDragOffset)
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 15)
+                    .onChanged { value in
+                        horizontalDragOffset = value.translation.width * 0.4
+                    }
+                    .onEnded { value in
+                        let threshold: CGFloat = 50
+                        let predicted = value.predictedEndTranslation.width
+                        if value.translation.width < -threshold || predicted < -threshold * 2 {
+                            navigate(by: 1)
+                        } else if value.translation.width > threshold || predicted > threshold * 2 {
+                            navigate(by: -1)
+                        }
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
+                            horizontalDragOffset = 0
+                        }
+                    }
+            )
         }
     }
 
@@ -149,7 +170,7 @@ public struct CalendarView<DayContent: View, HeaderContent: View, WeekdayContent
                     }
                     .foregroundColor(.primary)
                 }
-                .padding(.horizontal)
+                .padding(.horizontal, 16)
 
                 ScrollView {
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 3), spacing: 20) {
@@ -181,7 +202,7 @@ public struct CalendarView<DayContent: View, HeaderContent: View, WeekdayContent
                             .id(matrix.yearMonthKey)
                         }
                     }
-                    .padding(.horizontal, 8)
+                    .padding(.horizontal, 16)
                 }
             }
             .onAppear {
@@ -192,7 +213,7 @@ public struct CalendarView<DayContent: View, HeaderContent: View, WeekdayContent
         }
     }
 
-    // MARK: - Week View
+    // MARK: - Week View with Fluid Swipe Gesture
     private var weekView: some View {
         let days = FastCalendarEngine.computeWeekMatrix(
             for: currentDisplayDate.wrappedValue,
@@ -224,7 +245,7 @@ public struct CalendarView<DayContent: View, HeaderContent: View, WeekdayContent
                 }
                 .foregroundColor(.primary)
             }
-            .padding(.horizontal)
+            .padding(.horizontal, 16)
 
             weekdayContent(effectiveCalendar)
 
@@ -241,6 +262,25 @@ public struct CalendarView<DayContent: View, HeaderContent: View, WeekdayContent
                 }
             }
             .padding(.horizontal, 4)
+            .offset(x: horizontalDragOffset)
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 15)
+                    .onChanged { value in
+                        horizontalDragOffset = value.translation.width * 0.4
+                    }
+                    .onEnded { value in
+                        let threshold: CGFloat = 50
+                        if value.translation.width < -threshold {
+                            navigate(by: 1)
+                        } else if value.translation.width > threshold {
+                            navigate(by: -1)
+                        }
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
+                            horizontalDragOffset = 0
+                        }
+                    }
+            )
         }
     }
 
@@ -267,7 +307,7 @@ public struct CalendarView<DayContent: View, HeaderContent: View, WeekdayContent
                 }
                 .foregroundColor(.primary)
             }
-            .padding(.horizontal)
+            .padding(.horizontal, 16)
 
             if let state = dayState {
                 dayContent(state)
@@ -283,7 +323,7 @@ public struct CalendarView<DayContent: View, HeaderContent: View, WeekdayContent
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal)
+                    .padding(.horizontal, 16)
                 }
             }
         }
@@ -343,6 +383,7 @@ public struct CalendarView<DayContent: View, HeaderContent: View, WeekdayContent
             withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                 currentDisplayDate.wrappedValue = newDate
             }
+            triggerHaptic()
         }
     }
 
@@ -592,5 +633,3 @@ public extension CalendarView where DayContent == DefaultCalendarDayCell,
     return CalendarView(selection: .constant(start...end))
         .padding()
 }
-
-
