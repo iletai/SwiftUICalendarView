@@ -18,15 +18,19 @@
 ---
 
 <p align="center">
-<img width="320" alt="SwiftUICalendarView Showcase" src="screenshot.gif" class="center">
+  <img src="screenshots/01_gallery_hub.png" width="230" alt="Gallery Hub">&nbsp;
+  <img src="screenshots/02_single_picker.png" width="230" alt="Single Date Picker">&nbsp;
+  <img src="screenshots/03_booking_range.png" width="230" alt="Booking Date Range">&nbsp;
+  <img src="screenshots/05_year_view.png" width="230" alt="Year Overview">
 </p>
 
 ## Why SwiftUICalendarView 3.1?
 
-SwiftUICalendarView is engineered from the ground up for modern SwiftUI. Built with `FastCalendarEngine` for 120fps ProMotion fluidity, zero third-party dependencies, multi-mode rendering (Month, Year, Week), non-Gregorian calendar support, and standard declarative ViewModifiers.
+SwiftUICalendarView is engineered from the ground up for modern SwiftUI. Built with `FastCalendarEngine` for 120fps ProMotion fluidity, zero third-party dependencies, multi-mode rendering (Month, Year, Week), non-Gregorian calendar support, fluid swipe gestures, and standard declarative ViewModifiers.
 
 - **Zero Dependencies**: Pure SwiftUI & Foundation. No external runtime overhead (< 80KB binary footprint).
 - **Multiple View Modes**: Native rendering for `.month`, `.year(.full)`, `.year(.compact)`, `.week`, and `.single` day modes.
+- **Fluid Swipe Gestures**: Smooth horizontal swipe navigation with spring physics and haptic feedback.
 - **1-Line Ergonomic Initializers**: Single date, booking date ranges, multi-date selections, and display-only agendas.
 - **Continuous Range Highlight**: Native smooth connected bounding curves for hotel & flight booking ranges.
 - **`FastCalendarEngine` O(1) Math**: Date comparisons and lookups powered by integer key hash math (`YYYYMMDD`), bypassing expensive `DateComponents` allocations per frame.
@@ -249,25 +253,15 @@ CalendarView(selection: $selectedDate)
 
 ---
 
-## Architecture & Performance
+## Visual Showcase Gallery
 
-### 1. `FastCalendarEngine` & O(1) Integer Key Math
-Traditional calendar rendering computes `DateComponents` repeatedly inside cell rendering loops, causing thermal throttling and dropped frames during rapid swipe navigation.
+| Gallery Hub | Single Date Picker | Booking Date Range | Year 12-Month Grid |
+| :---: | :---: | :---: | :---: |
+| <img src="screenshots/01_gallery_hub.png" width="200" alt="Gallery Hub"> | <img src="screenshots/02_single_picker.png" width="200" alt="Single Date Picker"> | <img src="screenshots/03_booking_range.png" width="200" alt="Booking Range"> | <img src="screenshots/05_year_view.png" width="200" alt="Year View"> |
 
-`FastCalendarEngine` normalizes all calendar dates into packed integer keys (`YYYYMMDD`, e.g., `20260924`). Selection checks, range bounding, and event lookups run at **O(1)** integer speed in `Set<Int>` and `[Int: [CalendarEvent]]`, allowing fluid 120Hz ProMotion scrolling over 120+ consecutive months.
-
-### 2. Fixed 42-Cell Matrix (6 × 7 Grid)
-Every month produces exactly 42 cells (previous month trailing days + current month + next month leading days). View hierarchies retain stable dimensions, eliminating UI jumps and layout calculations when flipping between 28-day, 30-day, and 31-day months.
-
-### 3. Continuous `RangeSelectionShape`
-Continuous date range highlighting calculates geometric positions (`.singleDay`, `.rangeStart`, `.rangeMiddle`, `.rangeEnd`, `.rowStart`, `.rowEnd`) across multi-row matrix layouts to draw unified curved ribbons with subtle gradient fills for booking check-in/out UX.
-
-### 4. Comprehensive Non-Gregorian & Multi-Locale Support
-Native integration with Apple's `Calendar` and `Locale` APIs allows zero-code localization:
-- **Buddhist Calendar**: Correct Era 2567 BE representation.
-- **Japanese Calendar**: Native Reiwa era formatting.
-- **Islamic (Hijri) & Hebrew Calendars**: Native day indices and weekday alignment.
-- **Daylight Saving Time (DST)**: Robust transitions for US Spring Forward (23h) and EU Fall Back (25h).
+| Multi-Date Selection | 7-Day Week Strip | Event Agenda Calendar | Non-Gregorian & Custom |
+| :---: | :---: | :---: | :---: |
+| <img src="screenshots/04_multi_date.png" width="200" alt="Multi-Date"> | <img src="screenshots/06_week_view.png" width="200" alt="Week View"> | <img src="screenshots/07_event_calendar.png" width="200" alt="Events"> | <img src="screenshots/08_custom_slots.png" width="200" alt="Custom Slots"> |
 
 ---
 
@@ -281,15 +275,6 @@ open Example/CalendarExample.xcodeproj
 ```
 
 *(You can also regenerate the Xcode project at any time via `cd Example && xcodegen generate`)*
-
-Included showcase demos:
-1. **Single Date Picker** — Today jump, weekday configuration, haptic toggle (.tint: Blue)
-2. **Booking Range** — Continuous gradient range highlight, disable past dates, night count (.tint: Indigo)
-3. **Event Calendar** — Multi-color event dots, interactive agenda list (.tint: Orange)
-4. **Year View** — Full & compact 12-month grid with auto-scroll to current month (.tint: Teal)
-5. **Week View** — Single-week row with smooth week navigation (.tint: Mint)
-6. **Multi-Date Selection** — Toggle multiple dates on/off with list overview (.tint: Pink)
-7. **Custom Slot & Locale** — Custom day cell builder, locale switcher (VN, EN, JA, FR), and calendar systems (Gregorian, Buddhist, Japanese, Islamic) (.tint: Purple)
 
 ---
 
