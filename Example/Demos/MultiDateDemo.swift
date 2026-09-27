@@ -14,84 +14,73 @@ struct MultiDateDemo: View {
     @State private var displayDate = Date()
 
     var body: some View {
-        ScrollView(.vertical, showsIndicators: true) {
-            VStack(spacing: 16) {
-                headerPill
-                calendarCard
+        VStack(spacing: 0) {
+            // Gradient Header
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Selected Dates")
+                        .font(.caption.bold())
+                        .foregroundColor(.white.opacity(0.8))
+                        .textCase(.uppercase)
+                    Text("\(selectedDates.count) days chosen")
+                        .font(.title3.bold())
+                        .foregroundColor(.white)
+                }
+                Spacer()
                 if !selectedDates.isEmpty {
-                    selectedScheduleCard
+                    Button("Clear All") {
+                        selectedDates.removeAll()
+                    }
+                    .font(.caption.bold())
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(.white.opacity(0.25))
+                    .clipShape(Capsule())
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-        }
-        .background(Color(uiColor: .systemGroupedBackground))
-        .navigationTitle("Multi-Date Selection")
-        .navigationBarTitleDisplayMode(.inline)
-        .tint(.pink)
-    }
-
-    private var headerPill: some View {
-        HStack {
-            Image(systemName: "checkmark.circle.fill")
-                .foregroundColor(.pink)
-            Text("\(selectedDates.count) dates selected")
-                .font(.subheadline.bold())
-                .foregroundColor(.pink)
-            Spacer()
-            if !selectedDates.isEmpty {
-                Button("Clear All") {
-                    selectedDates.removeAll()
-                }
-                .font(.caption.bold())
-                .foregroundColor(.red)
-            }
-        }
-        .padding(.vertical, 12)
-        .padding(.horizontal, 16)
-        .background(Color(uiColor: .secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.primary.opacity(0.06), lineWidth: 1)
-        )
-    }
-
-    private var calendarCard: some View {
-        CalendarView(selection: $selectedDates, displayDate: $displayDate)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 12)
-            .background(Color(uiColor: .secondarySystemGroupedBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+            .background(
+                LinearGradient(colors: [.pink, .orange], startPoint: .topLeading, endPoint: .bottomTrailing)
             )
-    }
 
-    private var selectedScheduleCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Selected Schedule")
-                .font(.caption.bold())
-                .foregroundColor(.secondary)
-                .textCase(.uppercase)
+            ScrollView {
+                VStack(spacing: 0) {
+                    // Calendar — Full Width
+                    CalendarView(selection: $selectedDates, displayDate: $displayDate)
+                        .padding(.vertical, 8)
 
-            FlowLayout(spacing: 8) {
-                ForEach(Array(selectedDates.sorted()), id: \.self) { date in
-                    DateChipView(date: date) {
-                        _ = selectedDates.remove(date)
+                    if !selectedDates.isEmpty {
+                        Divider().padding(.horizontal, 20)
+
+                        // Selected Chips Section
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Schedule")
+                                .font(.caption.bold())
+                                .foregroundColor(.secondary)
+                                .textCase(.uppercase)
+
+                            FlowLayout(spacing: 8) {
+                                ForEach(Array(selectedDates.sorted()), id: \.self) { date in
+                                    DateChipView(date: date) {
+                                        _ = selectedDates.remove(date)
+                                    }
+                                }
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 16)
                     }
                 }
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
-        .background(Color(uiColor: .secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.primary.opacity(0.06), lineWidth: 1)
-        )
+        .background(Color(uiColor: .systemBackground))
+        .navigationTitle("Multi-Date Selection")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .tint(.pink)
     }
 }
 
@@ -103,13 +92,13 @@ private struct DateChipView: View {
     var body: some View {
         HStack(spacing: 6) {
             Text(date.formatted(date: .abbreviated, time: .omitted))
-                .font(.caption.bold())
+                .font(.subheadline.bold())
             Button(action: onRemove) {
                 Image(systemName: "xmark.circle.fill")
                     .font(.caption)
             }
         }
-        .padding(.horizontal, 10)
+        .padding(.horizontal, 12)
         .padding(.vertical, 6)
         .background(Color.pink.opacity(0.12))
         .foregroundColor(.pink)
@@ -117,7 +106,7 @@ private struct DateChipView: View {
     }
 }
 
-// MARK: - FlowLayout helper for chips
+// MARK: - FlowLayout
 struct FlowLayout: Layout {
     var spacing: CGFloat = 8
 

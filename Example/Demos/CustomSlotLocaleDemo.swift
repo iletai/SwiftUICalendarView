@@ -21,71 +21,81 @@ struct CustomSlotLocaleDemo: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                // Custom Slot Calendar Card (Evenly distributed)
-                CalendarView(selection: $selectedDate)
-                    .calendarDayCell { state in
-                        CustomCalendarDayCell(state: state)
-                    }
-                    .calendarLocale(currentLocale)
-                    .environment(\.calendar, currentCalendar)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 12)
-                    .background(Color(uiColor: .secondarySystemGroupedBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color.primary.opacity(0.06), lineWidth: 1)
-                    )
-
-                // Pickers Card
-                VStack(spacing: 14) {
-                    HStack {
-                        Text("Locale").font(.subheadline.bold())
-                        Spacer()
-                        Picker("Locale", selection: $selectedLocaleId) {
-                            Text("Tiếng Việt").tag("vi_VN")
-                            Text("English").tag("en_US")
-                            Text("日本語").tag("ja_JP")
-                            Text("Français").tag("fr_FR")
-                        }
-                        .pickerStyle(.menu)
-                    }
-
-                    Divider()
-
-                    HStack {
-                        Text("Calendar System").font(.subheadline.bold())
-                        Spacer()
-                        Picker("Calendar", selection: $selectedCalendarId) {
-                            Text("Gregorian").tag("gregorian")
-                            Text("Buddhist (BE)").tag("buddhist")
-                            Text("Japanese (Reiwa)").tag("japanese")
-                            Text("Islamic (Hijri)").tag("islamic")
-                        }
-                        .pickerStyle(.menu)
-                    }
+        VStack(spacing: 0) {
+            // Gradient Header
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Localization & Slots")
+                        .font(.caption.bold())
+                        .foregroundColor(.white.opacity(0.8))
+                        .textCase(.uppercase)
+                    Text(selectedDate.formatted(date: .complete, time: .omitted))
+                        .font(.title3.bold())
+                        .foregroundColor(.white)
                 }
-                .padding(16)
-                .background(Color(uiColor: .secondarySystemGroupedBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.primary.opacity(0.06), lineWidth: 1)
-                )
+                Spacer()
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+            .background(
+                LinearGradient(colors: [.purple, .indigo], startPoint: .topLeading, endPoint: .bottomTrailing)
+            )
+
+            ScrollView {
+                VStack(spacing: 0) {
+                    // Custom Slot Calendar — Full Width
+                    CalendarView(selection: $selectedDate)
+                        .calendarDayCell { state in
+                            CustomCalendarDayCell(state: state)
+                        }
+                        .calendarLocale(currentLocale)
+                        .environment(\.calendar, currentCalendar)
+                        .padding(.vertical, 8)
+
+                    Divider().padding(.horizontal, 20)
+
+                    // Locale & System Selectors
+                    VStack(spacing: 14) {
+                        HStack {
+                            Text("Language & Locale").font(.subheadline.bold())
+                            Spacer()
+                            Picker("Locale", selection: $selectedLocaleId) {
+                                Text("Tiếng Việt").tag("vi_VN")
+                                Text("English").tag("en_US")
+                                Text("日本語").tag("ja_JP")
+                                Text("Français").tag("fr_FR")
+                            }
+                            .pickerStyle(.menu)
+                        }
+
+                        Divider()
+
+                        HStack {
+                            Text("Calendar System").font(.subheadline.bold())
+                            Spacer()
+                            Picker("Calendar", selection: $selectedCalendarId) {
+                                Text("Gregorian").tag("gregorian")
+                                Text("Buddhist (BE)").tag("buddhist")
+                                Text("Japanese (Reiwa)").tag("japanese")
+                                Text("Islamic (Hijri)").tag("islamic")
+                            }
+                            .pickerStyle(.menu)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 16)
+                }
+            }
         }
-        .background(Color(uiColor: .systemGroupedBackground))
+        .background(Color(uiColor: .systemBackground))
         .navigationTitle("Custom & Locales")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
         .tint(.purple)
     }
 }
 
-// MARK: - Custom Day Cell View
+// MARK: - Custom Day Cell
 private struct CustomCalendarDayCell: View {
     let state: CalendarDayState
 

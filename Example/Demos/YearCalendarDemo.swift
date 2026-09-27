@@ -7,20 +7,22 @@ struct YearCalendarDemo: View {
     @State private var yearMode: YearDisplayMode = .full
 
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 0) {
+            // Mode Selector Bar
             Picker("Display Mode", selection: $yearMode) {
-                Text("Full Mode").tag(YearDisplayMode.full)
-                Text("Compact Mode").tag(YearDisplayMode.compact)
+                Text("Full Overview").tag(YearDisplayMode.full)
+                Text("Compact Grid").tag(YearDisplayMode.compact)
             }
             .pickerStyle(.segmented)
-            .padding(.horizontal, 16)
-            .padding(.top, 8)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .background(Color(uiColor: .secondarySystemBackground))
 
+            // 12-Month Year Calendar — Full Bleed
             CalendarView(selection: $selectedDate, displayDate: $displayDate)
                 .calendarViewMode(.year(yearMode))
-                .padding(.bottom, 16)
         }
-        .background(Color(uiColor: .systemGroupedBackground))
+        .background(Color(uiColor: .systemBackground))
         .navigationTitle("Year Overview")
         .navigationBarTitleDisplayMode(.inline)
         .tint(.teal)

@@ -17,114 +17,104 @@ struct BookingRangeDemo: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                // Booking Summary Card
-                HStack(spacing: 12) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Label("Check-In", systemImage: "arrow.down.circle.fill")
-                            .font(.caption.bold())
-                            .foregroundColor(.indigo)
-                        Text(dateRange?.lowerBound.formatted(date: .abbreviated, time: .omitted) ?? "Select date")
-                            .font(.headline)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                    Image(systemName: "arrow.right")
-                        .font(.title3)
-                        .foregroundColor(.secondary)
-
-                    VStack(alignment: .leading, spacing: 4) {
-                        Label("Check-Out", systemImage: "arrow.up.circle.fill")
-                            .font(.caption.bold())
-                            .foregroundColor(.indigo)
-                        Text(dateRange?.upperBound.formatted(date: .abbreviated, time: .omitted) ?? "Select date")
-                            .font(.headline)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
+        VStack(spacing: 0) {
+            // Gradient Booking Header
+            HStack(spacing: 16) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Label("Check-In", systemImage: "arrow.down.circle.fill")
+                        .font(.caption2.bold())
+                        .foregroundColor(.white.opacity(0.8))
+                    Text(dateRange?.lowerBound.formatted(date: .abbreviated, time: .omitted) ?? "Select")
+                        .font(.title3.bold())
+                        .foregroundColor(.white)
                 }
-                .padding(16)
-                .background(Color(uiColor: .secondarySystemGroupedBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.primary.opacity(0.06), lineWidth: 1)
-                )
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-                // Stay Duration Pill
-                if numberOfNights > 0 {
-                    HStack(spacing: 6) {
-                        Image(systemName: "moon.stars.fill")
-                        Text("\(numberOfNights) \(numberOfNights == 1 ? "night" : "nights") duration")
-                            .font(.subheadline.bold())
-                    }
-                    .foregroundColor(.indigo)
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 16)
-                    .background(Color.indigo.opacity(0.12))
-                    .clipShape(Capsule())
+                Image(systemName: "arrow.right")
+                    .font(.body.bold())
+                    .foregroundColor(.white.opacity(0.6))
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Label("Check-Out", systemImage: "arrow.up.circle.fill")
+                        .font(.caption2.bold())
+                        .foregroundColor(.white.opacity(0.8))
+                    Text(dateRange?.upperBound.formatted(date: .abbreviated, time: .omitted) ?? "Select")
+                        .font(.title3.bold())
+                        .foregroundColor(.white)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+            .background(
+                LinearGradient(colors: [.indigo, .purple], startPoint: .topLeading, endPoint: .bottomTrailing)
+            )
 
-                // Calendar Container Card (Evenly distributed)
-                CalendarView(selection: $dateRange)
-                    .calendarDisabledDates { date in
-                        disablePastDates && date < Calendar.current.startOfDay(for: Date())
-                    }
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 12)
-                    .background(Color(uiColor: .secondarySystemGroupedBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color.primary.opacity(0.06), lineWidth: 1)
-                    )
+            // Nights Sub-banner
+            if numberOfNights > 0 {
+                HStack {
+                    Image(systemName: "moon.stars.fill")
+                    Text("\(numberOfNights) \(numberOfNights == 1 ? "night" : "nights") selected")
+                        .font(.subheadline.bold())
+                }
+                .foregroundColor(.indigo)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+                .background(Color.indigo.opacity(0.08))
+            }
 
-                // Presets & Options Card
-                VStack(spacing: 14) {
+            ScrollView {
+                VStack(spacing: 0) {
+                    // Calendar — Full Width
+                    CalendarView(selection: $dateRange)
+                        .calendarDisabledDates { date in
+                            disablePastDates && date < Calendar.current.startOfDay(for: Date())
+                        }
+                        .padding(.vertical, 8)
+
+                    Divider().padding(.horizontal, 20)
+
+                    // Presets
                     HStack(spacing: 10) {
                         Button("Weekend (2N)") { setPreset(days: 2) }
                             .buttonStyle(.bordered)
-                            .font(.caption.bold())
+                            .font(.subheadline.bold())
                             .frame(maxWidth: .infinity)
 
                         Button("1 Week (7N)") { setPreset(days: 7) }
                             .buttonStyle(.bordered)
-                            .font(.caption.bold())
+                            .font(.subheadline.bold())
                             .frame(maxWidth: .infinity)
 
                         Button("Clear") { withAnimation { dateRange = nil } }
                             .buttonStyle(.bordered)
-                            .font(.caption.bold())
+                            .font(.subheadline.bold())
                             .foregroundColor(.red)
                             .frame(maxWidth: .infinity)
                     }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 16)
 
-                    Divider()
+                    Divider().padding(.horizontal, 20)
 
                     Toggle("Disable Past Dates", isOn: $disablePastDates)
                         .font(.subheadline.bold())
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 16)
                 }
-                .padding(16)
-                .background(Color(uiColor: .secondarySystemGroupedBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.primary.opacity(0.06), lineWidth: 1)
-                )
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
         }
-        .background(Color(uiColor: .systemGroupedBackground))
+        .background(Color(uiColor: .systemBackground))
         .navigationTitle("Booking Range")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
         .tint(.indigo)
     }
 
     private func setPreset(days: Int) {
         let start = Calendar.current.startOfDay(for: Date())
         if let end = Calendar.current.date(byAdding: .day, value: days, to: start) {
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
                 dateRange = start...end
             }
         }

@@ -36,78 +36,90 @@ struct EventCalendarDemo: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                // Calendar Container Card (Evenly distributed)
-                CalendarView(selection: $selectedDate, displayDate: $displayDate)
-                    .calendarEvents(sampleEvents)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 12)
-                    .background(Color(uiColor: .secondarySystemGroupedBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color.primary.opacity(0.06), lineWidth: 1)
-                    )
+        VStack(spacing: 0) {
+            // Gradient Header
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Agenda View")
+                        .font(.caption.bold())
+                        .foregroundColor(.white.opacity(0.8))
+                        .textCase(.uppercase)
+                    Text(selectedDate.formatted(date: .complete, time: .omitted))
+                        .font(.title3.bold())
+                        .foregroundColor(.white)
+                }
+                Spacer()
+                Text("\(currentEvents.count) events")
+                    .font(.caption.bold())
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(.white.opacity(0.25))
+                    .clipShape(Capsule())
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+            .background(
+                LinearGradient(colors: [.orange, .red], startPoint: .topLeading, endPoint: .bottomTrailing)
+            )
 
-                // Timeline Agenda Section
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Text("Agenda · \(selectedDate.formatted(date: .abbreviated, time: .omitted))")
-                            .font(.headline)
-                        Spacer()
-                        Text("\(currentEvents.count) items")
+            ScrollView {
+                VStack(spacing: 0) {
+                    // Calendar — Full Width
+                    CalendarView(selection: $selectedDate, displayDate: $displayDate)
+                        .calendarEvents(sampleEvents)
+                        .padding(.vertical, 8)
+
+                    Divider().padding(.horizontal, 20)
+
+                    // Timeline Agenda List
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Day Schedule")
                             .font(.caption.bold())
                             .foregroundColor(.secondary)
-                    }
+                            .textCase(.uppercase)
 
-                    if currentEvents.isEmpty {
-                        VStack(spacing: 6) {
-                            Image(systemName: "calendar.badge.exclamationmark")
-                                .font(.title2)
-                                .foregroundColor(.secondary)
-                            Text("No events scheduled for this day")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 24)
-                    } else {
-                        ForEach(currentEvents) { event in
-                            HStack(spacing: 12) {
-                                RoundedRectangle(cornerRadius: 3)
-                                    .fill(event.color)
-                                    .frame(width: 4, height: 36)
-
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(event.title ?? "Event")
-                                        .font(.subheadline.bold())
-                                    Text("Calendar View Event")
-                                        .font(.caption2)
-                                        .foregroundColor(.secondary)
-                                }
+                        if currentEvents.isEmpty {
+                            HStack {
+                                Spacer()
+                                Text("No events scheduled for this day")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                    .padding(.vertical, 24)
                                 Spacer()
                             }
-                            .padding(14)
-                            .background(Color(uiColor: .tertiarySystemGroupedBackground))
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                        } else {
+                            ForEach(currentEvents) { event in
+                                HStack(spacing: 12) {
+                                    RoundedRectangle(cornerRadius: 3)
+                                        .fill(event.color)
+                                        .frame(width: 4, height: 38)
+
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(event.title ?? "Event")
+                                            .font(.subheadline.bold())
+                                            .foregroundColor(.primary)
+                                        Text("Calendar View Event")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    Spacer()
+                                }
+                                .padding(12)
+                                .background(Color(uiColor: .secondarySystemBackground))
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                            }
                         }
                     }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 16)
                 }
-                .padding(16)
-                .background(Color(uiColor: .secondarySystemGroupedBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.primary.opacity(0.06), lineWidth: 1)
-                )
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
         }
-        .background(Color(uiColor: .systemGroupedBackground))
+        .background(Color(uiColor: .systemBackground))
         .navigationTitle("Event Calendar")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
         .tint(.orange)
     }
 }
