@@ -24,6 +24,8 @@ public struct CalendarView<DayContent: View, HeaderContent: View, WeekdayContent
     private var externalDisplayDate: Binding<Date>?
     @State private var internalDisplayDate: Date
     @State private var horizontalDragOffset: CGFloat = 0
+    @State private var slideDirection: Int = 1
+    @Environment(\.layoutDirection) private var layoutDirection
 
     private let selectedKeySet: Set<Int>
     private let rangeBounds: (startKey: Int?, endKey: Int?)
@@ -122,26 +124,11 @@ public struct CalendarView<DayContent: View, HeaderContent: View, WeekdayContent
                 }
             }
             .padding(.horizontal, 4)
+            .id(matrix.yearMonthKey) // whole page swaps, so cells never slide across rows
+            .transition(slideTransition)
             .offset(x: horizontalDragOffset)
             .contentShape(Rectangle())
-            .gesture(
-                DragGesture(minimumDistance: 15)
-                    .onChanged { value in
-                        horizontalDragOffset = value.translation.width * 0.4
-                    }
-                    .onEnded { value in
-                        let threshold: CGFloat = 50
-                        let predicted = value.predictedEndTranslation.width
-                        if value.translation.width < -threshold || predicted < -threshold * 2 {
-                            navigate(by: 1)
-                        } else if value.translation.width > threshold || predicted > threshold * 2 {
-                            navigate(by: -1)
-                        }
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
-                            horizontalDragOffset = 0
-                        }
-                    }
-            )
+            .gesture(swipeGesture)
         }
     }
 
@@ -262,25 +249,11 @@ public struct CalendarView<DayContent: View, HeaderContent: View, WeekdayContent
                 }
             }
             .padding(.horizontal, 4)
+            .id(days.first?.dateKey ?? 0)
+            .transition(slideTransition)
             .offset(x: horizontalDragOffset)
             .contentShape(Rectangle())
-            .gesture(
-                DragGesture(minimumDistance: 15)
-                    .onChanged { value in
-                        horizontalDragOffset = value.translation.width * 0.4
-                    }
-                    .onEnded { value in
-                        let threshold: CGFloat = 50
-                        if value.translation.width < -threshold {
-                            navigate(by: 1)
-                        } else if value.translation.width > threshold {
-                            navigate(by: -1)
-                        }
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
-                            horizontalDragOffset = 0
-                        }
-                    }
-            )
+            .gesture(swipeGesture)
         }
     }
 
@@ -371,6 +344,38 @@ public struct CalendarView<DayContent: View, HeaderContent: View, WeekdayContent
         return result
     }
 
+    /// Edge-based so the slide follows the layout direction (RTL-safe).
+    private var slideTransition: AnyTransition {
+        let forward = slideDirection > 0
+        return .asymmetric(
+            insertion: .move(edge: forward ? .trailing : .leading),
+            removal: .move(edge: forward ? .leading : .trailing)
+        )
+        .combined(with: .opacity)
+    }
+
+    private var swipeGesture: some Gesture {
+        DragGesture(minimumDistance: 15)
+            .onChanged { value in
+                horizontalDragOffset = value.translation.width * 0.4
+            }
+            .onEnded { value in
+                let threshold: CGFloat = 50
+                // Swiping toward the leading edge means "next" in both LTR and RTL.
+                let sign: CGFloat = layoutDirection == .rightToLeft ? -1 : 1
+                let travel = value.translation.width * sign
+                let predicted = value.predictedEndTranslation.width * sign
+                if travel < -threshold || predicted < -threshold * 2 {
+                    navigate(by: 1)
+                } else if travel > threshold || predicted > threshold * 2 {
+                    navigate(by: -1)
+                }
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
+                    horizontalDragOffset = 0
+                }
+            }
+    }
+
     private func navigate(by value: Int) {
         let component: Calendar.Component
         switch viewMode {
@@ -380,10 +385,15 @@ public struct CalendarView<DayContent: View, HeaderContent: View, WeekdayContent
         case .single: component = .day
         }
         if let newDate = effectiveCalendar.date(byAdding: component, value: value, to: currentDisplayDate.wrappedValue) {
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                currentDisplayDate.wrappedValue = newDate
-            }
+            // Direction must be committed in an earlier render than the date change, otherwise the
+            // outgoing page keeps the stale removal transition and exits on the wrong side.
+            slideDirection = value
             triggerHaptic()
+            Task { @MainActor in
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                    currentDisplayDate.wrappedValue = newDate
+                }
+            }
         }
     }
 

@@ -2,6 +2,12 @@
 
 All notable changes to SwiftUICalendarView will be documented in this file.
 
+## [3.1.1] - 2026-11-05
+
+### Fixed
+- **Month/week swipe animated vertically** — Cells were identified by `dateKey`, so the navigation spring moved shared dates between grid rows. The month grid and week row are now swapped as a single page (`.id` + edge-based `.transition`), sliding horizontally in the swipe direction, interruptible, RTL-aware, with the existing haptic.
+- Week view swipe now also honours predicted end translation (same as month).
+
 ## [3.1.0] - 2026-09-27
 
 ### Major Enhancements & Full-Screen Experience
