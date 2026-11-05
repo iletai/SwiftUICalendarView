@@ -66,7 +66,7 @@ Or add it to your `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/iletai/SwiftUICalendarView.git", from: "3.1.0")
+    .package(url: "https://github.com/iletai/SwiftUICalendarView.git", from: "3.1.1")
 ],
 targets: [
     .target(name: "YourTarget", dependencies: ["CalendarView"])

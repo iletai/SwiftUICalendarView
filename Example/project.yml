@@ -22,7 +22,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.calendarview.example
         GENERATE_INFOPLIST_FILE: YES
         CURRENT_PROJECT_VERSION: 1
-        MARKETING_VERSION: 3.1.0
+        MARKETING_VERSION: 3.1.1
         SWIFT_VERSION: "5.9"
         ENABLE_PREVIEWS: YES
         DEVELOPMENT_TEAM: ""
