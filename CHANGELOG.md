@@ -2,6 +2,11 @@
 
 All notable changes to SwiftUICalendarView will be documented in this file.
 
+## [3.1.2] - 2026-11-05
+
+### Fixed
+- **Swipe gesture fought enclosing vertical `ScrollView`** — The page `DragGesture` had no axis lock, so vertical scrolls starting on the grid jittered the page offset and diagonal drags both scrolled and changed month. The gesture is now attached via `simultaneousGesture` and gated by a `SwipeIntent` axis classifier (horizontal travel must exceed vertical by 1.2x); non-horizontal drags never move or navigate the page.
+
 ## [3.1.1] - 2026-11-05
 
 ### Fixed

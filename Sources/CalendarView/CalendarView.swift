@@ -128,7 +128,7 @@ public struct CalendarView<DayContent: View, HeaderContent: View, WeekdayContent
             .transition(slideTransition)
             .offset(x: horizontalDragOffset)
             .contentShape(Rectangle())
-            .gesture(swipeGesture)
+            .simultaneousGesture(swipeGesture)
         }
     }
 
@@ -253,7 +253,7 @@ public struct CalendarView<DayContent: View, HeaderContent: View, WeekdayContent
             .transition(slideTransition)
             .offset(x: horizontalDragOffset)
             .contentShape(Rectangle())
-            .gesture(swipeGesture)
+            .simultaneousGesture(swipeGesture)
         }
     }
 
@@ -357,9 +357,15 @@ public struct CalendarView<DayContent: View, HeaderContent: View, WeekdayContent
     private var swipeGesture: some Gesture {
         DragGesture(minimumDistance: 15)
             .onChanged { value in
-                horizontalDragOffset = value.translation.width * 0.4
+                // Vertical/diagonal drags belong to an enclosing ScrollView; never move the page for them.
+                let offset = SwipeIntent.isHorizontal(value.translation) ? value.translation.width * 0.4 : 0
+                if horizontalDragOffset != offset { horizontalDragOffset = offset }
             }
             .onEnded { value in
+                guard SwipeIntent.isHorizontal(value.translation) else {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) { horizontalDragOffset = 0 }
+                    return
+                }
                 let threshold: CGFloat = 50
                 // Swiping toward the leading edge means "next" in both LTR and RTL.
                 let sign: CGFloat = layoutDirection == .rightToLeft ? -1 : 1
