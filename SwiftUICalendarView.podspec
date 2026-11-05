@@ -5,7 +5,7 @@ Pod::Spec.new do |s|
     SwiftUICalendarView is a zero-dependency, high-performance declarative calendar library for SwiftUI with 120Hz ProMotion fluidity, multi-mode rendering, and fluid gestures.
                                DESC
 
-  s.version               = '3.1.1'
+  s.version               = '3.1.2'
   s.platform              = :ios
   s.ios.deployment_target = '17.0'
   s.swift_version         = '5.9'
